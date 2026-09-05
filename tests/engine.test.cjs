@@ -221,11 +221,12 @@ test("extra lives appear on floating platforms, collect once, and expire", () =>
   assert.ok(m.pickup);
   assert.ok(PLATFORMS.some((p) => !p.ground && m.pickup.y === p.y - 26));
   position(m.players[0], m.pickup.x, m.pickup.y);
+  m.players[0].lives = 4;
   tick(m);
-  assert.equal(m.players[0].lives, 6);
+  assert.equal(m.players[0].lives, 5);
   assert.equal(m.pickup, null);
   tick(m);
-  assert.equal(m.players[0].lives, 6);
+  assert.equal(m.players[0].lives, 5);
   m.pickup = { x: 900, y: 150, ttl: 0.001 };
   tick(m);
   assert.equal(m.pickup, null);
@@ -320,4 +321,22 @@ test("footsteps alternate while walking, never when stationary or airborne", () 
   p.grounded = false;
   tick(m, 20);
   assert.equal(m.events.filter((e) => e.type === "step").length, 0);
+});
+
+test("full-life riders leave feathers available for injured riders", () => {
+  const m = make();
+  m.pickup = { x: 700, y: 900, ttl: 10 };
+  position(m.players[0], 700, 900);
+  tick(m);
+  assert.equal(m.players[0].lives, 5);
+  assert.ok(m.pickup);
+  assert.equal(m.events.filter((e) => e.type === "life").length, 0);
+  position(m.players[1], 700, 900);
+  m.players[1].lives = 4;
+  m.players[1].invincible = 1;
+  tick(m);
+  assert.equal(m.players[0].lives, 5);
+  assert.equal(m.players[1].lives, 5);
+  assert.equal(m.pickup, null);
+  assert.equal(m.events.filter((e) => e.type === "life").length, 1);
 });

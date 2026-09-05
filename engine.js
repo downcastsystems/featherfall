@@ -47,6 +47,7 @@
     { x: 0, y: 1010, w: 1920, ground: true },
   ];
   const PLATFORM_DEPTH = 35;
+  const MAX_LIVES = 5;
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   const wrapDelta = (a, b) => {
     let d = a - b;
@@ -156,7 +157,7 @@
         vx: 0,
         vy: 0,
         facing: id % 2 ? -1 : 1,
-        lives: 5,
+        lives: MAX_LIVES,
         kills: 0,
         alive: false,
         invincible: 0,
@@ -282,6 +283,7 @@
         for (const p of this.players)
           if (
             p.alive &&
+            p.lives < MAX_LIVES &&
             Math.abs(wrapDelta(p.x, this.pickup.x)) < 28 &&
             Math.abs(p.y - this.pickup.y) < 32
           ) {
