@@ -323,20 +323,21 @@ test("footsteps alternate while walking, never when stationary or airborne", () 
   assert.equal(m.events.filter((e) => e.type === "step").length, 0);
 });
 
-test("full-life riders leave feathers available for injured riders", () => {
+test("full-life riders consume feathers once without gaining a sixth life", () => {
   const m = make();
   m.pickup = { x: 700, y: 900, ttl: 10 };
   position(m.players[0], 700, 900);
-  tick(m);
-  assert.equal(m.players[0].lives, 5);
-  assert.ok(m.pickup);
-  assert.equal(m.events.filter((e) => e.type === "life").length, 0);
   position(m.players[1], 700, 900);
   m.players[1].lives = 4;
   m.players[1].invincible = 1;
   tick(m);
   assert.equal(m.players[0].lives, 5);
-  assert.equal(m.players[1].lives, 5);
+  assert.equal(m.players[1].lives, 4);
   assert.equal(m.pickup, null);
+  const events = m.events.filter((e) => e.type === "life");
+  assert.equal(events.length, 1);
+  assert.equal(events[0].maxReached, true);
+  assert.equal(events[0].id, 0);
+  tick(m);
   assert.equal(m.events.filter((e) => e.type === "life").length, 1);
 });

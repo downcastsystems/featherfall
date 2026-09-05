@@ -18,7 +18,7 @@ Standalone browser game, separate from the parent website. No runtime dependenci
 - Identical physics for all characters. Character data is independent from physics.
 - New controllers can join in the lobby. The match roster is locked until the next lobby.
 - Tied-height collisions bounce. Protected riders cannot kill or be killed.
-- No terrain hazards: touching the ground is safe. Lives are capped at five. Full-life riders cannot consume extra-life pickups.
+- No terrain hazards: touching the ground is safe. Lives are capped at five. Full-life riders can consume extra-life pickups and receive a “MAX LIVES REACHED” message.
 - Windows hardware verification is deferred to the user; simulate gamepad input during development.
 
 ## Solid platform update

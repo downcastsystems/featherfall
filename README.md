@@ -61,7 +61,7 @@ The game uses the browser's [standard gamepad mapping](https://developer.mozilla
 - When birds touch, the higher rider wins. Nearly equal heights bounce apart.
 - Each death costs one life and releases a burst of feathers. Riders with lives left respawn after 2.6 seconds on a floating platform chosen to maximize distance from living riders, including distance across the screen seam.
 - Respawns have two seconds of sparkling protection. Protected riders cannot kill or be killed.
-- A golden feather appears on an island after 18–26 seconds and periodically afterward. It restores one life, up to a maximum of five. Riders already at five lives leave it available for someone else. It disappears after 15 seconds if unclaimed. It flashes before expiring.
+- A golden feather appears on an island after 18–26 seconds and periodically afterward. It restores one life, up to a maximum of five. Riders already at five lives can still collect it; they see “MAX LIVES REACHED” and stay at five. It disappears after 15 seconds if unclaimed. It flashes before expiring.
 - Free for all ends when one rider has lives remaining, including riders awaiting respawn.
 - Teams use Sun and Moon sides, with no friendly fire. Each side needs at least one participant; 2v2 and uneven teams are supported. The last team with lives remaining wins.
 - Bots use the same physics and life rules. They are practice opponents, not a tuned difficulty system.

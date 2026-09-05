@@ -283,12 +283,18 @@
         for (const p of this.players)
           if (
             p.alive &&
-            p.lives < MAX_LIVES &&
             Math.abs(wrapDelta(p.x, this.pickup.x)) < 28 &&
             Math.abs(p.y - this.pickup.y) < 32
           ) {
-            p.lives++;
-            this.events.push({ type: "life", x: p.x, y: p.y, id: p.id });
+            const maxReached = p.lives >= MAX_LIVES;
+            p.lives = Math.min(MAX_LIVES, p.lives + 1);
+            this.events.push({
+              type: "life",
+              x: p.x,
+              y: p.y,
+              id: p.id,
+              maxReached,
+            });
             this.pickup = null;
             break;
           }

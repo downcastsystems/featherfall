@@ -4,7 +4,7 @@ Verified on macOS, September 5, 2026.
 
 ## Automated
 
-`npm test`: 32 passing tests.
+`npm test`: 33 passing tests.
 
 - Five lives; distinct floating spawns; furthest available spawn selection across the wrap seam.
 - Height-based knockouts, tied-height bounce, single life debit, wraparound combat.
@@ -52,4 +52,4 @@ Sound defaults on after user activation. Added a reusable procedural audio modul
 
 ## Five-life limit
 
-Extra-life pickups only restore riders below five lives. Regression checks cover four-to-five restoration, full-life riders leaving a pickup untouched, and an injured rider collecting it while a full-life rider overlaps it.
+Extra-life pickups restore riders below five lives. Full-life riders also collect them, but remain at five and see “MAX LIVES REACHED”. Regression checks cover four-to-five restoration, full-life pickup consumption, single consumption with overlapping riders, and the correct on-screen message for both cases.

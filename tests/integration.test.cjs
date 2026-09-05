@@ -241,3 +241,24 @@ test("blur releases keyboard input and freezes the simulation", () => {
   f.advance(0.1);
   assert.ok(f.match.players[0].vx < speed);
 });
+
+test("golden feather announces the cap or restored life accurately", () => {
+  for (const lives of [4, 5]) {
+    const f = fixture();
+    f.press("Enter");
+    f.press("Digit1");
+    f.press("Digit2");
+    f.press("Enter");
+    f.advance(3.2);
+    const player = f.match.players[0];
+    player.lives = lives;
+    f.match.pickup = { x: player.x, y: player.y, ttl: 10 };
+    f.advance();
+    assert.equal(player.lives, 5);
+    assert.equal(f.match.pickup, null);
+    assert.equal(
+      f.element("announcement").textContent,
+      lives === 5 ? "EMBER MAX LIVES REACHED" : "EMBER +1 LIFE",
+    );
+  }
+});

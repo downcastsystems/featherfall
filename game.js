@@ -509,7 +509,9 @@
       }
       if (event.type === "life") {
         burst(event.x, event.y, "#ffe6a0", 24);
-        announce(`${birds[match.players[event.id].character].name} +1 LIFE`);
+        announce(
+          `${birds[match.players[event.id].character].name} ${event.maxReached ? "MAX LIVES REACHED" : "+1 LIFE"}`,
+        );
         tone(660, 0.35, "triangle", 0.07, 1320);
       }
       if (event.type === "pickup") {
