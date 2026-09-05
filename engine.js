@@ -118,7 +118,7 @@
       remaining *= 1 - hit.time;
       if (hit.side) {
         p.x = p.vx > 0 ? hit.left - 0.01 : hit.right + 0.01;
-        p.vx *= -0.6;
+        p.vx *= -1.1;
         events.push({ type: "bump", id: p.id, x: p.x, y: p.y });
       } else if (p.vy < 0) {
         p.y = hit.bottom + 0.01;

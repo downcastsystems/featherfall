@@ -56,7 +56,7 @@ The game uses the browser's [standard gamepad mapping](https://developer.mozilla
 
 - Four original color schemes: Ember, Mint, Iris, Sol. All physics and abilities are identical.
 - Flapping requires fresh button presses. Holding the button does not repeatedly flap.
-- Walk on ground and islands. Platforms are solid: land on top, bump down when hitting underneath, or rebound sideways at 60% of your incoming horizontal speed. Underside bumps are deliberately small. The solid body is 35 pixels thick; hanging vines and rock tips are decorative.
+- Walk on ground and islands. Platforms are solid: land on top, bump down when hitting underneath, or rebound sideways at 110% of your incoming horizontal speed. Underside bumps are deliberately small. The solid body is 35 pixels thick; hanging vines and rock tips are decorative.
 - Flying through one side of the screen brings you out on the other. The ground is safe.
 - When birds touch, the higher rider wins. Nearly equal heights bounce apart.
 - Each death costs one life and releases a burst of feathers. Riders with lives left respawn after 2.6 seconds on a floating platform chosen to maximize distance from living riders, including distance across the screen seam.

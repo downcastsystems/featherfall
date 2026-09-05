@@ -164,7 +164,7 @@ test("both platform sides rebound in proportion to impact speed", () => {
       tick(m);
       assert.ok(direction * p.vx < 0);
       assert.ok(
-        Math.abs(Math.abs(p.vx) - speed * Math.exp(-1.2 / 120) * 0.6) < 0.001,
+        Math.abs(Math.abs(p.vx) - speed * Math.exp(-1.2 / 120) * 1.1) < 0.001,
       );
       assert.ok(direction === 1 ? p.x < 130 : p.x > 390);
       assert.equal(p.lives, 5);
