@@ -4,7 +4,7 @@ Verified on macOS, September 5, 2026.
 
 ## Automated
 
-`npm test`: 33 passing tests.
+`npm test`: 35 passing tests.
 
 - Five lives; distinct floating spawns; furthest available spawn selection across the wrap seam.
 - Height-based knockouts, tied-height bounce, single life debit, wraparound combat.
@@ -53,3 +53,7 @@ Sound defaults on after user activation. Added a reusable procedural audio modul
 ## Five-life limit
 
 Extra-life pickups restore riders below five lives. Full-life riders also collect them, but remain at five and see “MAX LIVES REACHED”. Regression checks cover four-to-five restoration, full-life pickup consumption, single consumption with overlapping riders, and the correct on-screen message for both cases.
+
+## Respawn audio
+
+A rising four-note square-wave arpeggio and soft octave shimmer play with the respawn sparkles. Tests verify ascending notes, a 0.6-second duration, mute behavior, and exactly one cue after the respawn delay rather than at death or the initial countdown.

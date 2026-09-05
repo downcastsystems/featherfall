@@ -56,9 +56,16 @@ function fixture() {
       latest = this;
     }
   }
+  const soundEvents = [];
+  class RecordedAudio extends require("../audio.js") {
+    play(kind, variant) {
+      soundEvents.push(kind);
+      super.play(kind, variant);
+    }
+  }
   const sandbox = {
     Featherfall: { ...Engine, Match },
-    ArcadeAudio: require("../audio.js"),
+    ArcadeAudio: RecordedAudio,
     document,
     window: {},
     innerWidth: 1280,
@@ -105,6 +112,7 @@ function fixture() {
     advance();
   }
   return {
+    soundEvents,
     element,
     advance,
     key,
@@ -261,4 +269,23 @@ test("golden feather announces the cap or restored life accurately", () => {
       lives === 5 ? "EMBER MAX LIVES REACHED" : "EMBER +1 LIFE",
     );
   }
+});
+
+test("rebirth sound fires once at respawn, after the death delay", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  f.advance(3.2);
+  assert.equal(f.soundEvents.filter((k) => k === "spawn").length, 0);
+  f.match.players[0].invincible = 0;
+  f.match.kill(f.match.players[0]);
+  f.advance(2.4);
+  assert.equal(f.soundEvents.filter((k) => k === "death").length, 1);
+  assert.equal(f.soundEvents.filter((k) => k === "spawn").length, 0);
+  f.advance(0.3);
+  assert.equal(f.soundEvents.filter((k) => k === "spawn").length, 1);
+  f.advance(0.3);
+  assert.equal(f.soundEvents.filter((k) => k === "spawn").length, 1);
 });

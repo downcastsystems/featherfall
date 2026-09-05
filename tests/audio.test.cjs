@@ -133,3 +133,22 @@ test("blocked or unavailable browser audio is recoverable without crashing", () 
   assert.equal(unavailable.enabled, false);
   unavailable.play("death");
 });
+
+test("respawn plays a rising chime with a short shimmer and obeys mute", () => {
+  const { audio, nodes } = fixture();
+  audio.unlock();
+  audio.play("spawn");
+  const notes = nodes.filter((n) => n.kind === "tone");
+  assert.equal(notes.length, 5);
+  for (let i = 1; i < notes.length; i++) {
+    assert.ok(
+      notes[i].frequency.values[0][0] > notes[i - 1].frequency.values[0][0],
+    );
+    assert.ok(notes[i].started > notes[i - 1].started);
+  }
+  assert.ok(Math.max(...notes.map((n) => n.stopped)) - notes[0].started < 0.65);
+  audio.toggle();
+  const count = nodes.length;
+  audio.play("spawn");
+  assert.equal(nodes.length, count);
+});

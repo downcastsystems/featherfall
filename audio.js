@@ -116,6 +116,19 @@
         this.hiss(0.055, 0.07, 1300);
       } else if (kind === "step") {
         this.tone(variant % 2 ? 145 : 185, 0.04, "square", 0.07, 65);
+      } else if (kind === "spawn") {
+        // A rising major arpeggio, ending in a soft octave shimmer.
+        [523.25, 659.25, 783.99, 1046.5].forEach((pitch, i) => {
+          this.tone(
+            pitch,
+            i === 3 ? 0.3 : 0.14,
+            "square",
+            0.08,
+            pitch,
+            i * 0.1,
+          );
+        });
+        this.tone(2093, 0.28, "triangle", 0.045, 2093, 0.32);
       } else if (kind === "death") {
         this.hiss(0.38, 0.32, 2400);
         this.tone(170, 0.28, "sawtooth", 0.2, 25);

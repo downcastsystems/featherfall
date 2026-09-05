@@ -493,7 +493,10 @@
         burst(event.x, event.y, "#eee7d3", 10);
         sound.play("death");
       }
-      if (event.type === "spawn") burst(event.x, event.y, "#fff1c8", 16, 0.4);
+      if (event.type === "spawn") {
+        burst(event.x, event.y, "#fff1c8", 16, 0.4);
+        sound.play("spawn");
+      }
       if (event.type === "flap") {
         burst(event.x, event.y + 8, color, 2, 0.15);
         sound.play("flap");
