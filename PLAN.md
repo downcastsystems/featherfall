@@ -6,7 +6,7 @@ Standalone browser game, separate from the parent website. No runtime dependenci
 
 - Start → character lobby → 2–4 players → countdown → match → winner → rematch.
 - Four equal selectable riders, keyboard seats, hot-plug standard gamepads, optional bots.
-- Flap requires fresh presses. Walking, gravity, solid platforms, wraparound, height-based combat.
+- Flap accepts fresh presses or a steady held-button cadence. Walking, gravity, solid platforms, wraparound, height-based combat.
 - Five lives, feather deaths, delayed distant platform respawns, visible spawn protection, platform extra lives.
 - FFA or two teams, no friendly fire, correct winner when respawns are pending.
 - Fullscreen, pause, focus-loss pause, controller-disconnect pause, sound toggle.
@@ -28,3 +28,20 @@ Use swept body collisions against the 35-pixel platform body. Preserve landing a
 ## Arcade sound update
 
 Enable audio on first user interaction, with a visible browser-unlock fallback. Add distinct flap, walking and feather-death sounds with bounded duration and muted voice suppression. Keep the sound control available in the HUD. Verify event timing and audio lifecycle alongside existing gameplay tests.
+
+## Movement, controller and pixel-art update
+
+- Tap or hold A to flap; held flaps repeat every 0.22 seconds. Down dives straight down, up to 850 px/s, only in the air.
+- X boosts horizontally for 0.32 seconds at 650 px/s. Recharge takes 3.5 seconds of living gameplay after the burst. Start with a full meter; death does not refill it. Airborne dive takes precedence over boosting; holding down suppresses flap even when landing.
+- Keyboard defaults: P1 A/D, W flap, S dive, E boost; P2 arrows, right Shift boost; P3 J/L, I flap, K dive, O boost; P4 F/H, T flap, G dive, Y boost.
+- Controller menus: up/down focus, A select, B back; Start remains join/ready/pause. Character lobby retains per-player cursors, duplicate characters, and optional shortcuts for team/mode.
+- Four mounts share the existing 20x33 terrain body and identical combat bounds. Dragon, jay, pegasus and pterodactyl silhouettes vary only visually.
+- Bundle the OFL Silkscreen pixel font for all DOM and canvas text; no online font requirement.
+- Orange Sun / cyan Moon team bands, badges and arena markers. Player-specific messages always use NAME (Pn).
+- Verify dive/platform/collision behavior; boost recharge and edge presses; held flap input; menus and duplicate selection; identity messages; same hitboxes; browser visual checks at the available 1280x720 viewport.
+- Prepare and test changes in /tmp/featherfall-next, then sync the verified changes into /Users/dhaynes/Workspace/DowncastSystems/featherfall. Preserve the existing Git history and current localhost entry point.
+
+
+### Update verification
+
+Complete: 49 automated tests and syntax checks pass. Browser checks cover all screens and a completed match. Reviewed input edges, simultaneous dive/flap landing, boost collision/recharge, independent character choices, names, and offline fonts. Hardware limitations are recorded in QA.md.

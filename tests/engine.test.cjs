@@ -341,3 +341,102 @@ test("full-life riders consume feathers once without gaining a sixth life", () =
   tick(m);
   assert.equal(m.events.filter((e) => e.type === "life").length, 1);
 });
+
+test("dive drops straight down, defeats a rider below, and stops on solid tops", () => {
+  const m = make(),
+    p = m.players[0],
+    rival = m.players[1];
+  position(p, 700, 850);
+  p.grounded = false;
+  p.vx = 300;
+  position(rival, 700, 920);
+  rival.grounded = false;
+  tick(m, 1, [{ dive: true, move: 1, flap: true, boost: true }]);
+  assert.equal(p.vx, 0);
+  assert.ok(p.vy > 580);
+  assert.equal(p.boostCharge, 1);
+  tick(m, 20, [{ dive: true }]);
+  assert.equal(rival.lives, 4);
+  position(p, 200, 170);
+  p.grounded = false;
+  tick(m, 30, [{ dive: true, flapHeld: true }]);
+  assert.equal(p.y, 243);
+  assert.equal(p.grounded, true);
+});
+
+test("boost is directional, recharges after use, and does not refill on death", () => {
+  const m = make(),
+    p = m.players[0];
+  position(p, 700, 900);
+  p.grounded = false;
+  tick(m, 1, [{ boost: true, move: -1 }]);
+  assert.equal(p.vx, -650);
+  assert.equal(p.boostCharge, 0);
+  tick(m, 20, [{ boost: true }]);
+  assert.equal(m.events.filter((e) => e.type === "boost").length, 1);
+  tick(m, 240);
+  assert.ok(p.boostCharge > 0 && p.boostCharge < 1);
+  const charge = p.boostCharge;
+  m.kill(p);
+  tick(m, 300);
+  assert.equal(p.boostCharge, charge);
+  tick(m, 14);
+  assert.equal(p.alive, true);
+  assert.ok(p.boostCharge < 1);
+  tick(m, 210);
+  assert.equal(p.boostCharge, 1);
+});
+
+test("boost rebounds at full speed from solid sides without tunneling", () => {
+  for (const direction of [-1, 1]) {
+    const m = make(),
+      p = m.players[0];
+    position(p, direction === 1 ? 128 : 392, 275);
+    p.grounded = false;
+    tick(m, 1, [{ boost: true, move: direction }]);
+    assert.ok(Math.abs(p.vx + direction * 715) < 1e-8);
+    assert.ok(direction === 1 ? p.x < 130 : p.x > 390);
+    tick(m, 1, [{ move: direction }]);
+    assert.ok(
+      Math.abs(p.vx + direction * 715) < 1e-8,
+      "boost must not reset rebound velocity",
+    );
+  }
+});
+
+test("mount appearances share exactly the same movement and collision rules", () => {
+  const results = [];
+  for (let character = 0; character < 4; character++) {
+    const m = make(),
+      p = m.players[0];
+    p.character = character;
+    position(p, 200, 313);
+    p.grounded = false;
+    p.vy = -360;
+    tick(m);
+    results.push([p.x, p.y, p.vx, p.vy, p.lives]);
+  }
+  results.forEach((r) => assert.deepEqual(r, results[0]));
+  assert.equal(
+    new Set(require("../engine.js").CHARACTERS.map((c) => c.mount)).size,
+    4,
+  );
+});
+
+test("vertical stick and d-pad expose navigation and dive; X boost is edge-triggered", () => {
+  const pad = {
+    axes: [0, 0.8],
+    buttons: Array.from({ length: 16 }, () => ({ pressed: false })),
+  };
+  assert.equal(gamepadState(pad).dive, true);
+  assert.equal(gamepadState(pad).down, true);
+  pad.axes[1] = -0.8;
+  assert.equal(gamepadState(pad).up, true);
+  pad.axes[1] = 0;
+  pad.buttons[13].pressed = true;
+  pad.buttons[2].pressed = true;
+  const state = gamepadState(pad);
+  assert.equal(state.dive, true);
+  assert.equal(edges(state).boost, true);
+  assert.equal(edges(state, state).boost, false);
+});

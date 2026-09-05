@@ -21,14 +21,14 @@
           href="#"
           id="home-link"
           aria-label="Featherfall home"
-          ><span class="brand-icon">↟</span> DOWNCAST SYSTEMS
+          ><span class="brand-icon">*</span> DOWNCAST SYSTEMS
           <span class="divider">/</span> FEATHERFALL</a
         >
         <div class="utilities">
           <span id="controller-status">LOCAL MULTIPLAYER</span
           ><button id="sound" aria-label="Mute sound">SOUND ON</button
           ><button id="fullscreen" aria-label="Toggle fullscreen">
-            ⛶ <span>FULLSCREEN</span>
+            [ ] <span>FULLSCREEN</span>
           </button>
         </div>
       </header>
@@ -36,18 +36,18 @@
         <div class="eyebrow">
           <span></span> A DOWNCAST SYSTEMS GAME <span></span>
         </div>
-        <h1>FEATHER<span>FALL</span><i>✦</i></h1>
-        <p class="tagline">Small birds. Big grudges.</p>
+        <h1>FEATHER<span>FALL</span><i>*</i></h1>
+        <p class="tagline">Small riders. Big grudges.</p>
         <p class="intro">
-          Take to the skies. Claim the high ground.<br />Be the last bird
+          Take to the skies. Claim the high ground.<br />Be the last rider
           standing.
         </p>
-        <button id="start" class="primary">START <span>↗</span></button>
+        <button id="start" class="primary">START <span>&gt;</span></button>
         <div class="start-hint">
-          PRESS ENTER <span>OR</span> CONTROLLER START
+          PRESS ENTER <span>OR</span> CONTROLLER A / START
         </div>
         <div class="menu-specs">
-          <span>2–4 PLAYERS</span><b>✦</b><span>5 LIVES</span><b>✦</b
+          <span>2–4 PLAYERS</span><b>*</b><span>5 LIVES</span><b>*</b
           ><span>ONE BIG SKY</span>
         </div>
       </section>
@@ -59,11 +59,11 @@
           </div>
           <div class="mode-control">
             <span>MATCH TYPE <small>Y ON CONTROLLER</small></span
-            ><button id="mode">FREE FOR ALL <span>⇄</span></button>
+            ><button id="mode">FREE FOR ALL <span>&lt;&gt;</span></button>
           </div>
         </div>
         <p class="lobby-intro">
-          Pick a rider. Every bird flies equal. The higher rider wins the clash.
+          Pick any mount, even the same one. Equal hitboxes. Equal flight.
         </p>
         <div id="seats" class="seats"></div>
         <div class="lobby-bottom">
@@ -74,15 +74,15 @@
           <div class="launch-area">
             <p id="lobby-message" role="status"></p>
             <button id="launch" class="primary">
-              TAKE FLIGHT <span>↗</span>
+              TAKE FLIGHT <span>&gt;</span>
             </button>
           </div>
         </div>
         <div class="control-guide">
-          <span><b>MOVE</b> ← → / LEFT STICK</span
-          ><span><b>FLAP</b> TAP YOUR FLAP KEY / A</span
-          ><span><b>JOIN / READY</b> START</span
-          ><span><b>LEAVE</b> B IN LOBBY</span>
+          <span><b>MOVE</b> LEFT/RIGHT · STICK OR D-PAD</span
+          ><span><b>FLAP</b> TAP OR HOLD A</span
+          ><span><b>DIVE / BOOST</b> DOWN / X</span
+          ><span><b>LEAVE</b> B BACK / LEAVE</span>
         </div>
       </section>
       <section id="hud" hidden aria-label="Match status">
@@ -91,24 +91,24 @@
           <span id="match-mode">FREE FOR ALL</span
           ><strong id="match-time">00:00</strong
           ><button id="sound-play" aria-label="Mute sound">SOUND ON</button>
-          <button id="pause-button">Ⅱ PAUSE</button>
+          <button id="pause-button">II PAUSE</button>
         </div>
         <div class="arena-caption">
           <span>THE HOLLOW SKY</span
-          ><span
-            >LAND ABOVE A RIVAL TO WIN THE CLASH · TAP TO FLAP · ESC TO
-            PAUSE</span
-          >
+          ><span>A TAP/HOLD FLAP · DOWN DIVE · X BOOST · START PAUSE</span>
         </div>
       </section>
       <div id="announcement" aria-live="polite"></div>
       <section id="pause" class="modal" hidden>
         <div class="modal-box">
           <div class="eyebrow">HOLD THAT ALTITUDE</div>
-          <h2>Taking a breather.</h2>
+          <h2>PAUSED</h2>
           <p id="pause-reason">The sky can wait.</p>
-          <button id="resume" class="primary">RESUME <span>↗</span></button
+          <button id="resume" class="primary">RESUME <span>&gt;</span></button
+          ><button id="pause-sound" class="secondary">SOUND ON</button
+          ><button id="pause-fullscreen" class="secondary">FULLSCREEN</button
           ><button id="quit" class="secondary">RETURN TO LOBBY</button>
+          <p class="small-hint">UP/DOWN CHOOSE · A SELECT · B RESUME</p>
         </div>
       </section>
       <section id="results" class="modal" hidden>
@@ -118,16 +118,17 @@
           <h2 id="winner-title"></h2>
           <p id="winner-subtitle"></p>
           <div id="scoreboard"></div>
-          <button id="rematch" class="primary">FLY AGAIN <span>↗</span></button
+          <button id="rematch" class="primary">
+            FLY AGAIN <span>&gt;</span></button
           ><button id="change-players" class="secondary">CHANGE PLAYERS</button>
-          <p class="small-hint">ENTER / START TO REMATCH · B FOR LOBBY</p>
+          <p class="small-hint">UP/DOWN CHOOSE · A SELECT · B LOBBY</p>
         </div>
       </section>
       <footer id="footer">
         <span
           ><i class="status-dot"></i> MAC + WINDOWS · KEYBOARD + GAMEPAD</span
         ><span>VOL. 01 <b> / </b> THE HOLLOW SKY</span
-        ><span>PROTOTYPE 0.1</span>
+        ><span>PROTOTYPE 0.2</span>
       </footer>
     </main>
     <script src="engine.js"></script>

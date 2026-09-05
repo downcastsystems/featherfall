@@ -6,7 +6,8 @@
   const CHARACTERS = [
     {
       name: "EMBER",
-      bird: "Firefinch",
+      bird: "Cinder dragon",
+      mount: "dragon",
       color: "#ff9064",
       dark: "#b74943",
       light: "#ffe1aa",
@@ -14,20 +15,23 @@
     {
       name: "MINT",
       bird: "Jade jay",
+      mount: "bird",
       color: "#77e8ba",
       dark: "#2e8d89",
       light: "#e0ffd7",
     },
     {
       name: "IRIS",
-      bird: "Moon swift",
+      bird: "Moon pegasus",
+      mount: "pegasus",
       color: "#b9a1ff",
       dark: "#7063ba",
       light: "#ece0ff",
     },
     {
       name: "SOL",
-      bird: "Golden kite",
+      bird: "Sun pterodactyl",
+      mount: "pterodactyl",
       color: "#f8d66d",
       dark: "#b98746",
       light: "#fff4bf",
@@ -48,6 +52,14 @@
   ];
   const PLATFORM_DEPTH = 35;
   const MAX_LIVES = 5;
+  const FLAP_INTERVAL = 0.22,
+    BOOST_RECHARGE = 3.5,
+    BOOST_DURATION = 0.32;
+  const BODY = Object.freeze({ halfWidth: 10, head: 21, feet: 12 });
+  const TEAMS = [
+    { name: "SUN", color: "#ff8a32", dark: "#49251e" },
+    { name: "MOON", color: "#29dbff", dark: "#143b53" },
+  ];
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   const wrapDelta = (a, b) => {
     let d = a - b;
@@ -81,10 +93,12 @@
         dy = p.vy * remaining;
       let hit = null;
       for (const platform of PLATFORMS) {
-        const left = platform.ground ? -Infinity : platform.x - 10;
-        const right = platform.ground ? Infinity : platform.x + platform.w + 10;
-        const top = platform.y - 12,
-          bottom = platform.y + PLATFORM_DEPTH + 21;
+        const left = platform.ground ? -Infinity : platform.x - BODY.halfWidth;
+        const right = platform.ground
+          ? Infinity
+          : platform.x + platform.w + BODY.halfWidth;
+        const top = platform.y - BODY.feet,
+          bottom = platform.y + PLATFORM_DEPTH + BODY.head;
         const slab = (origin, delta, min, max) => {
           if (delta === 0)
             return origin > min && origin < max ? [-Infinity, Infinity] : null;
@@ -158,6 +172,7 @@
         vy: 0,
         facing: id % 2 ? -1 : 1,
         lives: MAX_LIVES,
+        boostCharge: 1,
         kills: 0,
         alive: false,
         invincible: 0,
@@ -178,8 +193,13 @@
         grounded: true,
         respawn: 0,
         clash: 0,
+        flapCooldown: 0,
+        boostTime: 0,
+        boosting: false,
+        diving: false,
         walkDistance: 0,
         foot: 0,
+        wasDiving: false,
         botExit: null,
         botClimb: null,
         botDive: false,
@@ -219,17 +239,44 @@
         p.clash = Math.max(0, p.clash - dt);
         const input = inputs[p.id] || {},
           move = clamp(input.move || 0, -1, 1);
-        p.vx += move * (p.grounded ? 1150 : 750) * dt;
-        p.vx *= Math.exp(-(move ? 1.5 : p.grounded ? 8 : 1.2) * dt);
-        p.vx = clamp(p.vx, -330, 330);
-        if (move) p.facing = Math.sign(move);
-        if (input.flap) {
-          p.vy = Math.max(-380, p.vy - 205);
-          p.grounded = false;
-          p.flapTimer = 0.16;
-          this.events.push({ type: "flap", id: p.id, x: p.x, y: p.y });
+        p.flapCooldown = Math.max(0, p.flapCooldown - dt);
+        p.boostTime = Math.max(0, p.boostTime - dt);
+        if (!p.boostTime)
+          p.boostCharge = Math.min(1, p.boostCharge + dt / BOOST_RECHARGE);
+        p.diving = !!input.dive && !p.grounded;
+        if (p.diving) {
+          if (!p.wasDiving)
+            this.events.push({ type: "dive", id: p.id, x: p.x, y: p.y });
+          p.vx = 0;
+          p.boostTime = 0;
+          p.vy = Math.min(850, Math.max(580, p.vy) + 1500 * dt);
+        } else {
+          if (move && !p.boostTime) p.facing = Math.sign(move);
+          if (input.boost && p.boostCharge >= 1 && !p.boostTime) {
+            p.boostCharge = 0;
+            p.boostTime = BOOST_DURATION;
+            p.vx = p.facing * 650;
+            this.events.push({ type: "boost", id: p.id, x: p.x, y: p.y });
+          }
+          if (!p.boostTime) {
+            p.vx += move * (p.grounded ? 1150 : 750) * dt;
+            p.vx *= Math.exp(-(move ? 1.5 : p.grounded ? 8 : 1.2) * dt);
+            p.vx = clamp(p.vx, -330, 330);
+          }
+          if (
+            !input.dive &&
+            (input.flap || (input.flapHeld && p.flapCooldown <= 0))
+          ) {
+            p.vy = Math.max(-380, p.vy - 205);
+            p.grounded = false;
+            p.flapTimer = 0.12;
+            p.flapCooldown = FLAP_INTERVAL;
+            this.events.push({ type: "flap", id: p.id, x: p.x, y: p.y });
+          }
+          p.vy = Math.min(520, p.vy + 650 * dt);
         }
-        p.vy = Math.min(520, p.vy + 650 * dt);
+        p.wasDiving = p.diving;
+        p.boosting = p.boostTime > 0;
         const oldX = p.x;
         moveAgainstPlatforms(p, dt, this.events);
         if (p.grounded && Math.abs(p.vx) > 35) {
@@ -403,6 +450,10 @@
       back: pressed(1) || pressed(8),
       start: pressed(9),
       team: pressed(2),
+      boost: pressed(2),
+      up: pressed(12) || (pad?.axes?.[1] || 0) < -0.55,
+      down: pressed(13) || (pad?.axes?.[1] || 0) > 0.55,
+      dive: pressed(13) || (pad?.axes?.[1] || 0) > 0.55,
       mode: pressed(3),
     };
   }
@@ -418,6 +469,11 @@
     W,
     H,
     CHARACTERS,
+    BODY,
+    TEAMS,
+    BOOST_RECHARGE,
+    BOOST_DURATION,
+    FLAP_INTERVAL,
     PLATFORMS,
     PLATFORM_DEPTH,
     Match,

@@ -30,7 +30,10 @@ function fixture() {
         innerHTML: "",
         disabled: false,
         focus() {},
-        setAttribute() {},
+        attributes: {},
+        setAttribute(key, value) {
+          this.attributes[key] = value;
+        },
         getContext: () => context,
         addEventListener(type, fn) {
           this[type] = fn;
@@ -177,7 +180,7 @@ test("keyboard menu, two players, fresh-press flaps, pause and rematch", () => {
   m.players[1].lives = 0;
   f.advance(1.7);
   assert.equal(f.element("results").hidden, false);
-  assert.match(f.element("winner-title").textContent, /takes the sky/);
+  assert.match(f.element("winner-title").textContent, /EMBER \(P1\) wins!/);
   f.press("Enter");
   assert.notEqual(f.match, m);
   assert.ok(f.match.players.every((p) => p.lives === 5));
@@ -188,7 +191,7 @@ test("four gamepads join, select, ready, flap, disconnect, reconnect and leave",
   f.button(pads[0], 9);
   for (const p of pads.slice(1)) f.button(p, 9);
   assert.match(f.element("seats").innerHTML, /CONTROLLER 4/);
-  // Occupied characters swap rather than locking the picker with four seats.
+  // Duplicate picks leave every other player alone.
   pads[0].axes[0] = 1;
   f.advance();
   pads[0].axes[0] = 0;
@@ -197,7 +200,7 @@ test("four gamepads join, select, ready, flap, disconnect, reconnect and leave",
   f.advance(3.2);
   assert.equal(f.match.players.length, 4);
   assert.equal(f.match.players[0].character, 1);
-  assert.equal(f.match.players[1].character, 0);
+  assert.equal(f.match.players[1].character, 1);
   const before = f.match.players[0].y;
   f.button(pads[0], 0);
   assert.ok(f.match.players[0].y < before);
@@ -269,7 +272,7 @@ test("golden feather announces the cap or restored life accurately", () => {
     assert.equal(f.match.pickup, null);
     assert.equal(
       f.element("announcement").textContent,
-      lives === 5 ? "EMBER MAX LIVES REACHED" : "EMBER +1 LIFE",
+      lives === 5 ? "EMBER (P1) MAX LIVES REACHED" : "EMBER (P1) +1 LIFE",
     );
   }
 });
@@ -350,4 +353,149 @@ test("flap sound follows the selected character rather than the keyboard seat", 
     flaps.map((call) => call.variant),
     Array.from(f.match.players, (p) => p.character),
   );
+});
+
+test("holding keyboard flap repeats at a steady cadence and releasing stops it", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  f.advance(3.2);
+  f.key("KeyW");
+  f.advance(0.72);
+  assert.equal(
+    f.soundCalls.filter((s) => s.kind === "flap" && s.variant === 0).length,
+    4,
+  );
+  f.release("KeyW");
+  f.advance(0.5);
+  assert.equal(
+    f.soundCalls.filter((s) => s.kind === "flap" && s.variant === 0).length,
+    4,
+  );
+});
+
+test("keyboard dive, boost meter, cooldown, and pause share the real input path", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  f.advance(3.2);
+  const p = f.match.players[0];
+  Object.assign(p, { x: 700, y: 850, grounded: false, vx: 100, vy: 0 });
+  f.key("KeyS");
+  f.advance();
+  assert.equal(p.vx, 0);
+  assert.ok(p.vy > 580);
+  f.release("KeyS");
+  f.key("KeyE");
+  f.advance();
+  assert.equal(p.boostCharge, 0);
+  assert.equal(Math.abs(p.vx), 650);
+  f.advance(0.2);
+  assert.match(f.element("players-hud").innerHTML, /role="progressbar"/);
+  f.press("Escape");
+  const charge = p.boostCharge;
+  f.advance(5);
+  assert.equal(p.boostCharge, charge);
+  f.press("Enter");
+  f.advance(4);
+  assert.equal(p.boostCharge, 1);
+
+  assert.equal(p.boostTime, 0);
+});
+
+test("controller alone navigates menus, adds a bot, chooses teams and pauses", () => {
+  const f = fixture(),
+    pad = f.pad(0);
+  f.button(pad, 9); // join
+  f.button(pad, 13); // ready
+  f.button(pad, 13); // mode
+  assert.equal(f.element("mode").attributes["data-pad-focus"], "P1");
+  f.button(pad, 0); // teams
+  assert.match(f.element("seats").innerHTML, /SUN TEAM/);
+  f.button(pad, 13); // add bot
+  f.button(pad, 0);
+  assert.match(f.element("seats").innerHTML, /PRACTICE BOT/);
+  assert.match(f.element("seats").innerHTML, /MOON TEAM/);
+  f.button(pad, 9);
+  f.advance(3.2);
+  assert.equal(f.match.mode, "teams");
+  const p = f.match.players[0];
+  pad.buttons[0].pressed = true;
+  f.advance(0.7);
+  pad.buttons[0].pressed = false;
+  f.advance();
+  assert.ok(
+    f.soundCalls.filter((s) => s.kind === "flap" && s.variant === 0).length >=
+      3,
+  );
+  f.button(pad, 9);
+  assert.equal(f.element("pause").hidden, false);
+  f.button(pad, 13); // sound
+  assert.equal(f.element("pause-sound").attributes["data-pad-focus"], "SELECT");
+  let soundSelected = false;
+  const toggleSound = f.element("pause-sound").onclick;
+  f.element("pause-sound").onclick = () => {
+    soundSelected = true;
+    toggleSound();
+  };
+  f.button(pad, 0);
+  assert.equal(soundSelected, true);
+  f.button(pad, 13);
+  f.button(pad, 13); // quit
+  f.button(pad, 0);
+  assert.equal(f.element("lobby").hidden, false);
+});
+
+test("all four players may independently select the same mount", () => {
+  const f = fixture(),
+    pads = [0, 1, 2, 3].map((i) => f.pad(i));
+  for (const p of pads) f.button(p, 9);
+  for (let i = 1; i < 4; i++) for (let n = 0; n < i; n++) f.button(pads[i], 14);
+  for (const p of pads) f.button(p, 9);
+  f.advance(3.2);
+  assert.ok(f.match.players.every((p) => p.character === 0));
+  for (let i = 1; i <= 4; i++)
+    assert.ok(f.element("players-hud").innerHTML.includes(`EMBER (P${i})`));
+  for (let i = 1; i < 4; i++) {
+    f.match.players[i].alive = false;
+    f.match.players[i].lives = 0;
+  }
+  f.advance(1.7);
+  assert.equal(f.element("winner-title").textContent, "EMBER (P1) wins!");
+  f.button(pads[0], 13);
+  f.button(pads[0], 0);
+  assert.equal(f.element("lobby").hidden, false);
+});
+
+test("holding boost on a controller never retriggers after recharge", () => {
+  const f = fixture(),
+    pad = f.pad(0),
+    other = f.pad(1);
+  f.button(pad, 9);
+  f.button(other, 9);
+  f.button(pad, 9);
+  f.button(other, 9);
+  f.advance(3.2);
+  const p = f.match.players[0];
+  Object.assign(p, { x: 700, y: 850, vx: 0, vy: 0, grounded: false });
+  pad.buttons[2].pressed = true;
+  f.advance();
+  assert.equal(p.boostCharge, 0);
+  assert.equal(Math.abs(p.vx), 650);
+  f.advance(4);
+  assert.equal(p.boostCharge, 1);
+  assert.equal(p.boostTime, 0);
+  pad.buttons[2].pressed = false;
+  f.advance();
+  f.button(pad, 2);
+  assert.equal(p.boostCharge, 0);
+  pad.buttons[13].pressed = true;
+  Object.assign(p, { x: 700, y: 850, grounded: false });
+  f.advance();
+  assert.equal(p.vx, 0);
+  assert.ok(p.vy > 580);
 });

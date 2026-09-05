@@ -1,6 +1,14 @@
 @font-face {
-  font-family: Fallback;
-  src: local("Avenir Next");
+  font-family: "Silkscreen";
+  src: url("assets/fonts/Silkscreen-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: block;
+}
+@font-face {
+  font-family: "Silkscreen";
+  src: url("assets/fonts/Silkscreen-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: block;
 }
 * {
   box-sizing: border-box;
@@ -13,7 +21,7 @@ body {
   overflow: hidden;
   background: #0a111c;
   color: #eee9d7;
-  font-family: Fallback, "Trebuchet MS", sans-serif;
+  font-family: "Silkscreen", monospace;
 }
 button,
 a {
@@ -134,8 +142,8 @@ button:hover:not(:disabled) {
   background: #a87867;
 }
 h1 {
-  font-family: Impact, "Arial Black", sans-serif;
-  font-size: 148px;
+  font-family: "Silkscreen", monospace;
+  font-size: 124px;
   letter-spacing: 3px;
   line-height: 1;
   margin: 28px 0 10px;
@@ -154,7 +162,7 @@ h1 > span {
 }
 h1 i {
   font-style: normal;
-  font-family: serif;
+  font-family: "Silkscreen", monospace;
   font-size: 44px;
   position: absolute;
   top: -23px;
@@ -180,7 +188,7 @@ h1 i {
   min-width: 260px;
   padding: 22px 30px;
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 3px;
   box-shadow: 0 5px 0 #a16e62;
   display: inline-flex;
@@ -624,4 +632,317 @@ h2 {
 body.playing .topbar,
 body.playing footer {
   display: none;
+}
+
+/* Pixel UI and high-contrast team identification. */
+button,
+a,
+h1,
+h2,
+h3,
+p,
+span {
+  font-family: inherit;
+}
+button {
+  border-radius: 0;
+}
+h1 {
+  font-weight: 700;
+  letter-spacing: -6px;
+}
+h2 {
+  font-size: 44px;
+  letter-spacing: -2px;
+}
+.eyebrow {
+  letter-spacing: 2px;
+}
+.menu .eyebrow {
+  font-size: 18px;
+}
+.tagline {
+  font-size: 28px;
+  letter-spacing: 0;
+}
+.intro {
+  font-size: 20px;
+}
+.primary {
+  font-size: 20px;
+  letter-spacing: 0;
+  min-width: 260px;
+}
+.start-hint {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+.menu-specs {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+.wordmark {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+.utilities,
+.utilities button,
+.utilities button span {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.lobby {
+  left: 90px;
+  right: 90px;
+  top: 140px;
+}
+.lobby-intro {
+  font-size: 18px;
+}
+.seat {
+  height: 440px;
+  padding: 20px;
+}
+.seat-label {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+.character-picker h3 {
+  font-size: 26px;
+  letter-spacing: -1px;
+}
+.character-picker h3 small {
+  font-size: 16px;
+  display: block;
+  margin-top: 5px;
+}
+.bird-type {
+  font-size: 15px;
+  letter-spacing: 0;
+}
+.seat canvas {
+  margin-top: 5px;
+}
+.seat-controls {
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 1.5;
+  min-height: 44px;
+  margin: 15px 0 10px;
+}
+.seat-actions {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.seat-actions button {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.ready {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.team-seat {
+  background: linear-gradient(var(--team-dark), #172636 72%);
+  border: 3px solid var(--team) !important;
+  padding-top: 42px;
+}
+.team-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  color: #0e1927;
+  background: var(--team);
+  padding: 6px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.team-button {
+  background: var(--team) !important;
+  color: #0e1927;
+  font-weight: 700;
+}
+[data-selected="true"],
+[data-pad-focus]:not([data-pad-focus=""]) {
+  outline: 4px solid #fff5b4;
+  outline-offset: 5px;
+  box-shadow: 0 0 0 8px #101a2d;
+}
+[data-pad-focus]:not([data-pad-focus=""]) {
+  position: relative;
+}
+[data-pad-focus]:not([data-pad-focus=""])::after {
+  content: attr(data-pad-focus);
+  position: absolute;
+  right: 0;
+  top: -24px;
+  color: #fff5b4;
+  background: #101a2d;
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 2px 6px;
+}
+.lobby-bottom {
+  margin-top: 28px;
+}
+.launch-area p {
+  font-size: 14px;
+  letter-spacing: 0;
+  max-width: 390px;
+}
+.secondary,
+.text-button {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+.control-guide {
+  font-size: 14px;
+  letter-spacing: 0;
+  margin-top: 32px;
+}
+.control-guide b {
+  display: block;
+  margin-bottom: 8px;
+}
+.mode-control button {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+.mode-control > span {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.mode-control small {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+#players-hud {
+  top: 18px;
+  left: 32px;
+  gap: 18px;
+}
+.hud-player {
+  min-width: 210px;
+  padding-left: 12px;
+}
+.hud-player .name {
+  font-size: 15px;
+  letter-spacing: 0;
+}
+.hud-player .meta {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.hud-player .lives {
+  display: flex;
+  gap: 7px;
+  height: 20px;
+  align-items: center;
+}
+.pixel-heart {
+  display: inline-block;
+  width: 16px;
+  height: 14px;
+  background: var(--bird);
+  clip-path: polygon(
+    0 0,
+    38% 0,
+    50% 20%,
+    62% 0,
+    100% 0,
+    100% 50%,
+    50% 100%,
+    0 50%
+  );
+}
+.team-hud {
+  border-color: var(--team);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--team) 20%, transparent),
+    transparent
+  );
+}
+.team-hud .name {
+  color: var(--team);
+}
+.boost-meter {
+  position: relative;
+  height: 14px;
+  width: 176px;
+  margin: 6px 0;
+  border: 1px solid #7e909f;
+  background: #0b1424;
+}
+.boost-meter i {
+  display: block;
+  height: 100%;
+  background: #658995;
+}
+.boost-meter span {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+  font-size: 10px;
+  line-height: 12px;
+  color: white;
+  text-shadow: 1px 1px #101927;
+  letter-spacing: 0;
+}
+.boost-meter.charged {
+  border-color: #a3ffd9;
+}
+.boost-meter.charged i {
+  background: #387d69;
+}
+.match-info {
+  font-size: 14px;
+  letter-spacing: 0;
+  gap: 16px;
+  top: 30px;
+  right: 32px;
+}
+.match-info button {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+.arena-caption {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+#announcement {
+  font-size: 25px;
+  letter-spacing: 0;
+}
+.modal-box {
+  max-width: 1050px;
+  min-width: 760px;
+}
+.modal-box p {
+  font-size: 17px;
+}
+.modal-box .secondary {
+  margin-top: 20px;
+}
+.result-box h2 {
+  font-size: 34px;
+  letter-spacing: 0;
+}
+#scoreboard > div {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+.result-box .small-hint {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+footer {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+#pause .small-hint {
+  font-size: 13px;
+  margin: 25px 0 0;
 }

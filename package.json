@@ -1,8 +1,8 @@
 {
   "name": "featherfall",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Local multiplayer bird-riding arcade game for macOS and Windows",
+  "description": "Local multiplayer flying-mount arcade game for macOS and Windows",
   "scripts": {
     "start": "node server.cjs",
     "test": "node --test tests/*.test.cjs",

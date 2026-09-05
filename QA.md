@@ -4,7 +4,7 @@ Verified on macOS, September 5, 2026.
 
 ## Automated
 
-`npm test`: 39 passing tests.
+`npm test`: 49 passing tests.
 
 - Five lives; distinct floating spawns; furthest available spawn selection across the wrap seam.
 - Height-based knockouts, tied-height bounce, single life debit, wraparound combat.
@@ -16,7 +16,7 @@ Verified on macOS, September 5, 2026.
 - Complete four-bot free-for-all and team matches within ten simulated minutes.
 - Bot landing attacks against a stationary opponent, including leaving intervening platforms.
 - Real input/screen code with a DOM fixture: keyboard joining, key repeat, pause, winner and rematch.
-- Four simulated controllers: join, character swaps, ready, flap, disconnect/reconnect, leave.
+- Four simulated controllers: join, independent duplicate character picks, ready, flap, disconnect/reconnect, leave.
 - Team selection validation and winner presentation; focus-loss pause and cleared inputs.
 
 `npm run check`: syntax checks for both game scripts and the local server.
@@ -29,7 +29,7 @@ The embedded browser retained a 1280×720 viewport when its fullscreen button wa
 
 ## Review fixes
 
-- Full lobby character selection swaps riders, avoiding a locked selection when every color is occupied.
+- Character selection is independent for every seat, including when all four choose the same mount.
 - Fullscreen targets the document, preserving arena letterboxing.
 - Decorative menu birds are hidden behind the lobby to keep text clear.
 - Empty seats advertise unused keyboard mappings after mixed controller/keyboard joins.
@@ -69,3 +69,15 @@ Ember has a low triangle flutter, Mint an airy rising chirp, Iris a hollow sine 
 ## Softer flap transients
 
 Flaps now use 25 ms fade-ins, longer 120–160 ms envelopes, smooth pitch glides, and fade fully to zero before stopping. Their noise layers are quieter and filtered more heavily. Sol no longer uses a sharp square wave. Regression coverage checks every character’s gentle attack, zero-amplitude tail, and absence of stepped pitch changes.
+
+## Version 0.2 movement and presentation
+
+- Verified straight-down dives, dive attacks, fast platform landing, and full-speed side rebounds during boosts.
+- Verified boost direction, consumption, recharge, no refill on death, paused recharge, and no repeat from holding X.
+- Verified held keyboard/gamepad flaps at a steady cadence while fresh presses remain immediate. Holding down suppresses flap, including after landing, preventing repeated hop/dive cycles.
+- Exercised controller-only lobby navigation, adding a practice bot, selecting teams, readying, pause options, sound selection, return to lobby, results navigation, and duplicate character selection. These use the real input code with simulated standard gamepads.
+- Checked title, empty/four-player lobbies, orange/cyan teams, active team HUD, pause, and results at the embedded browser's 1280x720 viewport. Completed a human-versus-bot match to inspect the new winner identity and scoreboard. No browser warnings or errors were logged.
+- All inspected DOM typography resolves to locally bundled Silkscreen; canvas labels use the same font. Font files and OFL license ship with the offline game.
+- All four mount types use shared movement, combat, and terrain collision rules. Artwork is cosmetic.
+
+Physical controller feel, Windows receiver drivers, native fullscreen, and large-TV readability remain for hardware playtesting. Browser audio/fullscreen policies may still require an initial click or keypress.

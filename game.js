@@ -5,6 +5,7 @@
     W,
     H,
     CHARACTERS: birds,
+    TEAMS,
     PLATFORMS,
     PLATFORM_DEPTH,
     Match,
@@ -16,15 +17,38 @@
   const canvas = $("arena"),
     ctx = canvas.getContext("2d");
   const keys = [
-    { left: "KeyA", right: "KeyD", flap: "KeyW", label: "A / D MOVE · W FLAP" },
+    {
+      left: "KeyA",
+      right: "KeyD",
+      flap: "KeyW",
+      dive: "KeyS",
+      boost: "KeyE",
+      label: "A/D MOVE · W FLAP · S DIVE · E BOOST",
+    },
     {
       left: "ArrowLeft",
       right: "ArrowRight",
       flap: "ArrowUp",
-      label: "← / → MOVE · ↑ FLAP",
+      dive: "ArrowDown",
+      boost: "ShiftRight",
+      label: "ARROWS MOVE/FLAP/DIVE · R.SHIFT BOOST",
     },
-    { left: "KeyJ", right: "KeyL", flap: "KeyI", label: "J / L MOVE · I FLAP" },
-    { left: "KeyF", right: "KeyH", flap: "KeyT", label: "F / H MOVE · T FLAP" },
+    {
+      left: "KeyJ",
+      right: "KeyL",
+      flap: "KeyI",
+      dive: "KeyK",
+      boost: "KeyO",
+      label: "J/L MOVE · I FLAP · K DIVE · O BOOST",
+    },
+    {
+      left: "KeyF",
+      right: "KeyH",
+      flap: "KeyT",
+      dive: "KeyG",
+      boost: "KeyY",
+      label: "F/H MOVE · T FLAP · G DIVE · Y BOOST",
+    },
   ];
   let screen = "menu",
     seats = [null, null, null, null],
@@ -42,7 +66,9 @@
     padPrevious = new Map(),
     padMove = new Map(),
     padFrames = new Map(),
-    pendingFlaps = new Set();
+    pendingFlaps = new Set(),
+    pendingBoosts = new Set();
+  let menuIndex = 0;
   let particles = [],
     lastPadStatus = "",
     pausedForDisconnect = false;
@@ -56,7 +82,7 @@
   addEventListener("resize", resize);
   resize();
   function updateSoundControl() {
-    for (const id of ["sound", "sound-play"]) {
+    for (const id of ["sound", "sound-play", "pause-sound"]) {
       $(id).textContent = sound.blocked
         ? "CLICK FOR SOUND"
         : sound.enabled
@@ -86,10 +112,12 @@
   // Gamepad polling is not a browser activation gesture. A click or keypress
   // anywhere in the game also unlocks audio if the browser requires one.
   addEventListener("pointerdown", (event) => {
-    if (!event.target.closest?.("#sound, #sound-play")) audioUnlock();
+    if (!event.target.closest?.("#sound, #sound-play, #pause-sound"))
+      audioUnlock();
   });
   function show(next) {
     screen = next;
+    menuIndex = 0;
     for (const id of ["menu", "lobby", "pause", "results"])
       $(id).hidden = next !== id;
     const inArena = [
@@ -107,6 +135,7 @@
     pressed.clear();
     tapped.clear();
     pendingFlaps.clear();
+    pendingBoosts.clear();
     accumulator = 0;
     if (next === "lobby") {
       renderSeats();
@@ -115,19 +144,84 @@
     if (next === "menu") $("start").focus();
     if (next === "pause") $("resume").focus();
     if (next === "results") $("rematch").focus();
+    refreshMenuFocus();
   }
   function announce(text, seconds = 2.5) {
     $("announcement").textContent = text;
     noticeTime = seconds;
   }
-  function availableCharacter(start, direction, seatIndex) {
-    let candidate = start;
-    for (let n = 0; n < 4; n++) {
-      candidate = (candidate + direction + 4) % 4;
-      if (!seats.some((s, i) => i !== seatIndex && s?.character === candidate))
-        return candidate;
-    }
-    return start;
+  const playerName = (p) => `${birds[p.character].name} (P${p.slot + 1})`;
+  function menuOptions() {
+    if (screen === "menu") return ["start", "sound", "fullscreen"];
+    if (screen === "pause")
+      return ["resume", "pause-sound", "pause-fullscreen", "quit"];
+    if (screen === "results") return ["rematch", "change-players"];
+    return [];
+  }
+  function refreshMenuFocus() {
+    for (const id of [
+      "start",
+      "sound",
+      "fullscreen",
+      "resume",
+      "pause-sound",
+      "pause-fullscreen",
+      "quit",
+      "rematch",
+      "change-players",
+    ])
+      $(id).setAttribute("data-pad-focus", "");
+    const options = menuOptions();
+    if (options.length)
+      $(options[menuIndex % options.length]).setAttribute(
+        "data-pad-focus",
+        "SELECT",
+      );
+  }
+  function navigateMenu(direction) {
+    const options = menuOptions();
+    if (!options.length) return;
+    menuIndex = (menuIndex + direction + options.length) % options.length;
+    refreshMenuFocus();
+    $(options[menuIndex]).focus();
+  }
+  function selectMenu() {
+    const id = menuOptions()[menuIndex];
+    if (id) $(id).click();
+  }
+  function lobbyRows() {
+    return [
+      "character",
+      ...(mode === "teams" ? ["team"] : []),
+      "ready",
+      "mode",
+      "add-bot",
+      "launch",
+      "sound",
+      "fullscreen",
+      "back",
+    ];
+  }
+  function ready(slot) {
+    seats[slot].ready = !seats[slot].ready;
+    renderSeats();
+    if (canStart() && seats.filter(Boolean).every((s) => s.ready)) startMatch();
+  }
+  function lobbySelect(slot) {
+    const s = seats[slot],
+      row = s.cursor || "character";
+    if (row === "character") {
+      s.cursor = mode === "teams" ? "team" : "ready";
+      renderSeats();
+    } else if (row === "team") {
+      s.team ^= 1;
+      s.ready = false;
+      renderSeats();
+    } else if (row === "ready") ready(slot);
+    else if (row === "back") {
+      seats[slot] = null;
+      show("menu");
+    } else $(row).click();
   }
   function join(kind, source, slot = seats.findIndex((s) => !s)) {
     if (
@@ -141,7 +235,8 @@
     seats[slot] = {
       kind,
       source,
-      character: availableCharacter(slot - 1, 1, slot),
+      character: slot % birds.length,
+      cursor: "character",
       team: slot % 2,
       ready: kind !== "pad",
     };
@@ -150,19 +245,16 @@
   }
   function rotate(slot, direction) {
     if (!seats[slot]) return;
-    const previous = seats[slot].character,
-      next = (previous + direction + 4) % 4;
-    const owner = seats.find((s) => s?.character === next);
-    if (owner) {
-      owner.character = previous;
-      if (owner.kind === "pad") owner.ready = false;
-    }
-    seats[slot].character = next;
+    seats[slot].character =
+      (seats[slot].character + direction + birds.length) % birds.length;
     if (seats[slot].kind === "pad") seats[slot].ready = false;
     renderSeats();
   }
   function changeMode() {
     mode = mode === "ffa" ? "teams" : "ffa";
+    seats.forEach((s) => {
+      if (s?.cursor === "team" && mode !== "teams") s.cursor = "character";
+    });
     renderSeats();
   }
   function canStart() {
@@ -174,7 +266,7 @@
   }
   function renderSeats() {
     $("mode").innerHTML =
-      `${mode === "ffa" ? "FREE FOR ALL" : "TWO TEAMS"} <span>⇄</span>`;
+      `${mode === "ffa" ? "FREE FOR ALL" : "TWO TEAMS"} <span>&lt;&gt;</span>`;
     $("seats").innerHTML = seats
       .map((s, i) => {
         if (!s) {
@@ -194,7 +286,11 @@
               : s.kind === "pad"
                 ? `CONTROLLER ${s.source + 1}`
                 : `KEYBOARD ${s.source + 1}`;
-        return `<article class="seat joined" style="--bird:${b.color}"><div class="seat-label"><b>PLAYER 0${i + 1}</b><span>${source}</span></div><canvas id="preview-${i}" width="168" height="100" aria-label="${b.name} bird rider"></canvas><div class="character-picker"><button data-action="prev" data-seat="${i}" aria-label="Previous character for player ${i + 1}">‹</button><div><h3>${b.name}</h3><span class="bird-type">${b.bird}</span></div><button data-action="next" data-seat="${i}" aria-label="Next character for player ${i + 1}">›</button></div><div class="seat-controls">${s.kind === "keyboard" ? keys[s.source].label : s.kind === "pad" ? "STICK MOVE · TAP A TO FLAP" : "AUTOPILOT · SAME RULES AS YOU"}</div><div class="seat-actions">${mode === "teams" ? `<button data-action="team" data-seat="${i}">${s.team === 0 ? "SUN TEAM" : "MOON TEAM"} ⇄</button>` : ""}<button class="remove" data-action="remove" data-seat="${i}">LEAVE ×</button></div><div class="ready">${s.ready ? "● READY TO FLY" : "PRESS START TO READY"}</div></article>`;
+        const team = TEAMS[s.team],
+          cursor = s.kind === "pad" ? s.cursor : "";
+        const selected = (row) =>
+          cursor === row ? ' data-selected="true"' : "";
+        return `<article class="seat joined ${mode === "teams" ? "team-seat" : ""}" style="--bird:${b.color};--team:${team.color};--team-dark:${team.dark}">${mode === "teams" ? `<div class="team-banner">${team.name} TEAM</div>` : ""}<div class="seat-label"><b>PLAYER 0${i + 1}</b><span>${source}</span></div><canvas id="preview-${i}" width="168" height="100" aria-label="${b.name} (P${i + 1}) ${b.bird}"></canvas><div class="character-picker"${selected("character")}><button data-action="prev" data-seat="${i}" aria-label="Previous character for player ${i + 1}">&lt;</button><div><h3>${b.name} <small>(P${i + 1})</small></h3><span class="bird-type">${b.bird}</span></div><button data-action="next" data-seat="${i}" aria-label="Next character for player ${i + 1}">&gt;</button></div><div class="seat-controls">${s.kind === "keyboard" ? keys[s.source].label : s.kind === "pad" ? "A TAP/HOLD FLAP · DOWN DIVE · X BOOST" : "AUTOPILOT · SAME RULES AS YOU"}</div><div class="seat-actions">${mode === "teams" ? `<button class="team-button"${selected("team")} data-action="team" data-seat="${i}">${s.team === 0 ? "SUN TEAM" : "MOON TEAM"} &lt;&gt;</button>` : ""}<button${selected("ready")} data-action="ready" data-seat="${i}">${s.ready ? "READY!" : "A: READY"}</button><button class="remove" data-action="remove" data-seat="${i}">LEAVE x</button></div><div class="ready">${s.ready ? "* READY TO FLY" : "UP/DOWN CHOOSE · A SELECT"}</div></article>`;
       })
       .join("");
     seats.forEach((s, i) => {
@@ -203,6 +299,21 @@
         drawBird(c, 84, 55, s.character, 1, false, true, 3.4, clock);
       }
     });
+    for (const id of [
+      "mode",
+      "add-bot",
+      "launch",
+      "sound",
+      "fullscreen",
+      "back",
+    ]) {
+      const cursors = seats
+        .map((s, i) =>
+          s?.kind === "pad" && s.cursor === id ? `P${i + 1}` : "",
+        )
+        .filter(Boolean);
+      $(id).setAttribute("data-pad-focus", cursors.join("/"));
+    }
     $("add-bot").disabled = seats.every(Boolean);
     $("launch").disabled = !canStart();
     const count = seats.filter(Boolean).length;
@@ -211,7 +322,7 @@
         ? "Join a second player or add a practice bot."
         : !canStart()
           ? "Put at least one rider on each team."
-          : "Enter to launch · controllers press Start to ready";
+          : "UP/DOWN CHOOSE · A SELECT · START READY";
   }
   $("seats").addEventListener("click", (e) => {
     const button = e.target.closest("button");
@@ -226,8 +337,10 @@
       seats[i] = null;
       renderSeats();
     }
+    if (action === "ready" && seats[i]) ready(i);
     if (action === "team" && seats[i]) {
       seats[i].team ^= 1;
+      if (seats[i].kind === "pad") seats[i].ready = false;
       renderSeats();
     }
   });
@@ -296,10 +409,13 @@
     e.preventDefault();
     if (screen === "lobby") show("menu");
   };
-  $("sound").onclick = $("sound-play").onclick = () => {
-    sound.toggle();
-    tone(550, 0.12, "triangle");
-  };
+  $("sound").onclick =
+    $("sound-play").onclick =
+    $("pause-sound").onclick =
+      () => {
+        sound.toggle();
+        tone(550, 0.12, "triangle");
+      };
   async function fullscreen() {
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
@@ -308,12 +424,14 @@
       announce("Use your browser fullscreen command");
     }
   }
-  $("fullscreen").onclick = fullscreen;
-  // Ignore key repeat: every upward impulse must come from a fresh flap press.
+  $("fullscreen").onclick = $("pause-fullscreen").onclick = fullscreen;
+  // Native key repeat is ignored; held flaps repeat at the simulation cadence.
   addEventListener("keydown", (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const gameKey =
-      keys.some((k) => [k.left, k.right, k.flap].includes(e.code)) ||
+      keys.some((k) =>
+        [k.left, k.right, k.flap, k.dive, k.boost].includes(e.code),
+      ) ||
       ["Enter", "Escape", "Digit1", "Digit2", "Digit3", "Digit4"].includes(
         e.code,
       );
@@ -326,10 +444,16 @@
       return;
     }
     audioUnlock();
+    if (
+      (screen === "pause" || screen === "results" || screen === "menu") &&
+      ["ArrowUp", "ArrowDown"].includes(e.code)
+    ) {
+      navigateMenu(e.code === "ArrowUp" ? -1 : 1);
+      return;
+    }
     if (e.code === "Enter") {
-      if (screen === "menu") show("lobby");
-      else if (screen === "lobby" || screen === "results") startMatch();
-      else if (screen === "pause") resume();
+      if (screen === "lobby") startMatch();
+      else selectMenu();
     } else if (e.code === "Escape") {
       if (["match", "countdown", "ending"].includes(screen)) pause();
       else if (screen === "pause") resume();
@@ -354,6 +478,7 @@
     pressed.clear();
     tapped.clear();
     pendingFlaps.clear();
+    pendingBoosts.clear();
     pause("Paused because the game lost focus.");
   });
   document.addEventListener("visibilitychange", () => {
@@ -387,49 +512,67 @@
         moveEdge = dir && dir !== padMove.get(pad.index);
       padMove.set(pad.index, dir);
       if (edge.start || edge.flap) audioUnlock();
-      if (screen === "menu" && edge.start) {
-        show("lobby");
-        join("pad", pad.index);
+      if (screen === "menu") {
+        if (edge.up || edge.down) navigateMenu(edge.up ? -1 : 1);
+        if (edge.start || (edge.flap && menuIndex === 0)) {
+          show("lobby");
+          join("pad", pad.index);
+        } else if (edge.flap) selectMenu();
         continue;
       }
       if (screen === "lobby") {
-        let slot = seats.findIndex(
+        const slot = seats.findIndex(
           (s) => s?.kind === "pad" && s.source === pad.index,
         );
-        if (slot < 0 && edge.start) {
-          join("pad", pad.index);
+        if (slot < 0) {
+          if (edge.start || edge.flap) join("pad", pad.index);
+          else if (edge.back) show("menu");
           continue;
         }
-        if (slot >= 0) {
-          if (edge.back) {
-            seats[slot] = null;
-            renderSeats();
-            continue;
-          }
-          if (moveEdge) rotate(slot, dir);
-          if (edge.team && mode === "teams") {
-            seats[slot].team ^= 1;
-            renderSeats();
-          }
-          if (edge.mode) changeMode();
-          if (edge.start) {
-            seats[slot].ready = !seats[slot].ready;
-            renderSeats();
-            if (canStart() && seats.filter(Boolean).every((s) => s.ready))
-              startMatch();
-          }
+        if (edge.back) {
+          seats[slot] = null;
+          renderSeats();
+          continue;
         }
+        if (edge.up || edge.down) {
+          const rows = lobbyRows(),
+            index = Math.max(0, rows.indexOf(seats[slot].cursor));
+          seats[slot].cursor =
+            rows[(index + (edge.up ? -1 : 1) + rows.length) % rows.length];
+          renderSeats();
+        }
+        if (moveEdge) {
+          if (seats[slot].cursor === "team" && mode === "teams") {
+            seats[slot].team ^= 1;
+            seats[slot].ready = false;
+            renderSeats();
+          } else if (seats[slot].cursor === "mode") changeMode();
+          else if (seats[slot].cursor === "character") rotate(slot, dir);
+        }
+        if (edge.team && mode === "teams") {
+          seats[slot].team ^= 1;
+          seats[slot].ready = false;
+          renderSeats();
+        }
+        if (edge.mode) changeMode();
+        if (edge.start) ready(slot);
+        else if (edge.flap) lobbySelect(slot);
       } else if (["match", "countdown", "ending"].includes(screen)) {
-        if (
-          edge.start &&
-          match.players.some((p) => p.kind === "pad" && p.source === pad.index)
-        )
-          pause();
-        if (edge.flap) pendingFlaps.add(pad.index);
-      } else if (screen === "pause" && edge.start) resume();
-      else if (screen === "results") {
-        if (edge.start) startMatch();
-        else if (edge.back) show("lobby");
+        const participant = match.players.some(
+          (p) => p.kind === "pad" && p.source === pad.index,
+        );
+        if (edge.start && participant) pause();
+        if (edge.flap && participant) pendingFlaps.add(pad.index);
+        if (edge.boost && participant) pendingBoosts.add(pad.index);
+      } else if (screen === "pause" || screen === "results") {
+        if (edge.up || edge.down) navigateMenu(edge.up ? -1 : 1);
+        if (edge.flap) selectMenu();
+        else if (edge.start && screen === "pause") resume();
+        else if (edge.start && screen === "results") startMatch();
+        else if (edge.back) {
+          if (screen === "pause") resume();
+          else show("lobby");
+        }
       }
     }
     if (
@@ -464,6 +607,9 @@
       return {
         move: padFrames.get(p.source)?.move || 0,
         flap: pendingFlaps.delete(p.source),
+        flapHeld: !!padFrames.get(p.source)?.flap,
+        dive: !!padFrames.get(p.source)?.dive,
+        boost: pendingBoosts.delete(p.source),
       };
     const mapping = keys[p.source],
       flap = tapped.delete(mapping.flap);
@@ -471,6 +617,9 @@
       move:
         Number(pressed.has(mapping.right)) - Number(pressed.has(mapping.left)),
       flap,
+      flapHeld: pressed.has(mapping.flap),
+      dive: pressed.has(mapping.dive),
+      boost: tapped.delete(mapping.boost),
     };
   }
   function burst(x, y, color, count, force = 1) {
@@ -509,6 +658,11 @@
         burst(event.x, event.y + 8, color, 2, 0.15);
         sound.play("flap", match.players[event.id].character);
       }
+      if (event.type === "boost") {
+        burst(event.x, event.y, color, 12, 0.5);
+        tone(170, 0.18, "triangle", 0.06, 650);
+      }
+      if (event.type === "dive") tone(280, 0.14, "triangle", 0.04, 65);
       if (event.type === "step") sound.play("step", event.foot);
       if (event.type === "bump") {
         burst(event.x, event.y, "#b6c2b2", 5, 0.3);
@@ -521,7 +675,7 @@
       if (event.type === "life") {
         burst(event.x, event.y, "#ffe6a0", 24);
         announce(
-          `${birds[match.players[event.id].character].name} ${event.maxReached ? "MAX LIVES REACHED" : "+1 LIFE"}`,
+          `${playerName(match.players[event.id])} ${event.maxReached ? "MAX LIVES REACHED" : "+1 LIFE"}`,
         );
         tone(660, 0.35, "triangle", 0.07, 1320);
       }
@@ -537,7 +691,7 @@
     $("players-hud").innerHTML = match.players
       .map((p) => {
         const b = birds[p.character];
-        return `<div class="hud-player ${p.lives === 0 ? "out" : ""}" style="--bird:${b.color}"><div class="name">P${p.slot + 1} ${b.name}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</div><div class="lives">${p.lives > 8 ? `♥ × ${p.lives}` : "♥".repeat(p.lives) || "OUT"}</div><div class="meta">${!p.alive && p.lives ? `RETURNING IN ${Math.ceil(p.respawn)}…` : `${p.kills} KO · ${p.kind === "bot" ? "BOT" : p.kind === "pad" ? "PAD " + (p.source + 1) : "KEYS " + (p.source + 1)}`}</div></div>`;
+        return `<div class="hud-player ${p.lives === 0 ? "out" : ""} ${mode === "teams" ? "team-hud" : ""}" style="--bird:${b.color};--team:${TEAMS[p.team].color}"><div class="name">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</div><div class="lives" aria-label="${p.lives} lives">${p.lives ? Array.from({ length: p.lives }, () => '<i class="pixel-heart" aria-hidden="true"></i>').join("") : "OUT"}</div><div class="boost-meter ${p.boostCharge >= 1 ? "charged" : ""}" role="progressbar" aria-label="${playerName(p)} boost" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.boostCharge * 100)}"><i style="width:${p.boostCharge * 100}%"></i><span>${p.boostCharge >= 1 ? "BOOST READY" : "BOOST"}</span></div><div class="meta">${!p.alive && p.lives ? `RETURNING IN ${Math.ceil(p.respawn)}...` : `${p.kills} KO · ${p.kind === "bot" ? "BOT" : p.kind === "pad" ? "PAD " + (p.source + 1) : "KEYS " + (p.source + 1)}`}</div></div>`;
       })
       .join("");
     const time = Math.floor(match.time);
@@ -558,13 +712,13 @@
       ? "A sky without a winner."
       : mode === "teams"
         ? `${teamName} wins!`
-        : `${birds[winner.character].name} takes the sky!`;
+        : `${playerName(winner)} wins!`;
     $("winner-subtitle").textContent = "One big sky. A whole lot of feathers.";
     $("scoreboard").innerHTML = [...match.players]
       .sort((a, b) => b.lives - a.lives || b.kills - a.kills)
       .map(
         (p) =>
-          `<div><span style="color:${birds[p.character].color}">P${p.slot + 1} ${birds[p.character].name}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</span><span>${p.kills} KO &nbsp; · &nbsp; ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT</span></div>`,
+          `<div><span style="color:${birds[p.character].color}">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</span><span>${p.kills} KO &nbsp; · &nbsp; ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT</span></div>`,
       )
       .join("");
     const c = $("winner-bird").getContext("2d");
@@ -609,30 +763,99 @@
       c.fillStyle = color;
       c.fillRect(x, y, w, h);
     };
-    r(-14, -3, 26, 12, "#0c1625");
-    r(-11, -6, 20, 16, b.dark);
-    r(-10, -5, 19, 10, b.color);
-    r(-7, 5, 15, 4, b.light);
-    r(6, -10, 9, 10, b.color);
-    r(11, -8, 4, 4, b.light);
-    r(12, -7, 2, 2, "#111829");
-    r(15, -5, 6, 3, "#edc06e");
-    r(-18, -2, 7, 4, b.dark);
-    r(-21, -5, 5, 4, b.color);
-    if (flap) {
-      r(-8, -12, 5, 15, b.dark);
-      r(-13, -17, 6, 10, b.color);
-      r(-16, -20, 4, 8, b.light);
-    } else {
-      r(-8, -2, 12, 6, b.dark);
-      r(-11, 2, 11, 4, b.color);
-      r(-13, 5, 7, 3, b.light);
-    }
+    // All artwork stays compact; mount choice never changes engine collision bounds.
     const walk = grounded ? Math.round(Math.sin(time * 24) * 2) : 0;
-    r(-7, 9, 2, 4 + walk, "#edbe78");
-    r(4, 9, 2, 4 - walk, "#edbe78");
-    r(-7, 12 + walk, 5, 2, "#edbe78");
-    r(4, 12 - walk, 5, 2, "#edbe78");
+    const wing = (feathered = false) => {
+      if (flap) {
+        r(-7, -9, 5, 13, b.dark);
+        r(-12, -15, 6, 10, b.color);
+        r(-17, -20, 6, 7, b.light);
+        if (!feathered) {
+          r(-17, -13, 3, 5, b.color);
+          r(-12, -8, 3, 5, b.color);
+        }
+      } else {
+        r(-8, -2, 12, 6, b.dark);
+        r(-13, 3, 12, 4, b.color);
+        r(-17, 6, 8, 3, b.light);
+        if (feathered) {
+          r(-14, 8, 3, 3, b.light);
+          r(-9, 8, 3, 3, b.light);
+        }
+      }
+    };
+    if (b.mount === "dragon") {
+      r(-13, -5, 25, 13, b.dark);
+      r(-11, -6, 23, 9, b.color);
+      r(-6, 5, 16, 4, b.light);
+      r(8, -11, 9, 11, b.color);
+      r(14, -6, 7, 5, b.color);
+      r(13, -10, 2, 2, "#111829");
+      r(8, -15, 3, 5, b.light);
+      r(15, -14, 3, 5, b.light);
+      r(-19, 0, 8, 4, b.dark);
+      r(-23, -4, 5, 5, b.color);
+      r(-25, -8, 3, 5, b.light);
+      wing();
+      r(-8, 8, 4, 5 + walk, b.dark);
+      r(6, 8, 4, 5 - walk, b.dark);
+      r(-8, 12 + walk, 7, 2, b.light);
+      r(6, 12 - walk, 7, 2, b.light);
+    } else if (b.mount === "pegasus") {
+      r(-13, -4, 25, 12, b.light);
+      r(-10, 6, 20, 3, b.color);
+      r(7, -11, 6, 12, b.light);
+      r(10, -14, 8, 7, b.light);
+      r(15, -10, 7, 4, b.light);
+      r(11, -18, 3, 5, b.color);
+      r(6, -14, 4, 13, b.dark);
+      r(15, -12, 2, 2, "#111829");
+      r(-18, 0, 5, 9, b.color);
+      r(-21, 6, 6, 5, b.dark);
+      wing(true);
+      for (const [lx, offset] of [
+        [-10, walk],
+        [-5, -walk],
+        [6, -walk],
+        [10, walk],
+      ]) {
+        r(lx, 7, 2, 6 + offset, b.light);
+        r(lx, 12 + offset, 4, 2, b.dark);
+      }
+    } else if (b.mount === "pterodactyl") {
+      r(-11, -4, 22, 11, b.dark);
+      r(-8, -5, 20, 9, b.color);
+      r(-5, 5, 12, 4, b.light);
+      r(6, -11, 8, 11, b.color);
+      r(14, -8, 10, 3, b.light);
+      r(20, -7, 6, 2, b.light);
+      r(4, -15, 4, 6, b.dark);
+      r(1, -18, 4, 5, b.color);
+      r(11, -10, 2, 2, "#111829");
+      r(-19, 0, 8, 3, b.dark);
+      r(-23, -2, 5, 2, b.color);
+      wing();
+      r(-6, 8, 2, 5 + walk, b.color);
+      r(4, 8, 2, 5 - walk, b.color);
+      r(-7, 12 + walk, 5, 2, b.light);
+      r(3, 12 - walk, 5, 2, b.light);
+    } else {
+      r(-14, -3, 26, 12, "#0c1625");
+      r(-11, -6, 20, 16, b.dark);
+      r(-10, -5, 19, 10, b.color);
+      r(-7, 5, 15, 4, b.light);
+      r(6, -10, 9, 10, b.color);
+      r(11, -8, 4, 4, b.light);
+      r(12, -7, 2, 2, "#111829");
+      r(15, -5, 6, 3, "#edc06e");
+      r(-18, -2, 7, 4, b.dark);
+      r(-21, -5, 5, 4, b.color);
+      wing(true);
+      r(-7, 9, 2, 4 + walk, "#edbe78");
+      r(4, 9, 2, 4 - walk, "#edbe78");
+      r(-7, 12 + walk, 5, 2, "#edbe78");
+      r(4, 12 - walk, 5, 2, "#edbe78");
+    }
     r(-5, -15, 8, 9, "#273447");
     r(-4, -19, 7, 6, "#eddbc2");
     r(-6, -21, 10, 4, b.color);
@@ -839,13 +1062,23 @@
         if (!p.alive) {
           if (p.lives > 0) {
             ctx.fillStyle = "#c9d6cd70";
-            ctx.font = "11px monospace";
+            ctx.font = "14px Silkscreen";
             ctx.textAlign = "center";
             ctx.fillText(`${Math.ceil(p.respawn)}`, p.x, p.y - 30);
           }
           continue;
         }
         const b = birds[p.character];
+        if (p.diving) {
+          ctx.fillStyle = b.color + "99";
+          ctx.fillRect(p.x - 5, p.y - 57, 2, 18);
+          ctx.fillRect(p.x + 6, p.y - 49, 2, 12);
+        }
+        if (p.boosting) {
+          ctx.fillStyle = b.color + "88";
+          ctx.fillRect(p.x - p.facing * 47, p.y - 5, 25, 3);
+          ctx.fillRect(p.x - p.facing * 38, p.y + 2, 16, 2);
+        }
         if (p.grounded) {
           ctx.fillStyle = "#0a132b55";
           ctx.fillRect(p.x - 17, p.y + 11, 34, 3);
@@ -866,13 +1099,17 @@
             1,
             Math.abs(p.vx) > 15 ? clock : 0,
           );
-          ctx.font = "bold 11px monospace";
+          ctx.font = "bold 14px Silkscreen";
           ctx.textAlign = "center";
           ctx.fillStyle = b.color;
-          ctx.fillText(`P${p.slot + 1}`, x, p.y - 32);
+          ctx.fillText(playerName(p), x, p.y - 34);
           if (mode === "teams") {
-            ctx.fillStyle = p.team === 0 ? "#ffd888" : "#b8c5ff";
-            ctx.fillRect(x - 7, p.y - 48, 14, 3);
+            ctx.fillStyle = TEAMS[p.team].color;
+            ctx.fillRect(x - 23, p.y + 19, 46, 5);
+            ctx.fillRect(x - 26, p.y + 16, 4, 10);
+            ctx.fillRect(x + 22, p.y + 16, 4, 10);
+            ctx.font = "12px Silkscreen";
+            ctx.fillText(TEAMS[p.team].name, x, p.y - 50);
           }
           if (p.invincible > 0) {
             ctx.strokeStyle = "#fff0c677";
@@ -935,6 +1172,7 @@
       }
       tapped.clear();
       pendingFlaps.clear();
+      pendingBoosts.clear();
     } else if (screen === "match") {
       accumulator += dt;
       while (accumulator >= STEP && screen === "match") {
@@ -965,10 +1203,12 @@
       endingTime -= dt;
       tapped.clear();
       pendingFlaps.clear();
+      pendingBoosts.clear();
       if (endingTime <= 0) finish();
     } else {
       tapped.clear();
       pendingFlaps.clear();
+      pendingBoosts.clear();
     }
     render(dt);
     requestAnimationFrame(frame);
