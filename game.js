@@ -616,7 +616,7 @@
       r(-11, 2, 11, 4, b.color);
       r(-13, 5, 7, 3, b.light);
     }
-    const walk = grounded ? Math.round(Math.sin(time * 12) * 2) : 0;
+    const walk = grounded ? Math.round(Math.sin(time * 24) * 2) : 0;
     r(-7, 9, 2, 4 + walk, "#edbe78");
     r(4, 9, 2, 4 - walk, "#edbe78");
     r(-7, 12 + walk, 5, 2, "#edbe78");
