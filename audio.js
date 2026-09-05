@@ -1,44 +1,44 @@
 /* Procedural chiptune effects. No downloaded assets or network dependency. */
 (function (root) {
   "use strict";
-  // Ember: warm flutter; Mint: airy chirp; Iris: hollow wingbeat; Sol: bright tick.
+  // Ember: warm flutter; Mint: airy chirp; Iris: hollow wingbeat; Sol: light flutter.
   // Keep the pitched component quiet so four birds don't become a chorus of boops.
   const FLAPS = [
     {
       pitch: 190,
       end: 130,
-      duration: 0.045,
+      duration: 0.14,
       wave: "triangle",
       volume: 0.045,
-      air: 0.07,
-      cutoff: 1600,
+      air: 0.022,
+      cutoff: 700,
     },
     {
       pitch: 440,
       end: 620,
-      duration: 0.04,
+      duration: 0.12,
       wave: "triangle",
       volume: 0.028,
-      air: 0.06,
-      cutoff: 2500,
+      air: 0.018,
+      cutoff: 1100,
     },
     {
       pitch: 310,
       end: 220,
-      duration: 0.065,
+      duration: 0.16,
       wave: "sine",
       volume: 0.04,
-      air: 0.045,
-      cutoff: 1000,
+      air: 0.02,
+      cutoff: 600,
     },
     {
-      pitch: 740,
-      end: 510,
-      duration: 0.032,
-      wave: "square",
+      pitch: 560,
+      end: 420,
+      duration: 0.13,
+      wave: "triangle",
       volume: 0.018,
-      air: 0.045,
-      cutoff: 3300,
+      air: 0.016,
+      cutoff: 1450,
     },
   ];
   class ArcadeAudio {
@@ -98,12 +98,16 @@
       if (this.enabled) this.unlock();
       this.onChange();
     }
-    envelope(source, duration, volume, delay = 0, filter = null) {
+    envelope(source, duration, volume, delay = 0, filter = null, soft = false) {
       const t = this.context.currentTime + delay,
         gain = this.context.createGain();
-      gain.gain.setValueAtTime(0.001, t);
-      gain.gain.linearRampToValueAtTime(volume, t + 0.003);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+      gain.gain.setValueAtTime(soft ? 0 : 0.001, t);
+      gain.gain.linearRampToValueAtTime(volume, t + (soft ? 0.025 : 0.003));
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        t + duration - (soft ? 0.015 : 0),
+      );
+      if (soft) gain.gain.linearRampToValueAtTime(0, t + duration);
       if (filter) {
         source.connect(filter);
         filter.connect(gain);
@@ -124,26 +128,34 @@
       volume = 0.1,
       end = frequency / 2,
       delay = 0,
+      soft = false,
     ) {
       if (!this.enabled || this.context?.state !== "running") return;
       const oscillator = this.context.createOscillator(),
         t = this.context.currentTime + delay;
       oscillator.type = type;
-      // Discrete pitch steps give the effects an early arcade sound.
-      for (let i = 0; i < 7; i++)
-        oscillator.frequency.setValueAtTime(
-          Math.max(20, frequency * Math.pow(end / frequency, i / 6)),
-          t + (i * duration) / 7,
+      // Flaps glide smoothly; the other effects retain their arcade pitch steps.
+      if (soft) {
+        oscillator.frequency.setValueAtTime(frequency, t);
+        oscillator.frequency.exponentialRampToValueAtTime(
+          Math.max(20, end),
+          t + duration * 0.8,
         );
-      this.envelope(oscillator, duration, volume, delay);
+      } else
+        for (let i = 0; i < 7; i++)
+          oscillator.frequency.setValueAtTime(
+            Math.max(20, frequency * Math.pow(end / frequency, i / 6)),
+            t + (i * duration) / 7,
+          );
+      this.envelope(oscillator, duration, volume, delay, null, soft);
     }
-    hiss(duration, volume, cutoff) {
+    hiss(duration, volume, cutoff, soft = false) {
       const source = this.context.createBufferSource(),
         filter = this.context.createBiquadFilter();
       source.buffer = this.noise;
       filter.type = "lowpass";
       filter.frequency.value = cutoff;
-      this.envelope(source, duration, volume, 0, filter);
+      this.envelope(source, duration, volume, 0, filter, soft);
     }
     play(kind, variant = 0) {
       if (!this.enabled || this.context?.state !== "running") return;
@@ -161,8 +173,10 @@
           flap.wave,
           flap.volume,
           flap.end * pitchVariation,
+          0,
+          true,
         );
-        this.hiss(flap.duration, flap.air, flap.cutoff);
+        this.hiss(flap.duration, flap.air, flap.cutoff, true);
       } else if (kind === "step") {
         this.tone(variant % 2 ? 145 : 185, 0.04, "square", 0.07, 65);
       } else if (kind === "spawn") {

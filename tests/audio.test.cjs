@@ -6,11 +6,14 @@ function fixture(initial = "running") {
   const param = () => ({
     value: 0,
     values: [],
+    ramps: [],
     setValueAtTime(v, t) {
       this.value = v;
       this.values.push([v, t]);
     },
-    linearRampToValueAtTime() {},
+    linearRampToValueAtTime(value, time) {
+      this.ramps.push({ value, time });
+    },
     exponentialRampToValueAtTime() {},
   });
   const node = (kind) => {
@@ -166,11 +169,36 @@ test("all four birds have distinct quieter flap voices even when flapping togeth
     4,
   );
   assert.equal(new Set(filters.map((n) => n.frequency.value)).size, 4);
-  assert.equal(new Set(tones.map((n) => n.type)).size, 3);
-  for (const tone of tones) assert.ok(tone.stopped - tone.started < 0.07);
+  assert.equal(new Set(tones.map((n) => n.type)).size, 2);
+  for (const tone of tones)
+    assert.ok(
+      tone.stopped - tone.started >= 0.1 && tone.stopped - tone.started < 0.18,
+    );
   audio.play("flap", 0);
   assert.equal(nodes.filter((n) => n.kind === "tone").length, 4);
   audio.context.currentTime += 0.1;
   audio.play("flap", 0);
   assert.equal(nodes.filter((n) => n.kind === "tone").length, 5);
+});
+
+test("every flap fades in gently and fades fully to silence", () => {
+  for (let character = 0; character < 4; character++) {
+    const { audio, nodes } = fixture();
+    audio.unlock();
+    audio.play("flap", character);
+    const gains = nodes.filter((n) => n.kind === "gain").slice(1);
+    assert.equal(gains.length, 2);
+    for (const gain of gains) {
+      assert.equal(gain.gain.values[0][0], 0);
+      assert.ok(gain.gain.ramps[0].time - audio.context.currentTime >= 0.024);
+      assert.equal(gain.gain.ramps.at(-1).value, 0);
+    }
+    const tone = nodes.find((n) => n.kind === "tone");
+    assert.notEqual(tone.type, "square");
+    assert.equal(
+      tone.frequency.values.length,
+      1,
+      "no abrupt pitch steps during flaps",
+    );
+  }
 });

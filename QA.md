@@ -4,7 +4,7 @@ Verified on macOS, September 5, 2026.
 
 ## Automated
 
-`npm test`: 38 passing tests.
+`npm test`: 39 passing tests.
 
 - Five lives; distinct floating spawns; furthest available spawn selection across the wrap seam.
 - Height-based knockouts, tied-height bounce, single life debit, wraparound combat.
@@ -64,4 +64,8 @@ The settled match remains visible for 1.6 seconds, with feather particles animat
 
 ## Individual flap sounds
 
-Ember has a low triangle flutter, Mint an airy rising chirp, Iris a hollow sine wingbeat, and Sol a short bright square-wave tick. Pitched components are quieter and shorter than the original flap, with slight pitch variation between presses. Simultaneous flaps use separate per-character rate limits. Tests verify distinct sound profiles, overlap handling, and sound selection following character choice rather than player slot.
+Ember has a low triangle flutter, Mint an airy rising chirp, Iris a hollow sine wingbeat, and Sol a light triangle flutter. Pitched components are quieter than the original flap, with slight pitch variation between presses. Simultaneous flaps use separate per-character rate limits. Tests verify distinct sound profiles, overlap handling, and sound selection following character choice rather than player slot.
+
+## Softer flap transients
+
+Flaps now use 25 ms fade-ins, longer 120–160 ms envelopes, smooth pitch glides, and fade fully to zero before stopping. Their noise layers are quieter and filtered more heavily. Sol no longer uses a sharp square wave. Regression coverage checks every character’s gentle attack, zero-amplitude tail, and absence of stepped pitch changes.
