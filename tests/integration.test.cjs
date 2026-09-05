@@ -172,7 +172,7 @@ test("keyboard menu, two players, fresh-press flaps, pause and rematch", () => {
   assert.ok(m.time > time);
   m.players[1].alive = false;
   m.players[1].lives = 0;
-  f.advance();
+  f.advance(1.7);
   assert.equal(f.element("results").hidden, false);
   assert.match(f.element("winner-title").textContent, /takes the sky/);
   f.press("Enter");
@@ -228,7 +228,7 @@ test("team lobby requires two sides, then produces the team winner", () => {
   assert.equal(f.match.mode, "teams");
   f.match.players[1].lives = 0;
   f.match.players[1].alive = false;
-  f.advance();
+  f.advance(1.7);
   assert.match(f.element("winner-title").textContent, /Sun team wins/);
 });
 test("blur releases keyboard input and freezes the simulation", () => {
@@ -288,4 +288,43 @@ test("rebirth sound fires once at respawn, after the death delay", () => {
   assert.equal(f.soundEvents.filter((k) => k === "spawn").length, 1);
   f.advance(0.3);
   assert.equal(f.soundEvents.filter((k) => k === "spawn").length, 1);
+});
+
+test("final feather burst remains visible before results and its delay pauses", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  f.advance(3.2);
+  const victim = f.match.players[1];
+  victim.lives = 1;
+  victim.invincible = 0;
+  f.match.kill(victim, f.match.players[0]);
+  f.advance();
+  assert.equal(f.soundEvents.filter((k) => k === "death").length, 1);
+  assert.equal(f.element("results").hidden, true);
+  assert.equal(f.element("hud").hidden, false);
+  const matchTime = f.match.time;
+  const positions = f.match.players.map((p) => [p.x, p.y, p.lives]);
+  f.press("Enter");
+  f.key("KeyW");
+  f.advance(1);
+  assert.equal(f.element("results").hidden, true);
+  assert.equal(f.match.time, matchTime);
+  assert.deepEqual(
+    f.match.players.map((p) => [p.x, p.y, p.lives]),
+    positions,
+  );
+  f.press("Escape");
+  f.advance(2);
+  assert.equal(f.element("pause").hidden, false);
+  assert.equal(f.element("results").hidden, true);
+  f.press("Enter");
+  f.advance(0.4);
+  assert.equal(f.element("results").hidden, true);
+  f.advance(0.3);
+  assert.equal(f.element("results").hidden, false);
+  f.press("Enter");
+  assert.ok(f.match.players.every((p) => p.lives === 5));
 });

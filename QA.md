@@ -4,7 +4,7 @@ Verified on macOS, September 5, 2026.
 
 ## Automated
 
-`npm test`: 35 passing tests.
+`npm test`: 36 passing tests.
 
 - Five lives; distinct floating spawns; furthest available spawn selection across the wrap seam.
 - Height-based knockouts, tied-height bounce, single life debit, wraparound combat.
@@ -57,3 +57,7 @@ Extra-life pickups restore riders below five lives. Full-life riders also collec
 ## Respawn audio
 
 A rising four-note square-wave arpeggio and soft octave shimmer play with the respawn sparkles. Tests verify ascending notes, a 0.6-second duration, mute behavior, and exactly one cue after the respawn delay rather than at death or the initial countdown.
+
+## Winner-screen delay
+
+The settled match remains visible for 1.6 seconds, with feather particles animating before the results overlay. Tests cover delayed results in free-for-all and teams, frozen combat, early Enter presses, pausing/resuming the delay, and resetting it on rematch.

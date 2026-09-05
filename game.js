@@ -31,6 +31,7 @@
     mode = "ffa",
     match = null;
   let countdown = 0,
+    endingTime = 0,
     clock = 0,
     last = 0,
     accumulator = 0,
@@ -91,7 +92,13 @@
     screen = next;
     for (const id of ["menu", "lobby", "pause", "results"])
       $(id).hidden = next !== id;
-    const inArena = ["match", "countdown", "pause", "results"].includes(next);
+    const inArena = [
+      "match",
+      "countdown",
+      "ending",
+      "pause",
+      "results",
+    ].includes(next);
     $("hud").hidden = !inArena;
     document.body.classList.toggle("playing", inArena);
     $("announcement").textContent = "";
@@ -235,12 +242,13 @@
     );
     particles = [];
     countdown = 3;
+    endingTime = 0;
     show("countdown");
     updateHud();
     tone(300, 0.15);
   }
   function pause(reason = "The sky can wait.", disconnect = false) {
-    if (!["match", "countdown"].includes(screen)) return;
+    if (!["match", "countdown", "ending"].includes(screen)) return;
     pausedForDisconnect = disconnect;
     $("pause-reason").textContent = reason;
     show("pause");
@@ -254,7 +262,7 @@
     }
     pausedForDisconnect = false;
     audioUnlock();
-    show(countdown > 0 ? "countdown" : "match");
+    show(endingTime > 0 ? "ending" : countdown > 0 ? "countdown" : "match");
   }
   function getPads() {
     try {
@@ -323,7 +331,7 @@
       else if (screen === "lobby" || screen === "results") startMatch();
       else if (screen === "pause") resume();
     } else if (e.code === "Escape") {
-      if (["match", "countdown"].includes(screen)) pause();
+      if (["match", "countdown", "ending"].includes(screen)) pause();
       else if (screen === "pause") resume();
       else if (screen === "lobby") show("menu");
       else if (screen === "results") show("lobby");
@@ -411,7 +419,7 @@
               startMatch();
           }
         }
-      } else if (["match", "countdown"].includes(screen)) {
+      } else if (["match", "countdown", "ending"].includes(screen)) {
         if (
           edge.start &&
           match.players.some((p) => p.kind === "pad" && p.source === pad.index)
@@ -425,7 +433,7 @@
       }
     }
     if (
-      ["match", "countdown"].includes(screen) &&
+      ["match", "countdown", "ending"].includes(screen) &&
       missingControllers(pads).length
     )
       pause(
@@ -539,6 +547,7 @@
       mode === "ffa" ? "FREE FOR ALL" : "TEAM BATTLE";
   }
   function finish() {
+    endingTime = 0;
     updateHud();
     show("results");
     tone(440, 0.6, "triangle", 0.06, 880);
@@ -772,7 +781,8 @@
     ctx.clearRect(0, 0, W, H);
     ctx.drawImage(background, 0, 0);
     const active =
-      match && ["match", "countdown", "pause", "results"].includes(screen);
+      match &&
+      ["match", "countdown", "ending", "pause", "results"].includes(screen);
     if (!active) {
       ctx.fillStyle = "#0c15274a";
       ctx.fillRect(0, 0, W, H);
@@ -934,7 +944,11 @@
         );
         processEvents();
         accumulator -= STEP;
-        if (match.winner) finish();
+        if (match.winner) {
+          endingTime = 1.6;
+          show("ending");
+          updateHud();
+        }
       }
       hudClock += dt;
       if (hudClock > 0.12) {
@@ -945,6 +959,13 @@
         noticeTime -= dt;
         if (noticeTime <= 0) $("announcement").textContent = "";
       }
+    } else if (screen === "ending") {
+      // Keep the final arena and feather particles visible before the overlay.
+      // Combat is already settled, so only presentation time advances here.
+      endingTime -= dt;
+      tapped.clear();
+      pendingFlaps.clear();
+      if (endingTime <= 0) finish();
     } else {
       tapped.clear();
       pendingFlaps.clear();
