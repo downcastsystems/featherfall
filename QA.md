@@ -81,3 +81,7 @@ Flaps now use 25 ms fade-ins, longer 120–160 ms envelopes, smooth pitch glides
 - All four mount types use shared movement, combat, and terrain collision rules. Artwork is cosmetic.
 
 Physical controller feel, Windows receiver drivers, native fullscreen, and large-TV readability remain for hardware playtesting. Browser audio/fullscreen policies may still require an initial click or keypress.
+
+## Dive animation
+
+Added original nose-down pixel poses for all four mounts, tucked wing motion, a trailing scarf, and segmented upward speed streaks. The rider leans along the mount. Animation uses simulation time and freezes during pause; landing or releasing dive restores normal artwork. Physics and hitboxes are unchanged. Reviewed all four poses enlarged and at game size in the browser, facing both directions. All 49 existing tests and syntax checks pass with the new renderer.

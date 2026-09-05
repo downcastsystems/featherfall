@@ -742,7 +742,7 @@
       ),
     );
   }
-  // Original pixel birds: a small rider, compact body, beak and animated wings.
+  // Original pixel mounts. The dive pose is artwork only; physics stays shared.
   function drawBird(
     c,
     x,
@@ -753,6 +753,7 @@
     grounded = false,
     scale = 1,
     time = 0,
+    diving = false,
   ) {
     const b = birds[character];
     c.save();
@@ -763,6 +764,77 @@
       c.fillStyle = color;
       c.fillRect(x, y, w, h);
     };
+    if (diving) {
+      // Three stepped poses compress the wings against a vertical body.
+      // Use simulation time so the pose and slipstream freeze while paused.
+      const frame = Math.floor(time * 12) % 3;
+      const tuck = [0, 1, 0][frame];
+      const stream = Math.floor(time * 36) % 12;
+      for (const [sx, phase] of [
+        [-16, 0],
+        [14, 6],
+      ]) {
+        r(sx, -30 - ((stream + phase) % 12), 2, 11, b.color + "70");
+        r(sx + 1, -16 - ((stream + phase) % 8), 1, 5, b.light + "99");
+      }
+      // Tail first, head down: a narrow spear-shaped silhouette.
+      r(-5, -21, 9, 13, b.dark);
+      r(-3, -24, 5, 12, b.color);
+      r(-6, -12, 13, 20, "#0c1625");
+      r(-5, -13, 11, 20, b.dark);
+      r(-2, -12, 7, 22, b.color);
+      r(3, -7, 3, 13, b.light);
+      // Folded wings trail upward instead of flapping out to the sides.
+      r(-9 + tuck, -17, 4, 19, b.dark);
+      r(-8 + tuck, -15, 2, 13, b.color);
+      r(6 - tuck, -15, 4, 17, b.dark);
+      r(7 - tuck, -13, 2, 12, b.light);
+      if (b.mount === "dragon") {
+        r(-4, 5, 11, 8, b.color);
+        r(-2, 12, 7, 5, b.color);
+        r(-5, 4, 2, 6, b.light);
+        r(6, 4, 2, 6, b.light);
+        r(-5, -26, 2, 7, b.light);
+        r(-3, 9, 2, 2, "#111829");
+      } else if (b.mount === "pegasus") {
+        r(-3, 1, 8, 13, b.light);
+        r(-2, 12, 6, 5, b.light);
+        r(-5, 0, 3, 12, b.dark);
+        r(3, 1, 3, 5, b.color);
+        r(0, 10, 2, 2, "#111829");
+        r(-5, -25, 7, 5, b.light);
+        r(-10 + tuck, -16, 2, 11, b.light);
+        r(-7, -3, 3, 7, b.light);
+        r(-8, -4, 4, 2, b.dark);
+      } else if (b.mount === "pterodactyl") {
+        r(-3, 3, 8, 9, b.color);
+        r(-2, 11, 5, 6, b.light);
+        r(-1, 17, 2, 5, b.light);
+        r(-4, -2, 3, 7, b.dark);
+        r(-5, -5, 2, 4, b.color);
+        r(-2, 7, 2, 2, "#111829");
+      } else {
+        r(-4, 3, 10, 9, b.color);
+        r(-2, 6, 7, 6, b.light);
+        r(-1, 12, 4, 5, "#edc06e");
+        r(0, 17, 2, 3, "#edc06e");
+        r(-2, 8, 2, 2, "#111829");
+        r(-7, -24, 4, 8, b.color);
+        r(-10 + tuck, -16, 2, 10, b.light);
+      }
+      // Rider leans flat against the mount, scarf streaming above the helmet.
+      r(-9, -15, 5, 11, "#273447");
+      r(-10, -4, 6, 6, "#eddbc2");
+      r(-11, -5, 8, 3, b.color);
+      r(-11, -2, 3, 4, b.dark);
+      r(-5, 0, 2, 2, "#121e2a");
+      r(-8, -13, 4, 8, b.light);
+      r(-5, -7, 4, 3, "#273447");
+      r(-12, -13, 3, 8, b.color);
+      r(-13 + frame, -20, 2, 8, b.dark);
+      c.restore();
+      return;
+    }
     // All artwork stays compact; mount choice never changes engine collision bounds.
     const walk = grounded ? Math.round(Math.sin(time * 24) * 2) : 0;
     const wing = (feathered = false) => {
@@ -1069,11 +1141,6 @@
           continue;
         }
         const b = birds[p.character];
-        if (p.diving) {
-          ctx.fillStyle = b.color + "99";
-          ctx.fillRect(p.x - 5, p.y - 57, 2, 18);
-          ctx.fillRect(p.x + 6, p.y - 49, 2, 12);
-        }
         if (p.boosting) {
           ctx.fillStyle = b.color + "88";
           ctx.fillRect(p.x - p.facing * 47, p.y - 5, 25, 3);
@@ -1097,7 +1164,12 @@
             p.flapTimer > 0,
             p.grounded,
             1,
-            Math.abs(p.vx) > 15 ? clock : 0,
+            p.diving && !p.grounded
+              ? match.time
+              : Math.abs(p.vx) > 15
+                ? clock
+                : 0,
+            p.diving && !p.grounded,
           );
           ctx.font = "bold 14px Silkscreen";
           ctx.textAlign = "center";
