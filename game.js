@@ -566,13 +566,13 @@
     winners.forEach((p, i) =>
       drawBird(
         c,
-        90 + (i - (winners.length - 1) / 2) * 65,
+        (180 / winners.length) * (i + 0.5),
         55,
         p.character,
         1,
         true,
         false,
-        3,
+        Math.min(3, 3.4 / winners.length),
         clock,
       ),
     );

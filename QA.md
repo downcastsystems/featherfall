@@ -23,7 +23,9 @@ Verified on macOS, September 5, 2026.
 
 ## Browser
 
-Inspected the title screen, four-player lobby and active match in the Codex Chromium browser. Verified keyboard joining and flapping, bot matches, HUD/life updates, visible pickup and feather particles. Further final checks are recorded below after the review pass.
+Inspected the title screen, four-player lobby and active match in the Codex Chromium browser. Verified keyboard joining and flapping, HUD/life updates, visible pickup and feather particles, sound toggle, pause during countdown, resume, team selection, a complete 44-second team match, winner scoreboard and rematch with all lives restored. No browser errors or warnings were logged.
+
+The embedded browser retained a 1280×720 viewport when its fullscreen button was invoked. Native browser fullscreen behavior and physical TV output remain to be checked outside the embedded browser. The layout maintained its 16:9 ratio.
 
 ## Review fixes
 
