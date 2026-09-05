@@ -507,7 +507,7 @@
       }
       if (event.type === "flap") {
         burst(event.x, event.y + 8, color, 2, 0.15);
-        sound.play("flap");
+        sound.play("flap", match.players[event.id].character);
       }
       if (event.type === "step") sound.play("step", event.foot);
       if (event.type === "bump") {

@@ -78,7 +78,7 @@ No external dependencies or build step. Node's built-in test runner executes the
 
 - `engine.js`: fixed 120 Hz simulation, character data, arena geometry, combat, bots, gamepad mapping.
 - `game.js`: Canvas 2D rendering, generated pixel art, lobby and input handling.
-- `audio.js`: procedural 8-bit flap chirps, alternating footsteps, feather-burst explosions, a rising rebirth chime on respawn, and other arcade tones.
+- `audio.js`: procedural character-specific flap sounds with subtle pitch variation, alternating footsteps, feather-burst explosions, a rising rebirth chime on respawn, and other arcade tones.
 - `style.css` / `index.html`: menus and HUD, scaled with the fixed 1920×1080 arena.
 - `server.cjs`: loopback-only static development server.
 - `tests/`: game rules and application input/transition tests.

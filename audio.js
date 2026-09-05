@@ -1,6 +1,46 @@
 /* Procedural chiptune effects. No downloaded assets or network dependency. */
 (function (root) {
   "use strict";
+  // Ember: warm flutter; Mint: airy chirp; Iris: hollow wingbeat; Sol: bright tick.
+  // Keep the pitched component quiet so four birds don't become a chorus of boops.
+  const FLAPS = [
+    {
+      pitch: 190,
+      end: 130,
+      duration: 0.045,
+      wave: "triangle",
+      volume: 0.045,
+      air: 0.07,
+      cutoff: 1600,
+    },
+    {
+      pitch: 440,
+      end: 620,
+      duration: 0.04,
+      wave: "triangle",
+      volume: 0.028,
+      air: 0.06,
+      cutoff: 2500,
+    },
+    {
+      pitch: 310,
+      end: 220,
+      duration: 0.065,
+      wave: "sine",
+      volume: 0.04,
+      air: 0.045,
+      cutoff: 1000,
+    },
+    {
+      pitch: 740,
+      end: 510,
+      duration: 0.032,
+      wave: "square",
+      volume: 0.018,
+      air: 0.045,
+      cutoff: 3300,
+    },
+  ];
   class ArcadeAudio {
     constructor(Context, onChange = () => {}) {
       this.Context = Context;
@@ -109,11 +149,20 @@
       if (!this.enabled || this.context?.state !== "running") return;
       const now = this.context.currentTime;
       const gap = kind === "step" ? 0.045 : kind === "flap" ? 0.018 : 0;
-      if (gap && now - (this.last[kind] ?? -Infinity) < gap) return;
-      this.last[kind] = now;
+      const key = kind === "flap" ? `flap:${variant}` : kind;
+      if (gap && now - (this.last[key] ?? -Infinity) < gap) return;
+      this.last[key] = now;
       if (kind === "flap") {
-        this.tone(260, 0.095, "square", 0.12, 85);
-        this.hiss(0.055, 0.07, 1300);
+        const flap = FLAPS[variant] || FLAPS[0];
+        const pitchVariation = 1 + (Math.random() - 0.5) * 0.06;
+        this.tone(
+          flap.pitch * pitchVariation,
+          flap.duration,
+          flap.wave,
+          flap.volume,
+          flap.end * pitchVariation,
+        );
+        this.hiss(flap.duration, flap.air, flap.cutoff);
       } else if (kind === "step") {
         this.tone(variant % 2 ? 145 : 185, 0.04, "square", 0.07, 65);
       } else if (kind === "spawn") {

@@ -152,3 +152,25 @@ test("respawn plays a rising chime with a short shimmer and obeys mute", () => {
   audio.play("spawn");
   assert.equal(nodes.length, count);
 });
+
+test("all four birds have distinct quieter flap voices even when flapping together", () => {
+  const { audio, nodes } = fixture();
+  audio.unlock();
+  for (let character = 0; character < 4; character++)
+    audio.play("flap", character);
+  const tones = nodes.filter((n) => n.kind === "tone");
+  const filters = nodes.filter((n) => n.kind === "filter");
+  assert.equal(tones.length, 4);
+  assert.equal(
+    new Set(tones.map((n) => Math.round(n.frequency.values[0][0] / 10))).size,
+    4,
+  );
+  assert.equal(new Set(filters.map((n) => n.frequency.value)).size, 4);
+  assert.equal(new Set(tones.map((n) => n.type)).size, 3);
+  for (const tone of tones) assert.ok(tone.stopped - tone.started < 0.07);
+  audio.play("flap", 0);
+  assert.equal(nodes.filter((n) => n.kind === "tone").length, 4);
+  audio.context.currentTime += 0.1;
+  audio.play("flap", 0);
+  assert.equal(nodes.filter((n) => n.kind === "tone").length, 5);
+});

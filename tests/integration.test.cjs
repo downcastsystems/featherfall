@@ -57,9 +57,11 @@ function fixture() {
     }
   }
   const soundEvents = [];
+  const soundCalls = [];
   class RecordedAudio extends require("../audio.js") {
     play(kind, variant) {
       soundEvents.push(kind);
+      soundCalls.push({ kind, variant });
       super.play(kind, variant);
     }
   }
@@ -113,6 +115,7 @@ function fixture() {
   }
   return {
     soundEvents,
+    soundCalls,
     element,
     advance,
     key,
@@ -327,4 +330,24 @@ test("final feather burst remains visible before results and its delay pauses", 
   assert.equal(f.element("results").hidden, false);
   f.press("Enter");
   assert.ok(f.match.players.every((p) => p.lives === 5));
+});
+
+test("flap sound follows the selected character rather than the keyboard seat", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("KeyD");
+  f.press("Digit2");
+  f.press("Enter");
+  f.advance(3.2);
+  assert.equal(f.match.players[0].character, 1);
+  f.press("KeyW");
+  f.advance();
+  f.press("ArrowUp");
+  f.advance();
+  const flaps = f.soundCalls.filter((call) => call.kind === "flap");
+  assert.deepEqual(
+    flaps.map((call) => call.variant),
+    Array.from(f.match.players, (p) => p.character),
+  );
 });

@@ -4,7 +4,7 @@ Verified on macOS, September 5, 2026.
 
 ## Automated
 
-`npm test`: 36 passing tests.
+`npm test`: 38 passing tests.
 
 - Five lives; distinct floating spawns; furthest available spawn selection across the wrap seam.
 - Height-based knockouts, tied-height bounce, single life debit, wraparound combat.
@@ -61,3 +61,7 @@ A rising four-note square-wave arpeggio and soft octave shimmer play with the re
 ## Winner-screen delay
 
 The settled match remains visible for 1.6 seconds, with feather particles animating before the results overlay. Tests cover delayed results in free-for-all and teams, frozen combat, early Enter presses, pausing/resuming the delay, and resetting it on rematch.
+
+## Individual flap sounds
+
+Ember has a low triangle flutter, Mint an airy rising chirp, Iris a hollow sine wingbeat, and Sol a short bright square-wave tick. Pitched components are quieter and shorter than the original flap, with slight pitch variation between presses. Simultaneous flaps use separate per-character rate limits. Tests verify distinct sound profiles, overlap handling, and sound selection following character choice rather than player slot.
