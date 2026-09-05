@@ -6,6 +6,7 @@
     H,
     CHARACTERS: birds,
     PLATFORMS,
+    PLATFORM_DEPTH,
     Match,
     botInput,
     gamepadState,
@@ -506,6 +507,10 @@
         if (match.players[event.id].kind !== "bot")
           tone(160, 0.055, "triangle", 0.02, 90);
       }
+      if (event.type === "bump") {
+        burst(event.x, event.y, "#b6c2b2", 5, 0.3);
+        tone(110, 0.06, "triangle", 0.025, 65);
+      }
       if (event.type === "clash") {
         burst(event.x, event.y, "#fff0c0", 9);
         tone(380, 0.08);
@@ -708,7 +713,7 @@
       bg.fill();
     }
     for (const p of PLATFORMS) {
-      const depth = p.ground ? 70 : 35,
+      const depth = p.ground ? 70 : PLATFORM_DEPTH,
         x = p.x,
         y = p.y,
         w = p.w;

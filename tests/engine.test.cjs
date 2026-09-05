@@ -129,17 +129,72 @@ test("teams ignore friendly fire and account for pending enemy respawns", () => 
   tick(m);
   assert.deepEqual(m.winner, { team: 0, draw: false });
 });
-test("platforms allow ascent through them and catch descent", () => {
-  const m = make();
-  const p = m.players[0];
-  position(p, 200, 270);
-  p.vy = -300;
-  tick(m, 20);
-  assert.ok(p.y < 240);
-  p.vy = 100;
-  tick(m, 80);
+test("platform undersides stop ascent and give a small downward bump", () => {
+  const m = make(),
+    p = m.players[0];
+  position(p, 200, 313);
+  p.vy = -360;
+  tick(m);
+  assert.ok(p.y >= 311);
+  assert.ok(p.vy >= 65 && p.vy <= 110);
+  assert.equal(p.grounded, false);
+  assert.equal(p.lives, 5);
+  assert.ok(m.events.some((e) => e.type === "bump"));
+});
+test("platform tops still catch descent and support walking", () => {
+  const m = make(),
+    p = m.players[0];
+  position(p, 200, 238);
+  p.vy = 200;
+  tick(m, 5);
   assert.equal(p.y, 243);
   assert.equal(p.grounded, true);
+  tick(m, 30, [{ move: 1 }]);
+  assert.equal(p.y, 243);
+  assert.ok(p.x > 200);
+});
+test("both platform sides rebound in proportion to impact speed", () => {
+  for (const direction of [-1, 1])
+    for (const speed of [100, 300]) {
+      const m = make(),
+        p = m.players[0];
+      position(p, direction === 1 ? 129.5 : 390.5, 275);
+      p.grounded = false;
+      p.vx = direction * speed;
+      tick(m);
+      assert.ok(direction * p.vx < 0);
+      assert.ok(
+        Math.abs(Math.abs(p.vx) - speed * Math.exp(-1.2 / 120) * 0.6) < 0.001,
+      );
+      assert.ok(direction === 1 ? p.x < 130 : p.x > 390);
+      assert.equal(p.lives, 5);
+    }
+});
+test("diagonal corner impacts resolve the first face without embedding", () => {
+  const m = make(),
+    p = m.players[0];
+  position(p, 128, 312);
+  p.grounded = false;
+  p.vx = 330;
+  p.vy = -380;
+  tick(m);
+  assert.ok(p.vx < 0);
+  assert.ok(p.x < 130);
+});
+test("walking off an edge and jumping from the top do not snag", () => {
+  const m = make(),
+    p = m.players[0];
+  position(p, 389, 243);
+  p.vx = 300;
+  p.grounded = true;
+  tick(m);
+  assert.ok(p.x > 390);
+  assert.equal(p.grounded, false);
+  position(p, 200, 243);
+  p.grounded = true;
+  tick(m, 1, [{ flap: true }]);
+  assert.ok(p.y < 243);
+  assert.ok(p.vy < 0);
 });
 test("horizontal wrapping and safe ground keep players in the arena", () => {
   const m = make();
@@ -228,5 +283,21 @@ test("a bot commits to landing attacks against a stationary human", () => {
   assert.ok(
     m.players[0].lives < 5,
     "bot must descend rather than hover forever above a stationary player",
+  );
+});
+
+test("bots fly around a solid roof to reach a rider above", () => {
+  const m = make(),
+    human = m.players[0],
+    bot = m.players[1];
+  position(human, 200, 243);
+  position(bot, 200, 380);
+  for (let i = 0; i < 120 * 60 && human.lives === 5; i++) {
+    m.step(1 / 120, [{}, botInput(bot, m, 1 / 120)]);
+    m.events.length = 0;
+  }
+  assert.ok(
+    human.lives < 5,
+    "bot must go around the platform instead of flapping into it forever",
   );
 });

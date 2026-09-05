@@ -4,13 +4,13 @@ Verified on macOS, September 5, 2026.
 
 ## Automated
 
-`npm test`: 20 passing tests.
+`npm test`: 25 passing tests.
 
 - Five lives; distinct floating spawns; furthest available spawn selection across the wrap seam.
 - Height-based knockouts, tied-height bounce, single life debit, wraparound combat.
 - Defensive and offensive spawn protection; delayed respawn; permanent elimination.
 - Team friendly-fire immunity and victory accounting for pending respawns.
-- One-way platform landing, safe ground, horizontal wrapping, flap impulse.
+- Solid platform landing and underside/side rebounds, safe ground, horizontal wrapping, flap impulse.
 - Golden feather spawn placement, single collection and expiration.
 - Standard gamepad mapping, stick dead zone, D-pad and fresh-press edges.
 - Complete four-bot free-for-all and team matches within ten simulated minutes.
@@ -41,3 +41,7 @@ The embedded browser retained a 1280×720 viewport when its fullscreen button wa
 - No physical Xbox 360 receiver or controllers were available to validate Windows drivers and browser mapping. Four-controller tests use synthetic standard-mapping inputs.
 - This is a local shared-screen browser game. It has no online multiplayer or native app installer.
 - Mac keyboard testing is supported independently of Xbox controller driver availability on macOS.
+
+## Solid platform update
+
+Added regression coverage for underside bumps, proportional side rebounds in both directions, diagonal corner impacts, walking off edges, and bots routing around solid roofs. Rider collisions use a swept 20-pixel-wide body extending 21 pixels above the center and 12 below.

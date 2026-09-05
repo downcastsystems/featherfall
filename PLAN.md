@@ -6,7 +6,7 @@ Standalone browser game, separate from the parent website. No runtime dependenci
 
 - Start → character lobby → 2–4 players → countdown → match → winner → rematch.
 - Four equal selectable riders, keyboard seats, hot-plug standard gamepads, optional bots.
-- Flap requires fresh presses. Walking, gravity, one-way platforms, wraparound, height-based combat.
+- Flap requires fresh presses. Walking, gravity, solid platforms, wraparound, height-based combat.
 - Five lives, feather deaths, delayed distant platform respawns, visible spawn protection, platform extra lives.
 - FFA or two teams, no friendly fire, correct winner when respawns are pending.
 - Fullscreen, pause, focus-loss pause, controller-disconnect pause, sound toggle.
@@ -20,3 +20,7 @@ Standalone browser game, separate from the parent website. No runtime dependenci
 - Tied-height collisions bounce. Protected riders cannot kill or be killed.
 - No terrain hazards: touching the ground is safe. Extra lives have no hard cap.
 - Windows hardware verification is deferred to the user; simulate gamepad input during development.
+
+## Solid platform update
+
+Use swept body collisions against the 35-pixel platform body. Preserve landing and walking. Verify underside bumps, proportional rebounds from both sides, diagonal corners, edge exits, bot navigation, and existing match/input rules.

@@ -46,6 +46,7 @@
     { x: 1215, y: 785, w: 270 },
     { x: 0, y: 1010, w: 1920, ground: true },
   ];
+  const PLATFORM_DEPTH = 35;
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   const wrapDelta = (a, b) => {
     let d = a - b;
@@ -68,6 +69,75 @@
     return candidates
       .map((s) => ({ ...s, score: score(s) }))
       .sort((a, b) => b.score - a.score)[0];
+  }
+  // Sweep the rider's body against expanded platform rectangles, choosing the
+  // first face struck. This prevents fast and diagonal impacts from tunneling.
+  function moveAgainstPlatforms(p, dt, events) {
+    p.grounded = false;
+    let remaining = dt;
+    for (let pass = 0; pass < 4 && remaining > 0; pass++) {
+      const dx = p.vx * remaining,
+        dy = p.vy * remaining;
+      let hit = null;
+      for (const platform of PLATFORMS) {
+        const left = platform.ground ? -Infinity : platform.x - 10;
+        const right = platform.ground ? Infinity : platform.x + platform.w + 10;
+        const top = platform.y - 12,
+          bottom = platform.y + PLATFORM_DEPTH + 21;
+        const slab = (origin, delta, min, max) => {
+          if (delta === 0)
+            return origin > min && origin < max ? [-Infinity, Infinity] : null;
+          return delta > 0
+            ? [(min - origin) / delta, (max - origin) / delta]
+            : [(max - origin) / delta, (min - origin) / delta];
+        };
+        const tx = slab(p.x, dx, left, right),
+          ty = slab(p.y, dy, top, bottom);
+        if (!tx || !ty) continue;
+        const enter = Math.max(tx[0], ty[0]),
+          exit = Math.min(tx[1], ty[1]);
+        if (enter < 0 || enter > 1 || enter > exit || exit <= 0) continue;
+        if (!hit || enter < hit.time)
+          hit = {
+            time: enter,
+            side: tx[0] > ty[0],
+            platform,
+            left,
+            right,
+            top,
+            bottom,
+          };
+      }
+      if (!hit) {
+        p.x += dx;
+        p.y += dy;
+        break;
+      }
+      p.x += dx * hit.time;
+      p.y += dy * hit.time;
+      remaining *= 1 - hit.time;
+      if (hit.side) {
+        p.x = p.vx > 0 ? hit.left - 0.01 : hit.right + 0.01;
+        p.vx *= -0.6;
+        events.push({ type: "bump", id: p.id, x: p.x, y: p.y });
+      } else if (p.vy < 0) {
+        p.y = hit.bottom + 0.01;
+        p.vy = clamp(-p.vy * 0.25, 65, 110);
+        events.push({ type: "bump", id: p.id, x: p.x, y: p.y - 21 });
+      } else {
+        p.y = hit.top;
+        p.vy = 0;
+        p.grounded = true;
+      }
+    }
+    p.x = ((p.x % W) + W) % W;
+    if (
+      p.grounded &&
+      !PLATFORMS.some(
+        (s) => p.y === s.y - 12 && p.x + 10 > s.x && p.x - 10 < s.x + s.w,
+      )
+    )
+      p.grounded = false;
   }
   class Match {
     constructor(seats, mode = "ffa", rng = Math.random) {
@@ -108,6 +178,7 @@
         respawn: 0,
         clash: 0,
         botExit: null,
+        botClimb: null,
         botDive: false,
         botClock: 0,
       });
@@ -156,27 +227,10 @@
           this.events.push({ type: "flap", id: p.id, x: p.x, y: p.y });
         }
         p.vy = Math.min(520, p.vy + 650 * dt);
-        const oldFeet = p.y + 12;
-        p.x = (p.x + p.vx * dt + W) % W;
-        p.y += p.vy * dt;
-        p.grounded = false;
+        moveAgainstPlatforms(p, dt, this.events);
         if (p.y < 104) {
           p.y = 104;
           p.vy = Math.max(0, p.vy);
-        }
-        for (const platform of PLATFORMS) {
-          if (
-            p.vy >= 0 &&
-            oldFeet <= platform.y + 0.1 &&
-            p.y + 12 >= platform.y &&
-            p.x + 10 > platform.x &&
-            p.x - 10 < platform.x + platform.w
-          ) {
-            p.y = platform.y - 12;
-            p.vy = 0;
-            p.grounded = true;
-            break;
-          }
         }
       }
       for (let i = 0; i < this.players.length; i++)
@@ -258,6 +312,29 @@
         Math.hypot(wrapDelta(b.x, p.x), b.y - p.y),
     )[0];
     p.botClock = (p.botClock || 0) - dt;
+    if (p.botClimb && (!target || p.y < p.botClimb.untilY)) p.botClimb = null;
+    if (!p.botClimb && target && target.y < p.y - 40) {
+      const roof = PLATFORMS.filter(
+        (s) =>
+          !s.ground &&
+          p.y - 21 >= s.y + PLATFORM_DEPTH &&
+          p.y - s.y < 200 &&
+          p.x > s.x - 20 &&
+          p.x < s.x + s.w + 20,
+      ).sort((a, b) => b.y - a.y)[0];
+      if (roof)
+        p.botClimb = {
+          x: p.x < roof.x + roof.w / 2 ? roof.x - 45 : roof.x + roof.w + 45,
+          untilY: roof.y - 40,
+        };
+    }
+    if (p.botClimb) {
+      p.botExit = null;
+      const flap = p.botClock <= 0;
+      if (flap) p.botClock = 0.22 + match.rng() * 0.08;
+      const dx = wrapDelta(p.botClimb.x, p.x) - p.vx * 0.18;
+      return { move: Math.abs(dx) < 8 ? 0 : Math.sign(dx), flap };
+    }
     if (p.botExit && p.y > p.botExit.untilY) p.botExit = null;
     if (target && p.grounded && target.y > p.y + 40) {
       const platform = PLATFORMS.find(
@@ -322,6 +399,7 @@
     H,
     CHARACTERS,
     PLATFORMS,
+    PLATFORM_DEPTH,
     Match,
     chooseSpawn,
     wrapDelta,
