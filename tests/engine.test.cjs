@@ -301,3 +301,23 @@ test("bots fly around a solid roof to reach a rider above", () => {
     "bot must go around the platform instead of flapping into it forever",
   );
 });
+
+test("footsteps alternate while walking, never when stationary or airborne", () => {
+  const m = make(),
+    p = m.players[0];
+  position(p, 700, 998);
+  p.grounded = true;
+  m.events.length = 0;
+  tick(m, 60);
+  assert.equal(m.events.filter((e) => e.type === "step").length, 0);
+  tick(m, 120, [{ move: 1 }]);
+  const steps = m.events.filter((e) => e.type === "step" && e.id === p.id);
+  assert.ok(steps.length >= 3);
+  assert.notEqual(steps[0].foot, steps[1].foot);
+  m.events.length = 0;
+  position(p, 700, 900);
+  p.vx = 200;
+  p.grounded = false;
+  tick(m, 20);
+  assert.equal(m.events.filter((e) => e.type === "step").length, 0);
+});

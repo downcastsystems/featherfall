@@ -4,7 +4,7 @@ Verified on macOS, September 5, 2026.
 
 ## Automated
 
-`npm test`: 25 passing tests.
+`npm test`: 31 passing tests.
 
 - Five lives; distinct floating spawns; furthest available spawn selection across the wrap seam.
 - Height-based knockouts, tied-height bounce, single life debit, wraparound combat.
@@ -45,3 +45,7 @@ The embedded browser retained a 1280×720 viewport when its fullscreen button wa
 ## Solid platform update
 
 Added regression coverage for underside bumps, proportional side rebounds in both directions, diagonal corner impacts, walking off edges, and bots routing around solid roofs. Rider collisions use a swept 20-pixel-wide body extending 21 pixels above the center and 12 below.
+
+## Arcade sound update
+
+Sound defaults on after user activation. Added a reusable procedural audio module, flap effects for every rider, alternating distance-based footsteps, layered feather-burst explosions, and a mute control during matches. Tests verify audio activation, effect scheduling, short voice lifetimes and cleanup, immediate mute, re-enabling sound, overlapping event limits, unsupported audio, and footsteps only while walking. Browser smoke checks verified Start activation, the in-match sound control, keyboard mute, and click-to-unmute. Speaker output and subjective volume balance still depend on the playback device.

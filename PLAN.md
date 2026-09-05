@@ -24,3 +24,7 @@ Standalone browser game, separate from the parent website. No runtime dependenci
 ## Solid platform update
 
 Use swept body collisions against the 35-pixel platform body. Preserve landing and walking. Verify underside bumps, proportional rebounds from both sides, diagonal corners, edge exits, bot navigation, and existing match/input rules.
+
+## Arcade sound update
+
+Enable audio on first user interaction, with a visible browser-unlock fallback. Add distinct flap, walking and feather-death sounds with bounded duration and muted voice suppression. Keep the sound control available in the HUD. Verify event timing and audio lifecycle alongside existing gameplay tests.

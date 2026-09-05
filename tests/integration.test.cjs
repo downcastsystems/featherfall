@@ -58,6 +58,7 @@ function fixture() {
   }
   const sandbox = {
     Featherfall: { ...Engine, Match },
+    ArcadeAudio: require("../audio.js"),
     document,
     window: {},
     innerWidth: 1280,

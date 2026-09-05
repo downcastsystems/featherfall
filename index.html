@@ -26,7 +26,7 @@
         >
         <div class="utilities">
           <span id="controller-status">LOCAL MULTIPLAYER</span
-          ><button id="sound" aria-label="Enable sound">SOUND OFF</button
+          ><button id="sound" aria-label="Mute sound">SOUND ON</button
           ><button id="fullscreen" aria-label="Toggle fullscreen">
             ⛶ <span>FULLSCREEN</span>
           </button>
@@ -90,7 +90,8 @@
         <div class="match-info">
           <span id="match-mode">FREE FOR ALL</span
           ><strong id="match-time">00:00</strong
-          ><button id="pause-button">Ⅱ PAUSE</button>
+          ><button id="sound-play" aria-label="Mute sound">SOUND ON</button>
+          <button id="pause-button">Ⅱ PAUSE</button>
         </div>
         <div class="arena-caption">
           <span>THE HOLLOW SKY</span
@@ -130,6 +131,7 @@
       </footer>
     </main>
     <script src="engine.js"></script>
+    <script src="audio.js"></script>
     <script src="game.js"></script>
   </body>
 </html>

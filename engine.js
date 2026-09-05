@@ -177,6 +177,8 @@
         grounded: true,
         respawn: 0,
         clash: 0,
+        walkDistance: 0,
+        foot: 0,
         botExit: null,
         botClimb: null,
         botDive: false,
@@ -227,7 +229,17 @@
           this.events.push({ type: "flap", id: p.id, x: p.x, y: p.y });
         }
         p.vy = Math.min(520, p.vy + 650 * dt);
+        const oldX = p.x;
         moveAgainstPlatforms(p, dt, this.events);
+        if (p.grounded && Math.abs(p.vx) > 35) {
+          p.walkDistance =
+            (p.walkDistance || 0) + Math.abs(wrapDelta(p.x, oldX));
+          if (p.walkDistance >= 25) {
+            p.walkDistance %= 25;
+            p.foot ^= 1;
+            this.events.push({ type: "step", id: p.id, foot: p.foot });
+          }
+        } else p.walkDistance = 0;
         if (p.y < 104) {
           p.y = 104;
           p.vy = Math.max(0, p.vy);

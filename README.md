@@ -35,7 +35,7 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 - In the lobby, left/right changes your character. Choosing an occupied character swaps the two riders.
 - Enter starts the match or rematch. At least two participants are required; bots count.
 - Escape pauses/resumes. Losing focus automatically pauses the match.
-- M toggles synthesized arcade sound. Sound starts off.
+- M or the Sound button toggles synthesized arcade sound, including during a match. Sound starts on after the first click or keypress. If a controller-only start is blocked by browser audio policy, click **Click for sound** once.
 - Use the fullscreen button before starting a match. The playfield stays 16:9 on other aspect ratios.
 - Multiple keyboards appear as one keyboard to the browser. Four humans sharing one keyboard may hit its simultaneous-key limit. Controllers avoid that hardware limitation.
 
@@ -77,7 +77,8 @@ npm start
 No external dependencies or build step. Node's built-in test runner executes the rules and the real input/screen code against a small DOM fixture. Visual checks run in a browser separately.
 
 - `engine.js`: fixed 120 Hz simulation, character data, arena geometry, combat, bots, gamepad mapping.
-- `game.js`: Canvas 2D rendering, generated pixel art, sound, lobby and input handling.
+- `game.js`: Canvas 2D rendering, generated pixel art, lobby and input handling.
+- `audio.js`: procedural 8-bit flap chirps, alternating footsteps, feather-burst explosions, and other arcade tones.
 - `style.css` / `index.html`: menus and HUD, scaled with the fixed 1920×1080 arena.
 - `server.cjs`: loopback-only static development server.
 - `tests/`: game rules and application input/transition tests.

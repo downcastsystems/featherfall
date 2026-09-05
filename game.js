@@ -43,8 +43,6 @@
     padFrames = new Map(),
     pendingFlaps = new Set();
   let particles = [],
-    soundEnabled = false,
-    audio = null,
     lastPadStatus = "",
     pausedForDisconnect = false;
   const STEP = 1 / 120;
@@ -56,39 +54,39 @@
   }
   addEventListener("resize", resize);
   resize();
-  function audioUnlock() {
-    if (!soundEnabled) return;
-    try {
-      audio ||= new (window.AudioContext || window.webkitAudioContext)();
-      audio.resume().catch(() => {});
-    } catch {
-      soundEnabled = false;
+  function updateSoundControl() {
+    for (const id of ["sound", "sound-play"]) {
+      $(id).textContent = sound.blocked
+        ? "CLICK FOR SOUND"
+        : sound.enabled
+          ? "SOUND ON"
+          : "SOUND OFF";
+      $(id).setAttribute(
+        "aria-label",
+        sound.blocked
+          ? "Enable browser audio"
+          : sound.enabled
+            ? "Mute sound"
+            : "Enable sound",
+      );
     }
   }
-  function tone(
-    frequency,
-    duration,
-    type = "square",
-    volume = 0.035,
-    end = frequency / 2,
-  ) {
-    if (!soundEnabled || !audio || audio.state !== "running") return;
-    const oscillator = audio.createOscillator(),
-      gain = audio.createGain(),
-      t = audio.currentTime;
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, t);
-    oscillator.frequency.exponentialRampToValueAtTime(
-      Math.max(20, end),
-      t + duration,
-    );
-    gain.gain.setValueAtTime(volume, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-    oscillator.connect(gain);
-    gain.connect(audio.destination);
-    oscillator.start(t);
-    oscillator.stop(t + duration);
+  const sound = new ArcadeAudio(
+    window.AudioContext || window.webkitAudioContext,
+    updateSoundControl,
+  );
+  function audioUnlock() {
+    sound.unlock();
   }
+  function tone(...args) {
+    sound.tone(...args);
+  }
+  updateSoundControl();
+  // Gamepad polling is not a browser activation gesture. A click or keypress
+  // anywhere in the game also unlocks audio if the browser requires one.
+  addEventListener("pointerdown", (event) => {
+    if (!event.target.closest?.("#sound, #sound-play")) audioUnlock();
+  });
   function show(next) {
     screen = next;
     for (const id of ["menu", "lobby", "pause", "results"])
@@ -290,14 +288,8 @@
     e.preventDefault();
     if (screen === "lobby") show("menu");
   };
-  $("sound").onclick = () => {
-    soundEnabled = !soundEnabled;
-    audioUnlock();
-    $("sound").textContent = soundEnabled ? "SOUND ON" : "SOUND OFF";
-    $("sound").setAttribute(
-      "aria-label",
-      soundEnabled ? "Disable sound" : "Enable sound",
-    );
+  $("sound").onclick = $("sound-play").onclick = () => {
+    sound.toggle();
     tone(550, 0.12, "triangle");
   };
   async function fullscreen() {
@@ -321,11 +313,11 @@
     if (e.repeat) return;
     pressed.add(e.code);
     tapped.add(e.code);
-    audioUnlock();
     if (e.code === "KeyM") {
       $("sound").click();
       return;
     }
+    audioUnlock();
     if (e.code === "Enter") {
       if (screen === "menu") show("lobby");
       else if (screen === "lobby" || screen === "results") startMatch();
@@ -499,14 +491,14 @@
       if (event.type === "death") {
         burst(event.x, event.y, color, 35, 1.5);
         burst(event.x, event.y, "#eee7d3", 10);
-        tone(180, 0.25, "sawtooth", 0.06, 30);
+        sound.play("death");
       }
       if (event.type === "spawn") burst(event.x, event.y, "#fff1c8", 16, 0.4);
       if (event.type === "flap") {
         burst(event.x, event.y + 8, color, 2, 0.15);
-        if (match.players[event.id].kind !== "bot")
-          tone(160, 0.055, "triangle", 0.02, 90);
+        sound.play("flap");
       }
+      if (event.type === "step") sound.play("step", event.foot);
       if (event.type === "bump") {
         burst(event.x, event.y, "#b6c2b2", 5, 0.3);
         tone(110, 0.06, "triangle", 0.025, 65);
