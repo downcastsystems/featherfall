@@ -437,12 +437,13 @@
       if (!this.graves.length || this.zombies.length > 10) return;
       // Each wave is a mirrored pair, so neither side gets extra hazards.
       const pair = this.zombieWave++ % (this.graves.length / 2);
+      const direction = this.rng() < 0.5 ? -1 : 1;
       for (const grave of this.graves.slice(pair * 2, pair * 2 + 2)) {
         this.zombies.push({
           id: this.nextZombieId++,
           x: grave.x,
           y: grave.y,
-          vx: grave.x < W / 2 ? 72 : -72,
+          vx: (grave.x < W / 2 ? 72 : -72) * direction,
           vy: 0,
           grounded: true,
           fallFrom: grave.y,

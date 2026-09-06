@@ -217,3 +217,17 @@ test("naturally spawned zombies survive a first ledge and eventually splat after
     2,
   );
 });
+
+
+test("each zombie wave randomly chooses inward or outward movement while staying mirrored", () => {
+  const m = make();
+  for (const roll of [0.1, 0.9]) {
+    m.rng = () => roll;
+    m.zombies = [];
+    m.spawnZombies();
+    const [left, right] = m.zombies;
+    assert.equal(left.vx, roll < 0.5 ? -72 : 72);
+    assert.equal(right.vx, -left.vx);
+    assert.equal(left.x + right.x, 1920);
+  }
+});
