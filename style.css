@@ -481,11 +481,14 @@ h2 {
   position: absolute;
   top: 22px;
   left: 46px;
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  right: 32px;
   gap: 30px;
 }
 .hud-player {
-  min-width: 212px;
+  min-width: 0;
   border-left: 3px solid var(--bird);
   padding: 6px 0 6px 15px;
 }
@@ -823,7 +826,7 @@ h2 {
   gap: 18px;
 }
 .hud-player {
-  min-width: 210px;
+  min-width: 0;
   padding-left: 12px;
 }
 .hud-player .name {
@@ -870,7 +873,7 @@ h2 {
 .boost-meter {
   position: relative;
   height: 14px;
-  width: 176px;
+  width: 100%;
   margin: 6px 0;
   border: 1px solid #7e909f;
   background: #0b1424;
@@ -957,7 +960,7 @@ footer {
 }
 .hud-player {
   position: relative;
-  padding-right: 8px;
+  padding-right: 16px;
 }
 .hud-player.out {
   opacity: 1;
@@ -973,14 +976,14 @@ footer {
 }
 .ko-count {
   color: #fff1ba;
-  font-size: 22px;
 }
 .hud-stats {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 6px;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-left: auto;
+  flex: none;
 }
 .power-timer {
   font-size: 13px;
@@ -1018,7 +1021,9 @@ footer {
   color: #9eacb9;
 }
 #commentary {
-  font-size: 18px;
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
   color: #d7e3df;
   line-height: 1.35;
 }
@@ -1028,11 +1033,8 @@ footer {
   white-space: nowrap;
 }
 .ko-count {
-  font-size: 18px;
+  font-size: 15px;
   white-space: nowrap;
-}
-.hud-stats {
-  gap: 8px;
 }
 #scoreboard .score-row {
   display: block;
@@ -1064,4 +1066,44 @@ footer {
 .result-box {
   max-height: 1000px;
   overflow-y: auto;
+}
+
+.hud-heading,
+.hud-vitals {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.hud-heading {
+  min-height: 20px;
+}
+.hud-player .name {
+  white-space: nowrap;
+}
+.hud-vitals {
+  margin: 5px 0 6px;
+  min-height: 20px;
+}
+.hud-vitals .lives,
+.hud-vitals .meta {
+  margin-top: 0;
+}
+.hud-player .boost-meter {
+  margin: 0;
+}
+#announcer .match-info {
+  position: static;
+  flex: none;
+  gap: 12px;
+  margin-left: 12px;
+  font-size: 12px;
+}
+#announcer .match-info strong {
+  font-size: 17px;
+  min-width: 62px;
+}
+#announcer .match-info button {
+  padding: 8px 10px;
+  font-size: 12px;
 }

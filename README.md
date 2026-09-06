@@ -100,7 +100,7 @@ One random power-up appears every 25–40 seconds, with equal chances for each t
 - Sawblade: become a spinning blade for three seconds, moving at 900 pixels/second horizontally and 560 vertically. Ricochet off platforms and arena edges. Movement inputs resume when it expires.
 - Rocket: unlimited boost charges and 25% faster horizontal movement for ten seconds. Top movement speed is 412.5 pixels/second; boosts reach 812.5 pixels/second. Release and press boost for each burst; flap and dive physics stay the same. Rear exhaust follows the mount, with a longer plume during boosts.
 
-A pickup activates on contact. A new power replaces the current one, and death clears it. Fired projectiles finish their flight. Powers respect team immunity and spawn protection. Timers stop while paused. Power-ups have soft glows with no name labels. The HUD shows remaining seconds beside the KO count.
+A pickup activates on contact. A new power replaces the current one, and death clears it. Fired projectiles finish their flight. Powers respect team immunity and spawn protection. Timers stop while paused. Power-ups have soft glows with no name labels. The HUD shows remaining seconds beside the hearts.
 
 Bots seek useful pickups, favor feathers when missing lives, boost toward nearby targets, and dive at aligned opponents when platforms do not block the descent.
 
@@ -110,7 +110,7 @@ KO totals stay visible in each player's HUD, using "1 KO" and "0 KOs" or "2 KOs"
 
 Each round starts with five lives and a full boost meter. The first player to win three rounds wins the match. In team mode, the first team to win three rounds wins; every teammate receives the team win, including teammates eliminated earlier in the round. Drawn rounds award no wins, but their KOs and performance stats still count.
 
-The HUD shows cumulative KOs and wins. At each round's end, the round results show that round's KOs and remaining lives alongside accumulated wins. Choose Next round to continue. After the deciding round, choose Match totals to see every player's cumulative KOs, wins and a performance award. Play again starts a new match with zero totals. Enter or controller A selects the highlighted option; controller Start advances from results too. Returning to the lobby abandons the current match.
+The four player panels share the full top width. Cumulative KOs and wins are right-aligned beside each name at the same font size. Hearts, power timers and respawn messages share the next row, above the boost meter. Round information and sound/pause controls sit at the right of the bottom announcer strip. At each round's end, the round results show that round's KOs and remaining lives alongside accumulated wins. Choose Next round to continue. After the deciding round, choose Match totals to see every player's cumulative KOs, wins and a performance award. Play again starts a new match with zero totals. Enter or controller A selects the highlighted option; controller Start advances from results too. Returning to the lobby abandons the current match.
 
 Chirp's sports commentary is text-only and sits beneath the playable ground. Calls pause with gameplay. The central display is reserved for the countdown. Mint's jay now has a slim, pointed bill in both flying and diving poses.
 

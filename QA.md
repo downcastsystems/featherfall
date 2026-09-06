@@ -101,3 +101,7 @@ Browser checks at 1280×720 cover the ready checkmark, four-player match, KO fee
 80 automated tests and syntax checks pass. Checks cover cumulative first-to-three FFA and team scores, draws, duplicate result protection, round-to-final result sequencing, clean new matches, controller Start progression, 100 unique stat-qualified awards, truthful fallback awards, movement/action telemetry across death and respawn, bottom commentary queuing/pause/expiry, and the P shortcut's active-play-only behavior.
 
 Browser checks at 1280×720 cover the jay preview, live bottom commentary beneath the ground, cumulative KOs and wins in round two, P spawning a visible pickup, and round result layout. A temporary accelerated round fixture checks all three result transitions and the four-player match totals/award layout using the real presentation code. This fixture is excluded from the repository. Physical controller/Windows limitations above remain unchanged.
+
+## Full-width status bar
+
+80 tests and syntax checks pass. Visual checks at 1280×720 cover four evenly spaced team panels, names and double-digit KO totals on one line at equal font sizes, inline power/respawn timers, and the OUT state. The panels use three rows. The relocated bottom Pause and Sound buttons were clicked successfully; no browser errors were recorded.
