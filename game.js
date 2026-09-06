@@ -1058,10 +1058,9 @@
       } else {
         r(-4, 3, 10, 9, b.color);
         r(-2, 6, 7, 6, b.light);
-        // The thick bill points down, with its hooked tip curling inward.
+        // The same small tip dip, rotated with the diving bill.
         r(-2, 12, 5, 10, "#edbe78");
-        r(-5, 20, 7, 3, "#c48d50");
-        r(-5, 19, 2, 3, "#edbe78");
+        r(-4, 20, 2, 2, "#edbe78");
         r(1, 12, 2, 8, "#ffe1aa");
         r(-2, 8, 2, 2, "#111829");
         r(-7, -24, 4, 8, b.color);
@@ -1164,10 +1163,9 @@
       r(6, -10, 9, 10, b.color);
       r(11, -8, 4, 4, b.light);
       r(12, -7, 2, 2, "#111829");
-      // A broad bill with a downturned, hooked tip.
+      // A broad bill with just a small downward dip at the tip.
       r(15, -7, 10, 5, "#edbe78");
-      r(23, -4, 3, 6, "#c48d50");
-      r(22, 1, 3, 2, "#edbe78");
+      r(23, -2, 2, 2, "#edbe78");
       r(15, -7, 9, 2, "#ffe1aa");
       r(-18, -2, 7, 4, b.dark);
       r(-21, -5, 5, 4, b.color);
