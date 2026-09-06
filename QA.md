@@ -169,3 +169,7 @@ Luna now has four broad stepped ivory wings with muted gray borders, warm ringed
 ## Rocket speed increase
 
 Changed the shared rocket multiplier from 1.5625 to 1.75. Normal movement caps at 577.5 px/s and rocket boost bursts reach 1137.5 px/s, before zombie bonuses. All 124 tests and syntax checks pass, including grounded/airborne speed, unchanged vertical motion, boost equip/expiry and zombie-stack multiplication. Diff review confirmed the runtime change is limited to the shared multiplier.
+
+## Eruption frequency and overlap protection
+
+First warning now starts at ten seconds. Completed waves wait for the last fireball to disappear before starting an 8–14-second cooldown. New warnings also explicitly require an empty fireball list. All 126 tests and syntax checks pass, including first-warning timing, both sweep directions, cooldown bounds, forced overdue timers during an active wave and leftover fireballs. Reviewed the diff and confirmed warning rendering, pause/reset and one-second drop spacing remain compatible.

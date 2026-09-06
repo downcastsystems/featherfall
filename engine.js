@@ -356,7 +356,7 @@
       this.nextZombieId = 0;
       this.volcanoFireballs = [];
       this.eruption = null;
-      this.nextEruption = 18;
+      this.nextEruption = 10;
       this.rng = rng;
       this.mode = mode;
       this.time = 0;
@@ -464,7 +464,11 @@
     }
     stepVolcano(dt, before) {
       if (this.arena.id !== "volcanic") return;
-      if (!this.eruption && this.time >= this.nextEruption) {
+      if (
+        !this.eruption &&
+        !this.volcanoFireballs.length &&
+        this.time >= this.nextEruption
+      ) {
         this.eruption = {
           start: this.time,
           direction: this.rng() < 0.5 ? 1 : -1,
@@ -481,10 +485,6 @@
         const column = wave.direction > 0 ? wave.dropped : 8 - wave.dropped;
         this.volcanoFireballs.push({ x: 100 + column * 215, y: -20, vy: 360 });
         wave.dropped++;
-        if (wave.dropped === 9) {
-          this.eruption = null;
-          this.nextEruption = this.time + 22 + this.rng() * 12;
-        }
       }
       for (const f of this.volcanoFireballs) {
         const oldY = f.y;
@@ -532,6 +532,11 @@
       this.volcanoFireballs = this.volcanoFireballs.filter(
         (f) => !f.dead && f.y < H + 30,
       );
+      // A wave includes its last falling fireball, not just its last drop.
+      if (wave?.dropped === 9 && !this.volcanoFireballs.length) {
+        this.eruption = null;
+        this.nextEruption = this.time + 8 + this.rng() * 6;
+      }
     }
     graveOccupied(grave) {
       return this.players.some(

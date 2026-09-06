@@ -43,8 +43,10 @@ test("eruption warns before nine drops spaced a second apart, sweeping either di
       xs,
       Array.from({ length: 9 }, (_, i) => 100 + 215 * (roll === 0 ? i : 8 - i)),
     );
+    assert.equal(m.eruption.dropped, 9);
+    while (m.volcanoFireballs.length) tick(m);
     assert.equal(m.eruption, null);
-    assert.ok(m.nextEruption - m.time >= 22);
+    assert.ok(Math.abs(m.nextEruption - m.time - (8 + roll * 6)) < 0.001);
   }
 });
 test("rain is restricted to the volcano and fresh rounds have no old fireballs", () => {
@@ -86,4 +88,43 @@ test("falling fireballs kill on swept contact, respect protection, and give no K
     if (!protectedPlayer)
       assert.equal(m.events.find((e) => e.type === "death").cause, "volcano");
   }
+});
+
+test("first blast begins at ten seconds and waves cannot overlap even with an overdue timer", () => {
+  const m = make();
+  tick(m, 1199);
+  assert.equal(m.eruption, null);
+  tick(m, 2);
+  assert.ok(m.eruption);
+  const wave = m.eruption;
+  m.nextEruption = 0;
+  while (wave.dropped < 9) tick(m);
+  assert.equal(m.eruption, wave);
+  assert.ok(m.volcanoFireballs.length);
+  while (m.volcanoFireballs.length) {
+    assert.equal(m.eruption, wave);
+    tick(m);
+    assert.equal(
+      m.events.filter((e) => e.type === "eruption-warning").length,
+      1,
+    );
+  }
+  assert.equal(m.eruption, null);
+  tick(m, 8 * 120);
+  assert.equal(m.eruption, null);
+  tick(m, 3 * 120 + 1);
+  assert.ok(m.eruption);
+  assert.notEqual(m.eruption, wave);
+  assert.equal(m.events.filter((e) => e.type === "eruption-warning").length, 2);
+});
+test("an orphaned falling fireball also blocks a new warning until it is gone", () => {
+  const m = make();
+  m.nextEruption = 0;
+  m.volcanoFireballs.push({ x: 200, y: 200, vy: 360 });
+  tick(m);
+  assert.equal(m.eruption, null);
+  while (m.volcanoFireballs.length) tick(m);
+  assert.equal(m.eruption, null);
+  tick(m);
+  assert.ok(m.eruption);
 });

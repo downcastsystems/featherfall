@@ -116,3 +116,9 @@ Completed both artwork changes and reviewed all four poses in the browser. Synta
 Raise the rocket multiplier from 1.5625 to 1.75: 75% above normal and 12% above its previous speed. Preserve ten-second duration, unlimited charges, vertical physics and zombie-stack multiplication. Update documented speeds and existing regression expectations, then run checks and review the diff.
 
 Completed and reviewed. All 124 tests and syntax checks pass.
+
+## More frequent, non-overlapping eruptions
+
+Start the first warning at ten seconds. Keep each wave active until all nine drops and their impacts finish, then schedule the next warning after 8–14 seconds. Explicitly block new warnings while fireballs remain. Verify timing, overdue timers, wave cleanup and existing gameplay.
+
+Completed timing and overlap protection. Diff reviewed; all 126 tests and syntax checks pass.
