@@ -32,6 +32,7 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 | 3    | 3    | J / L              | I                  | K          | O           |
 | 4    | 4    | F / H              | T                  | G          | Y           |
 
+- Returning from the lobby to the main menu clears every player and bot slot. Reopening character selection starts with an empty lineup.
 - In the lobby, left/right changes your character. Any number of players can choose the same character; changing yours never changes anyone else. Names include player numbers, such as SOL (P1).
 - Your flap key readies your selected character. Click Ready again to unready, or press B to unready keyboard seats. Changing a character clears that rider's readiness. Enter starts the match from the lobby. Up/down and Enter navigate the title, pause, and results menus. At least two participants are required; bots count.
 - Escape pauses/resumes. Losing focus automatically pauses the match.
@@ -46,7 +47,8 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 3. Run the localhost server, open the game in Chrome or Edge, and focus the game.
 4. Press **Start** on each controller to reveal it to the browser and join. Powering it on alone may not expose it to the page.
 5. Left/right chooses a character. Up/down moves your highlighted selection through character, team, ready, and the lobby options. **A** selects. **Y** is a shortcut to change game mode; **X** changes your team in team mode.
-6. Press **A** on your chosen character to ready immediately. A checkmark confirms it. **B** unreadies first; pressing B again leaves. The Ready button toggles readiness, and Start remains a shortcut. The match starts when all joined participants are ready. The controller-accessible Take flight option or keyboard Enter can also launch.
+6. Press **RB** to remove the last bot, or use up/down to highlight **Remove last bot** and press **A**. This works with a single controller. Mouse users can remove a specific bot from its card.
+7. Press **A** on your chosen character to ready immediately. A checkmark confirms it. **B** unreadies first; pressing B again leaves. The Ready button toggles readiness, and Start remains a shortcut. The match starts when all joined participants are ready. The controller-accessible Take flight option or keyboard Enter can also launch.
 
 During play, left/right moves, **A** taps or holds to flap, **down** dives straight down, **X** boosts in the direction you face, and **Start** pauses/resumes. On the title, pause, and results screens, use **up/down** and **A** to select options. **B** returns or resumes. In the lobby, **B** unreadies a ready rider, or leaves if already unready. Disconnecting a participating controller pauses the game; reconnect it and press Start to resume. New participants join between matches.
 
@@ -137,3 +139,9 @@ Amethyst Ruins has four little graves in mirrored pairs. Starting five seconds i
 Drops under 320 pixels let zombies land and keep walking. Drops of 320 pixels or more end in a harmless burst of red pixels with a short synthesized splat. Walking into a zombie or being struck by one from above costs a life; dropping onto its head destroys it and gives the player a small bounce. Respawn protection still works. Sawblades, orbiting fireballs and launched fireballs can also destroy zombies. Zombie kills award no KOs, wins or award statistics. Player deaths to zombies have no credited attacker.
 
 Zombies pause with the round and disappear when it restarts or changes arenas. They wrap horizontally like players, including during a fall, and leave play after surviving forty seconds. Use **N** to cycle to the purple ruins to try them.
+
+## Character choices and final ranks
+
+The original four mounts are joined by Acorn, a brown flying squirrel; Buzz, a yellow-and-black bee; and Luna, a pale gray-and-ivory moth. All seven have the same flight and collision rules, with individual standing, flying and diving artwork and flap sounds. Cycle left/right through the roster; any player or bot can use any mount.
+
+Match Totals displays a rank beside each player, ordered by round wins, then KOs. Equal wins and KOs share a rank, with occupied places skipped: 1, 2, 2, 4. Round result screens keep their existing layout. Bot cards show automatic readiness and a Remove Bot button instead of human ready/unready instructions.

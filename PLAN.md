@@ -83,3 +83,10 @@ Complete: 49 automated tests and syntax checks pass. Browser checks cover all sc
 - Add four mirrored graves to Amethyst Ruins and bounded, mirrored zombie waves. Use existing pixel art and procedural audio, with emerging, walking and flailing poses.
 - Track fall height per ledge; survive short landings and burst after 320-pixel drops. Sweep player/zombie contact, allow downward stomps and offensive powers, honor respawn protection, and credit no zombie KOs or award metrics.
 - Keep bursts harmless, clear hazards on round changes and freeze them on pause. Verify natural routes, damage direction, scoring, cleanup, audio and presentation before pushing.
+
+## Expanded roster, ranks and lobby controls
+
+- Add Acorn the flying squirrel, Buzz the bee and Luna the moth with brown, yellow/black and pale gray/ivory palettes, distinct normal/dive artwork and flap sounds. Keep shared hitboxes and flight.
+- Rank Match Totals by wins then KOs, share exact ties and skip occupied places. Preserve individual award lookup and round results.
+- Clear the lineup when returning to the main menu. Add a controller-focusable Remove Last Bot button and an RB shortcut, preserving X team selection and gameplay boosts. Bot cards show automatic readiness and individual mouse removal.
+- Verify seven-character selection/physics, controller-only bot management, reset flows, tie ranking and audio. Inspect new artwork and full-lobby/results layouts before saving and pushing.

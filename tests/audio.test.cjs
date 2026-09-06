@@ -217,3 +217,20 @@ test("zombie splats have a short layered sound, throttle simultaneous pops, and 
   audio.play("zombie-pop");
   assert.equal(nodes.length, count);
 });
+
+test("new mounts have distinct flap sounds that obey mute", () => {
+  const pitches = [];
+  for (const character of [4, 5, 6]) {
+    const { audio, nodes } = fixture();
+    audio.unlock();
+    audio.play("flap", character);
+    const tone = nodes.find((n) => n.kind === "tone");
+    assert.ok(tone);
+    pitches.push(tone.frequency.values[0][0]);
+    audio.toggle();
+    const count = nodes.length;
+    audio.play("flap", character);
+    assert.equal(nodes.length, count);
+  }
+  assert.equal(new Set(pitches.map((p) => Math.round(p / 20))).size, 3);
+});

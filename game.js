@@ -56,7 +56,7 @@
     seats = [null, null, null, null],
     mode = "ffa",
     match = null;
-  const { MatchSeries } = FeatherfallSeries;
+  const { MatchSeries, rankPlayers } = FeatherfallSeries;
   const broadcast = new FeatherfallBroadcast.Broadcast();
   let series = null,
     resultsMode = "round";
@@ -126,6 +126,7 @@
       audioUnlock();
   });
   function show(next) {
+    if (next === "menu") seats = [null, null, null, null];
     screen = next;
     menuIndex = 0;
     for (const id of ["menu", "lobby", "pause", "results"])
@@ -204,11 +205,18 @@
       "ready",
       "mode",
       "add-bot",
+      "remove-bot",
       "launch",
       "sound",
       "fullscreen",
       "back",
     ];
+  }
+  function removeBot() {
+    const slot = seats.findLastIndex((s) => s?.kind === "bot");
+    if (slot < 0) return;
+    seats[slot] = null;
+    renderSeats();
   }
   function ready(slot) {
     seats[slot].ready = !seats[slot].ready;
@@ -297,7 +305,7 @@
           cursor = s.kind === "pad" ? s.cursor : "";
         const selected = (row) =>
           cursor === row ? ' data-selected="true"' : "";
-        return `<article class="seat joined ${s.ready ? "is-ready" : ""} ${mode === "teams" ? "team-seat" : ""}" style="--bird:${b.color};--team:${team.color};--team-dark:${team.dark}">${mode === "teams" ? `<div class="team-banner">${team.name} TEAM</div>` : ""}<div class="seat-label"><b>PLAYER 0${i + 1}</b><span>${source}</span></div><canvas id="preview-${i}" width="168" height="100" aria-label="${b.name} (P${i + 1}) ${b.bird}"></canvas><div class="character-picker"${selected("character")}><button data-action="prev" data-seat="${i}" aria-label="Previous character for player ${i + 1}">&lt;</button><div><h3>${b.name} <small>(P${i + 1})</small></h3><span class="bird-type">${b.bird}</span></div><button data-action="next" data-seat="${i}" aria-label="Next character for player ${i + 1}">&gt;</button></div><div class="seat-controls">${s.kind === "keyboard" ? keys[s.source].label : s.kind === "pad" ? "A TAP/HOLD FLAP · DOWN DIVE · X BOOST" : "AUTOPILOT · SAME RULES AS YOU"}</div><div class="seat-actions">${mode === "teams" ? `<button class="team-button"${selected("team")} data-action="team" data-seat="${i}">${s.team === 0 ? "SUN TEAM" : "MOON TEAM"} &lt;&gt;</button>` : ""}<button aria-pressed="${s.ready}"${selected("ready")} data-action="ready" data-seat="${i}">${s.ready ? "✓ READY" : "READY"}</button><button class="remove" data-action="remove" data-seat="${i}">LEAVE x</button></div><div class="ready">${s.ready ? "✓ READY TO FLY · B UNREADY" : "FLAP / A TO READY"}</div></article>`;
+        return `<article class="seat joined ${s.ready ? "is-ready" : ""} ${mode === "teams" ? "team-seat" : ""}" style="--bird:${b.color};--team:${team.color};--team-dark:${team.dark}">${mode === "teams" ? `<div class="team-banner">${team.name} TEAM</div>` : ""}<div class="seat-label"><b>PLAYER 0${i + 1}</b><span>${source}</span></div><canvas id="preview-${i}" width="168" height="100" aria-label="${b.name} (P${i + 1}) ${b.bird}"></canvas><div class="character-picker"${selected("character")}><button data-action="prev" data-seat="${i}" aria-label="Previous character for player ${i + 1}">&lt;</button><div><h3>${b.name} <small>(P${i + 1})</small></h3><span class="bird-type">${b.bird}</span></div><button data-action="next" data-seat="${i}" aria-label="Next character for player ${i + 1}">&gt;</button></div><div class="seat-controls">${s.kind === "keyboard" ? keys[s.source].label : s.kind === "pad" ? "A TAP/HOLD FLAP · DOWN DIVE · X BOOST" : "AUTOPILOT · SAME RULES AS YOU"}</div><div class="seat-actions">${mode === "teams" ? `<button class="team-button"${selected("team")} data-action="team" data-seat="${i}">${s.team === 0 ? "SUN TEAM" : "MOON TEAM"} &lt;&gt;</button>` : ""}${s.kind === "bot" ? '<span class="bot-ready">✓ READY</span>' : `<button aria-pressed="${s.ready}"${selected("ready")} data-action="ready" data-seat="${i}">${s.ready ? "✓ READY" : "READY"}</button>`}<button class="remove" data-action="remove" data-seat="${i}">${s.kind === "bot" ? "REMOVE BOT" : "LEAVE x"}</button></div><div class="ready">${s.kind === "bot" ? "AUTOPILOT READY" : s.ready ? "✓ READY TO FLY · B UNREADY" : "FLAP / A TO READY"}</div></article>`;
       })
       .join("");
     seats.forEach((s, i) => {
@@ -309,6 +317,7 @@
     for (const id of [
       "mode",
       "add-bot",
+      "remove-bot",
       "launch",
       "sound",
       "fullscreen",
@@ -322,6 +331,7 @@
       $(id).setAttribute("data-pad-focus", cursors.join("/"));
     }
     $("add-bot").disabled = seats.every(Boolean);
+    $("remove-bot").disabled = !seats.some((s) => s?.kind === "bot");
     $("launch").disabled = !canStart();
     const count = seats.filter(Boolean).length;
     $("lobby-message").textContent =
@@ -424,6 +434,7 @@
   $("back").onclick = () => show("menu");
   $("mode").onclick = changeMode;
   $("add-bot").onclick = () => join("bot", Date.now());
+  $("remove-bot").onclick = removeBot;
   $("launch").onclick = startMatch;
   $("pause-button").onclick = () => pause();
   $("resume").onclick = resume;
@@ -571,6 +582,10 @@
         continue;
       }
       if (screen === "lobby") {
+        if (edge.removeBot) {
+          removeBot();
+          continue;
+        }
         const slot = seats.findIndex(
           (s) => s?.kind === "pad" && s.source === pad.index,
         );
@@ -906,7 +921,7 @@
         ? "MATCH TOTALS >"
         : "NEXT ROUND >";
     $("scoreboard").className = final ? "match-totals" : "round-totals";
-    const rows = final ? series.players : match.players;
+    const rows = final ? rankPlayers(series.players) : match.players;
     $("scoreboard").innerHTML = [...rows]
       .sort((a, b) =>
         final
@@ -916,7 +931,7 @@
       .map((p) => {
         const total = series.players[p.id],
           award = final ? series.awards[p.id] : null;
-        return `<div class="score-row"><div class="score-line"><span style="color:${birds[p.character].color}">${playerName(p)}${mode === "teams" ? ` · ${TEAMS[p.team].name}` : ""}</span><span>${koLabel(p.kills)} · ${total.wins} ${total.wins === 1 ? "WIN" : "WINS"}${final ? "" : ` · ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT`}</span></div>${award ? `<div class="award"><strong>${award.label}</strong><small>${award.reason}</small></div>` : ""}</div>`;
+        return `<div class="score-row"><div class="score-line"><span style="color:${birds[p.character].color}">${final ? `<b class="final-rank" aria-label="Rank ${p.rank}">#${p.rank}</b> ` : ""}${playerName(p)}${mode === "teams" ? ` · ${TEAMS[p.team].name}` : ""}</span><span>${koLabel(p.kills)} · ${total.wins} ${total.wins === 1 ? "WIN" : "WINS"}${final ? "" : ` · ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT`}</span></div>${award ? `<div class="award"><strong>${award.label}</strong><small>${award.reason}</small></div>` : ""}</div>`;
       })
       .join("");
     const c = $("winner-bird").getContext("2d");
@@ -1083,6 +1098,40 @@
         r(-4, -2, 3, 7, b.dark);
         r(-5, -5, 2, 4, b.color);
         r(-2, 7, 2, 2, "#111829");
+      } else if (b.mount === "squirrel") {
+        r(-9, -27, 15, 13, b.dark);
+        r(-7, -29, 11, 11, b.color);
+        r(-4, -27, 7, 5, b.light);
+        r(-8, -15, 3, 19, b.light);
+        r(6, -14, 3, 17, b.light);
+        r(-4, 3, 10, 11, b.color);
+        r(-5, 1, 3, 5, b.dark);
+        r(4, 1, 3, 5, b.dark);
+        r(-2, 10, 6, 6, b.light);
+        r(-1, 15, 3, 3, "#322c30");
+        r(2, 7, 2, 2, "#231f28");
+      } else if (b.mount === "bee") {
+        r(-4, -11, 10, 20, b.color);
+        r(-4, -7, 10, 4, b.dark);
+        r(-4, 1, 10, 4, b.dark);
+        r(-10 + tuck, -18, 5, 16, "#edf0dc");
+        r(7 - tuck, -17, 5, 16, "#bdcbd5");
+        r(-3, 8, 9, 9, b.color);
+        r(2, 11, 2, 2, b.dark);
+        r(-4, 15, 2, 7, b.dark);
+        r(5, 15, 2, 7, b.dark);
+      } else if (b.mount === "moth") {
+        r(-11 + tuck, -19, 6, 23, b.color);
+        r(-9 + tuck, -16, 5, 23, b.light);
+        r(6 - tuck, -17, 6, 22, b.light);
+        r(-8 + tuck, -9, 3, 5, b.dark);
+        r(7 - tuck, -7, 3, 5, b.dark);
+        r(-3, 4, 9, 11, b.light);
+        r(2, 9, 2, 2, "#343747");
+        r(-4, 13, 2, 8, b.dark);
+        r(6, 13, 2, 8, b.dark);
+        r(-6, 17, 6, 2, b.color);
+        r(4, 18, 6, 2, b.color);
       } else {
         r(-4, 3, 10, 9, b.color);
         r(-2, 6, 7, 6, b.light);
@@ -1183,6 +1232,79 @@
       r(4, 8, 2, 5 - walk, b.color);
       r(-7, 12 + walk, 5, 2, b.light);
       r(3, 12 - walk, 5, 2, b.light);
+    } else if (b.mount === "squirrel") {
+      // Curled bushy tail and a broad gliding membrane.
+      r(-23, -11, 10, 19, b.dark);
+      r(-25, -8, 8, 12, b.color);
+      r(-21, -14, 8, 8, b.color);
+      r(-18, -11, 5, 7, b.light);
+      r(-16, 0, 8, 9, b.dark);
+      r(-11, -5, 23, 13, b.color);
+      r(-6, 4, 16, 5, b.light);
+      if (!grounded) {
+        r(-14, flap ? -13 : -4, 12, flap ? 18 : 14, b.dark);
+        r(-12, flap ? -11 : -2, 10, flap ? 14 : 11, b.light);
+        r(-9, flap ? -9 : 1, 10, 9, b.color);
+        r(-15, flap ? -14 : 8, 4, 3, b.dark);
+      }
+      r(7, -12, 11, 11, b.color);
+      r(8, -16, 4, 6, b.dark);
+      r(14, -15, 3, 5, b.dark);
+      r(11, -6, 9, 5, b.light);
+      r(19, -6, 3, 3, "#322c30");
+      r(14, -10, 2, 2, "#231f28");
+      r(15, -1, 2, 2, "#fff1d2");
+      r(-7, 8, 3, 5 + walk, b.dark);
+      r(7, 8, 3, 5 - walk, b.dark);
+      r(-8, 12 + walk, 6, 2, b.light);
+      r(6, 12 - walk, 6, 2, b.light);
+    } else if (b.mount === "bee") {
+      r(-13, -6, 25, 14, b.dark);
+      r(-10, -8, 19, 18, b.color);
+      r(-14, -3, 28, 8, b.color);
+      r(-8, -7, 4, 16, b.dark);
+      r(1, -7, 4, 16, b.dark);
+      r(-18, 0, 5, 2, b.dark);
+      // Two translucent-looking pixel wings extend clear of the rider.
+      r(-17, flap ? -18 : -10, 8, 10, "#bdcbd5");
+      r(-15, flap ? -20 : -12, 6, 10, "#edf0dc");
+      r(4, flap ? -17 : -10, 7, 9, "#bdcbd5");
+      r(5, flap ? -19 : -12, 7, 8, "#edf0dc");
+      r(9, -10, 10, 11, b.color);
+      r(16, -7, 3, 3, b.dark);
+      r(10, -15, 2, 6, b.dark);
+      r(16, -14, 2, 5, b.dark);
+      r(8, -17, 4, 3, b.dark);
+      r(17, -16, 3, 3, b.dark);
+      r(16, -2, 5, 2, b.light);
+      for (const lx of [-8, 0, 8]) {
+        r(lx, 8, 2, 4 + walk, b.dark);
+        r(lx, 11 + walk, 5, 2, b.dark);
+      }
+    } else if (b.mount === "moth") {
+      // Scalloped ivory wings, gray eyespots, and feathery antennae.
+      const wy = flap ? -18 : -5;
+      r(-24, wy + 3, 17, 12, b.dark);
+      r(-21, wy, 13, 20, b.color);
+      r(-18, wy + 2, 12, 20, b.light);
+      r(-13, wy + 6, 9, 18, b.color);
+      r(-20, wy + 7, 5, 5, b.dark);
+      r(-19, wy + 8, 3, 3, b.light);
+      r(-9, -4, 20, 13, b.color);
+      r(-6, 0, 16, 12, b.light);
+      r(0, 4, 6, 5, b.dark);
+      r(1, 5, 4, 3, b.color);
+      r(-5, -7, 12, 16, b.dark);
+      r(-2, -6, 7, 17, b.color);
+      r(6, -12, 10, 12, b.light);
+      r(13, -9, 2, 3, "#343747");
+      r(7, -18, 2, 7, b.dark);
+      r(13, -18, 2, 7, b.dark);
+      r(5, -18, 6, 2, b.color);
+      r(11, -20, 6, 2, b.color);
+      r(5, -15, 6, 2, b.color);
+      r(-4, 9, 2, 4 + walk, b.dark);
+      r(5, 9, 2, 4 - walk, b.dark);
     } else {
       r(-14, -3, 26, 12, "#0c1625");
       r(-11, -6, 20, 16, b.dark);

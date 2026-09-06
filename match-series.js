@@ -341,7 +341,27 @@
       return true;
     }
   }
-  const api = { MatchSeries, AWARDS: Object.freeze(AWARDS), chooseAwards };
+  function rankPlayers(players) {
+    const sorted = [...players].sort(
+      (a, b) => b.wins - a.wins || b.kills - a.kills,
+    );
+    let rank = 0;
+    return sorted.map((p, i) => {
+      if (
+        !i ||
+        p.wins !== sorted[i - 1].wins ||
+        p.kills !== sorted[i - 1].kills
+      )
+        rank = i + 1;
+      return { ...p, rank };
+    });
+  }
+  const api = {
+    MatchSeries,
+    AWARDS: Object.freeze(AWARDS),
+    chooseAwards,
+    rankPlayers,
+  };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FeatherfallSeries = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

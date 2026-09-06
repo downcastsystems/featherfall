@@ -406,7 +406,7 @@ test("boost rebounds at full speed from solid sides without tunneling", () => {
 
 test("mount appearances share exactly the same movement and collision rules", () => {
   const results = [];
-  for (let character = 0; character < 4; character++) {
+  for (let character = 0; character < 7; character++) {
     const m = make(),
       p = m.players[0];
     p.character = character;
@@ -419,7 +419,7 @@ test("mount appearances share exactly the same movement and collision rules", ()
   results.forEach((r) => assert.deepEqual(r, results[0]));
   assert.equal(
     new Set(require("../engine.js").CHARACTERS.map((c) => c.mount)).size,
-    4,
+    7,
   );
 });
 

@@ -36,6 +36,30 @@
       dark: "#b98746",
       light: "#fff4bf",
     },
+    {
+      name: "ACORN",
+      bird: "Flying squirrel",
+      mount: "squirrel",
+      color: "#c99970",
+      dark: "#76503e",
+      light: "#f0d5aa",
+    },
+    {
+      name: "BUZZ",
+      bird: "Bumblebee",
+      mount: "bee",
+      color: "#edca52",
+      dark: "#38313a",
+      light: "#fff0b1",
+    },
+    {
+      name: "LUNA",
+      bird: "Moon moth",
+      mount: "moth",
+      color: "#d8dce2",
+      dark: "#858b9c",
+      light: "#f7f3e8",
+    },
   ];
   const PLATFORMS = [
     { x: 140, y: 255, w: 240 },
@@ -1066,6 +1090,7 @@
       start: pressed(9),
       team: pressed(2),
       boost: pressed(2),
+      removeBot: pressed(5),
       up: pressed(12) || (pad?.axes?.[1] || 0) < -0.55,
       down: pressed(13) || (pad?.axes?.[1] || 0) > 0.55,
       dive: pressed(13) || (pad?.axes?.[1] || 0) > 0.55,

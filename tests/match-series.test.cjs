@@ -110,3 +110,40 @@ test("scoreless matches still give four distinct truthful participation awards",
   assert.equal(new Set(awards.map((a) => a.label)).size, 4);
   assert.ok(awards.every((a) => a.metric === "rounds" && a.value === 3));
 });
+
+test("final ranks use wins then KOs, sharing exact ties and skipping occupied places", () => {
+  const { rankPlayers } = require("../match-series.js");
+  const players = [
+    { id: 0, wins: 2, kills: 10 },
+    { id: 1, wins: 0, kills: 30 },
+    { id: 2, wins: 3, kills: 1 },
+    { id: 3, wins: 2, kills: 10 },
+  ];
+  const ranked = rankPlayers(players);
+  assert.deepEqual(
+    ranked.map((p) => [p.id, p.rank]),
+    [
+      [2, 1],
+      [0, 2],
+      [3, 2],
+      [1, 4],
+    ],
+  );
+  assert.ok(players.every((p) => p.rank === undefined));
+  assert.deepEqual(
+    rankPlayers([
+      { wins: 2, kills: 4 },
+      { wins: 2, kills: 5 },
+    ]).map((p) => [p.kills, p.rank]),
+    [
+      [5, 1],
+      [4, 2],
+    ],
+  );
+  assert.deepEqual(
+    rankPlayers(Array.from({ length: 4 }, () => ({ wins: 1, kills: 3 }))).map(
+      (p) => p.rank,
+    ),
+    [1, 1, 1, 1],
+  );
+});

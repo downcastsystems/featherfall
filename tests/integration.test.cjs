@@ -659,6 +659,8 @@ test("three round wins show round results first, then match totals and awards, t
   }
   assert.equal(f.element("results-heading").textContent, "MATCH TOTALS");
   assert.match(f.element("scoreboard").innerHTML, /3 KOs · 3 WINS/);
+  assert.match(f.element("scoreboard").innerHTML, /Rank 1/);
+  assert.match(f.element("scoreboard").innerHTML, /Rank 2/);
   assert.match(f.element("scoreboard").innerHTML, /class="award"/);
   assert.equal(f.element("rematch").textContent, "PLAY AGAIN >");
   f.press("Enter");
@@ -850,4 +852,99 @@ test("graveyard hazards pause, make splat sounds, and reset on next arena", () =
   f.press("KeyN");
   assert.equal(f.match.zombies.length, 0);
   assert.equal(f.match.graves.length, 0);
+});
+
+test("one controller removes bots with RB and returning to the main menu clears the lineup", () => {
+  const f = fixture(),
+    pad = f.pad(0);
+  f.button(pad, 9);
+  for (let i = 0; i < 3; i++) f.button(pad, 13); // add bot row
+  for (let i = 0; i < 3; i++) f.button(pad, 0);
+  assert.equal(
+    (f.element("seats").innerHTML.match(/PRACTICE BOT/g) || []).length,
+    3,
+  );
+  assert.equal(f.element("add-bot").disabled, true);
+  f.button(pad, 5);
+  assert.equal(
+    (f.element("seats").innerHTML.match(/PRACTICE BOT/g) || []).length,
+    2,
+  );
+  assert.match(f.element("seats").innerHTML, /CONTROLLER 1/);
+  assert.equal(f.element("add-bot").disabled, false);
+  // The focused removal button also works with A.
+  f.button(pad, 13);
+  f.button(pad, 0);
+  assert.equal(
+    (f.element("seats").innerHTML.match(/PRACTICE BOT/g) || []).length,
+    1,
+  );
+  f.button(pad, 5);
+  assert.equal(f.element("remove-bot").disabled, true);
+  f.button(pad, 5);
+  assert.match(f.element("seats").innerHTML, /CONTROLLER 1/);
+  f.element("add-bot").click();
+  f.element("back").click();
+  f.element("start").click();
+  assert.doesNotMatch(
+    f.element("seats").innerHTML,
+    /PRACTICE BOT|CONTROLLER 1/,
+  );
+  assert.equal(f.element("launch").disabled, true);
+});
+test("bot cards show automatic readiness and a remove button without player-only readiness hints", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.element("add-bot").click();
+  const html = f.element("seats").innerHTML;
+  assert.match(html, /AUTOPILOT READY/);
+  assert.match(html, /REMOVE BOT/);
+  assert.doesNotMatch(html, /B UNREADY|FLAP \/ A TO READY|data-action="ready"/);
+});
+test("all seven mounts can be selected, wrap around, and the new mounts play and dive", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  for (let i = 1; i <= 7; i++) {
+    f.press("KeyD");
+    assert.match(
+      f.element("seats").innerHTML,
+      new RegExp(Engine.CHARACTERS[i % 7].name),
+    );
+  }
+  for (let i = 0; i < 4; i++) f.press("KeyD");
+  f.press("Enter");
+  f.advance(3.2);
+  assert.equal(f.match.players[0].character, 4);
+  for (const character of [4, 5, 6]) {
+    const p = f.match.players[0];
+    Object.assign(p, { character, x: 700, y: 850, grounded: false });
+    f.key("KeyS");
+    f.advance(0.12);
+    f.release("KeyS");
+    assert.equal(p.diving, true);
+    assert.ok(p.vy > 580);
+    assert.match(
+      f.element("players-hud").innerHTML,
+      new RegExp(Engine.CHARACTERS[character].name),
+    );
+  }
+});
+
+test("X still changes teams and does not remove bots", () => {
+  const f = fixture(),
+    pad = f.pad(0);
+  f.button(pad, 9);
+  f.element("mode").click();
+  f.element("add-bot").click();
+  f.button(pad, 2);
+  assert.equal(
+    (f.element("seats").innerHTML.match(/PRACTICE BOT/g) || []).length,
+    1,
+  );
+  assert.equal(
+    (f.element("seats").innerHTML.match(/MOON TEAM/g) || []).length,
+    4,
+  );
 });

@@ -1,7 +1,7 @@
 /* Procedural chiptune effects. No downloaded assets or network dependency. */
 (function (root) {
   "use strict";
-  // Ember: warm flutter; Mint: airy chirp; Iris: hollow wingbeat; Sol: light flutter.
+  // Mount voices range from warm flutter and airy chirps to a soft buzz and moth wings.
   // Keep the pitched component quiet so four birds don't become a chorus of boops.
   const FLAPS = [
     {
@@ -39,6 +39,33 @@
       volume: 0.018,
       air: 0.016,
       cutoff: 1450,
+    },
+    {
+      pitch: 150,
+      end: 95,
+      duration: 0.15,
+      wave: "triangle",
+      volume: 0.025,
+      air: 0.025,
+      cutoff: 600,
+    },
+    {
+      pitch: 235,
+      end: 210,
+      duration: 0.1,
+      wave: "sawtooth",
+      volume: 0.016,
+      air: 0.009,
+      cutoff: 900,
+    },
+    {
+      pitch: 370,
+      end: 280,
+      duration: 0.18,
+      wave: "sine",
+      volume: 0.015,
+      air: 0.024,
+      cutoff: 1800,
     },
   ];
   class ArcadeAudio {

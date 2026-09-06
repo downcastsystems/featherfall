@@ -145,3 +145,9 @@ Replaced the rotary arm poses with four asymmetrical overhead flails, scissoring
 ## Safe graves and zombie wrapping
 
 Occupied graves are excluded from spawn selection, and an emergence is canceled if a live player arrives. Zombies wrap horizontally while preserving velocity and fall height; rendering draws them across the seam. All 108 tests and syntax checks pass, including fully occupied graveyards, arrivals during emergence, both wrapping directions, grounded/falling states, seam contact without false cross-arena hits, and ground landings during a wrap.
+
+## New mounts, ranked totals and lobby reset
+
+115 tests and syntax checks pass. New coverage includes seven-character selection and shared physics, the new flap sounds and mute, wins/KO ranking with exact ties, displayed ranks, controller-only bot removal with RB or the focused button, preservation of X team switching, empty lineups after returning to the main menu, and bot-specific instructions.
+
+Browser checks inspected Acorn, Buzz and Luna in standing, flapping and diving poses, the full four-player lobby, bot removal and a cleared lobby after returning to the main menu. A temporary results fixture verified ranks 1, 2, 2, 4 fit alongside names and awards. No console errors. Preview fixtures are excluded from the repository.

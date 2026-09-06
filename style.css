@@ -1140,3 +1140,14 @@ footer {
     transform: rotate(22deg);
   }
 }
+
+.bot-ready {
+  padding: 8px;
+  color: var(--bird);
+  font-size: 12px;
+}
+.final-rank {
+  display: inline-block;
+  min-width: 42px;
+  color: #fff1ba;
+}
