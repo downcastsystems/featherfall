@@ -1020,6 +1020,10 @@ footer {
   font-size: 10px;
   color: #9eacb9;
 }
+#commentary.is-dimmed {
+  opacity: 0.55;
+  transition: opacity 600ms ease;
+}
 #commentary {
   flex: 1;
   min-width: 0;

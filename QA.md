@@ -117,3 +117,7 @@ Moved the boost meter into the hearts row and shortened it to 150 pixels. Respaw
 ## Sawblade horizontal wrapping
 
 Sawblades now use the same horizontal wrapping as riders, preserving horizontal velocity across either edge. Regression checks cover both wrap directions, ceiling and ground bounces, all four faces of every floating platform, and safe power expiry. All 83 tests and syntax checks pass. Existing rendering already draws sawblades across the wrap seam.
+
+## Retained Chirp commentary
+
+Completed calls remain visible and fade to 55% opacity over 600ms after the existing 4.5-second reading period. New calls replace them at full brightness. All 84 tests and syntax checks pass, including retained text, replacement, reset, and the speaking/pause lifecycle.

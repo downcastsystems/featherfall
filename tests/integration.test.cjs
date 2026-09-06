@@ -707,15 +707,17 @@ test("Chirp speaks only for events, animates while speaking, and closes his beak
   f.press("Enter");
   f.advance(3.2);
   assert.equal(f.element("announcer").className, "is-talking");
+  const opening = f.element("commentary").textContent;
   f.match.nextLife = f.match.nextPower = 999;
   f.advance(20);
-  assert.equal(f.element("commentary").textContent, "");
+  assert.equal(f.element("commentary").textContent, opening);
+  assert.equal(f.element("commentary").className, "is-dimmed");
   assert.equal(f.element("announcer").className, "");
   f.press("KeyP");
   f.advance();
   assert.equal(
     f.element("commentary").textContent,
-    "",
+    opening,
     "uncollected pickups do not prompt filler",
   );
   f.match.equip(f.match.players[0], "rocket");
@@ -723,6 +725,7 @@ test("Chirp speaks only for events, animates while speaking, and closes his beak
   assert.match(f.element("commentary").textContent, /EMBER \(P1\)/);
   assert.match(f.element("commentary").textContent, /rocket|boosts|Rocket/);
   assert.equal(f.element("announcer").className, "is-talking");
+  assert.equal(f.element("commentary").className, "");
   const call = f.element("commentary").textContent;
   f.press("Escape");
   f.advance();
@@ -734,5 +737,6 @@ test("Chirp speaks only for events, animates while speaking, and closes his beak
   assert.equal(f.element("announcer").className, "is-talking");
   f.advance(5);
   assert.equal(f.element("announcer").className, "");
-  assert.equal(f.element("commentary").textContent, "");
+  assert.equal(f.element("commentary").textContent, call);
+  assert.equal(f.element("commentary").className, "is-dimmed");
 });

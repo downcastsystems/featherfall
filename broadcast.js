@@ -53,6 +53,7 @@
       this.current = null;
       this.queue = [];
       this.last = "";
+      this.displayed = "";
     }
     say(kind, names = {}, priority = 0) {
       const options = LINES[kind] || [kind];
@@ -78,11 +79,12 @@
       this.queue.forEach((e) => (e.age += dt));
       this.queue = this.queue.filter((e) => e.age < 14);
       if (this.current) {
+        this.displayed = this.current.text;
         this.current.remaining -= dt;
         if (this.current.remaining <= 0)
           this.current = this.queue.shift() || null;
       }
-      return this.current?.text || "";
+      return this.current?.text || this.displayed;
     }
   }
   if (typeof module !== "undefined" && module.exports)

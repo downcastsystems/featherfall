@@ -119,3 +119,5 @@ There are 100 award titles in [AWARDS.md](AWARDS.md). Each player receives one r
 ## Developer shortcut
 
 Press **P** during active play to replace the waiting power-up with a random one on a random floating island. Press again to reroll. This does not stack pickups or activate one on a player. Held-key repeats, countdowns, pause and results ignore the shortcut. It is deliberately absent from the in-game controls. Normal power-up spawning resumes 25–40 seconds after the latest test spawn.
+
+Chirp’s completed commentary stays visible at reduced brightness after its 4.5-second reading time. A new call immediately replaces it at full brightness; the beak stays still between calls.

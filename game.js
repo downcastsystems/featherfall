@@ -1482,6 +1482,7 @@
       if ($("commentary").textContent !== call)
         $("commentary").textContent = call;
     }
+    $("commentary").className = broadcast.current ? "" : "is-dimmed";
     $("announcer").className =
       ["match", "ending"].includes(screen) && broadcast.current
         ? "is-talking"

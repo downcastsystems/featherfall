@@ -33,3 +33,19 @@ test("announcer varies event calls and remains silent without new events", () =>
   assert.equal(b.step(120), "");
   assert.equal(b.current, null);
 });
+
+test("finished calls stay visible until replaced and reset clears them", () => {
+  const b = new Broadcast(() => 0);
+  b.say("rocket", { a: "EMBER" });
+  const first = b.step(0);
+  assert.equal(b.step(5), first);
+  assert.equal(b.current, null);
+  assert.equal(b.step(120), first);
+  b.say("life", { a: "MINT" });
+  const next = b.step(0);
+  assert.notEqual(next, first);
+  assert.match(next, /MINT/);
+  assert.equal(b.step(5), next);
+  b.reset();
+  assert.equal(b.step(0), "");
+});
