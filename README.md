@@ -132,7 +132,7 @@ Secret testing shortcut: press **N** during play, the countdown, or the round-en
 
 ## Graveyard zombies
 
-Amethyst Ruins has four little graves in mirrored pairs. Starting five seconds into a round, one pair releases two tiny zombies every seven seconds, alternating between the upper and middle graves. At most twelve can be alive. They climb out over 0.9 seconds, randomly walk left or right with mirrored directions for each pair, and flail their arms when they fall off a ledge.
+Amethyst Ruins has four little graves in mirrored pairs. Starting five seconds into a round, one pair releases two tiny zombies every seven seconds, alternating between the upper and middle graves. At most twelve can be alive. They climb out over 0.9 seconds, randomly walk left or right with mirrored directions for each pair, and panic when they fall off a ledge, throwing their hands overhead, kicking unevenly and opening their mouths in a little scream.
 
 Drops under 320 pixels let zombies land and keep walking. Drops of 320 pixels or more end in a harmless burst of red pixels with a short synthesized splat. Walking into a zombie or being struck by one from above costs a life; dropping onto its head destroys it and gives the player a small bounce. Respawn protection still works. Sawblades, orbiting fireballs and launched fireballs can also destroy zombies. Zombie kills award no KOs, wins or award statistics. Player deaths to zombies have no credited attacker.
 

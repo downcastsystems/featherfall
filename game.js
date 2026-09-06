@@ -944,7 +944,7 @@
   function drawZombie(c, z, time) {
     c.save();
     c.translate(Math.round(z.x), Math.round(z.y));
-    // Rising from the soil, then alternating feet or windmilling little arms.
+    // Rising from the soil, then shuffling or panicking with hands overhead.
     if (z.emerge > 0) {
       c.beginPath();
       c.rect(-18, -26, 36, 26);
@@ -956,7 +956,8 @@
       c.fillStyle = color;
       c.fillRect(x, y, w, h);
     };
-    const phase = Math.floor(time * (z.grounded ? 8 : 16) + z.id) % 4;
+    const falling = !z.grounded && z.emerge <= 0;
+    const phase = Math.floor(time * (falling ? 10 : 8) + z.id) % 4;
     const leg = z.grounded ? (phase % 2 ? 2 : -2) : 1;
     r(-4, -10, 8, 7, "#343041");
     r(-3, -10, 7, 5, "#81718e");
@@ -965,20 +966,42 @@
     r(-4, -18, 6, 2, "#687553");
     r(2, -15, 2, 2, "#20232e");
     r(1, -11, 4, 1, "#586143");
-    r(-3, -3, 2, 3 + Math.max(0, leg), "#484252");
-    r(2, -3, 2, 3 + Math.max(0, -leg), "#484252");
-    r(-4, Math.max(0, leg), 4, 2, "#b5cb8b");
-    r(1, Math.max(0, -leg), 4, 2, "#b5cb8b");
-    if (!z.grounded && z.emerge <= 0) {
-      const arms = [
-        [-11, -9, 8, 2, 4, -16, 2, 9],
-        [-6, -16, 2, 9, 3, -9, 9, 2],
-        [-11, -10, 8, 2, 4, -9, 2, 10],
-        [-6, -9, 2, 10, 4, -16, 2, 9],
+    if (falling) {
+      // Wide eye and a little screaming mouth; the head never flips or rotates.
+      r(1, -16, 3, 3, "#e6edc7");
+      r(3, -15, 1, 2, "#20232e");
+      r(1, -12, 3, 3, "#20232e");
+      r(2, -10, 2, 1, "#bc777c");
+      // Uneven raised elbows and reaching hands, rather than a rotary arm cycle.
+      const [leftX, leftY, rightX, rightY] = [
+        [-7, -23, 7, -18],
+        [-10, -19, 6, -24],
+        [-8, -24, 9, -21],
+        [-6, -20, 8, -23],
       ][phase];
-      r(...arms.slice(0, 4), "#b5cb8b");
-      r(...arms.slice(4), "#b5cb8b");
+      r(leftX, -11, -leftX - 3, 2, "#b5cb8b");
+      r(leftX, leftY, 2, -leftY - 9, "#b5cb8b");
+      r(leftX - 1, leftY - 2, 4, 3, "#cbdba0");
+      r(leftX - 1, leftY - 3, 1, 2, "#cbdba0");
+      r(4, -10, rightX - 2, 2, "#b5cb8b");
+      r(rightX, rightY, 2, -rightY - 8, "#b5cb8b");
+      r(rightX - 1, rightY - 2, 4, 3, "#cbdba0");
+      r(rightX + 2, rightY - 3, 1, 2, "#cbdba0");
+      // Scissoring knees and mismatched kicks keep the whole body looking frantic.
+      const [leftKick, rightKick] = [[-6, 4], [-4, 7], [-7, 5], [-5, 6]][phase];
+      r(-3, -3, 2, 4, "#484252");
+      r(leftKick, -1, -leftKick - 1, 2, "#484252");
+      r(leftKick, -1, 2, phase % 2 ? 5 : 2, "#484252");
+      r(leftKick - 1, phase % 2 ? 3 : 0, 4, 2, "#b5cb8b");
+      r(2, -3, 2, 4, "#484252");
+      r(2, -1, rightKick, 2, "#484252");
+      r(rightKick, -1, 2, phase % 2 ? 2 : 5, "#484252");
+      r(rightKick, phase % 2 ? 0 : 3, 4, 2, "#b5cb8b");
     } else {
+      r(-3, -3, 2, 3 + Math.max(0, leg), "#484252");
+      r(2, -3, 2, 3 + Math.max(0, -leg), "#484252");
+      r(-4, Math.max(0, leg), 4, 2, "#b5cb8b");
+      r(1, Math.max(0, -leg), 4, 2, "#b5cb8b");
       r(4, -10, 6, 2, "#b5cb8b");
       r(8, -9, 2, 3, "#b5cb8b");
       r(-6, -9, 3, 5, "#8d9f70");

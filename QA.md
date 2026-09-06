@@ -137,3 +137,7 @@ Inspected all six arenas in the browser: the original hollow moon, amber sun and
 102 tests and syntax checks pass. Coverage includes mirrored, capped waves; emergence; walking off ledges; short-drop survival; long-drop bursts; natural grave-to-platform-to-ground routes; side and falling contact deaths; stomps and dives; spawn immunity; offensive power hits; score neutrality; harmless burst effects; lifetime cleanup; simultaneous final deaths; pause and next-arena reset. Audio checks verify the layered splat, simultaneous-pop throttling and mute behavior.
 
 Browser checks verified grave placement and live walking zombies on Amethyst Ruins, player-death commentary and no console errors. Enlarged previews were used to inspect and refine all four falling-arm poses. Temporary preview pages are excluded from the repository.
+
+## Panicked zombie falls
+
+Replaced the rotary arm poses with four asymmetrical overhead flails, scissoring kicks and a wide-eyed, open-mouth expression at ten frames per second. Checked enlarged frames facing both directions. Syntax checks and all 103 tests pass; collision and fall-height behavior are unchanged.
