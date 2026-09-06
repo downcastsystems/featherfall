@@ -165,3 +165,7 @@ Refreshed the native SVG portrait with a crest, half-lidded eye, raised eyebrow,
 ## Luna moth and Buzz stinger
 
 Luna now has four broad stepped ivory wings with muted gray borders, warm ringed eyespots, a fluffy collar, large dark eye and branched antennae. Folded dive wings retain the pattern. Buzz has a small pointed rear stinger, oriented upward when diving. Browser pose-sheet inspection checked rest, upstroke, downstroke and dive using the actual drawing function, including rider visibility. Syntax checks and all 124 tests pass. Diff review confirmed presentation-only changes and unchanged collision geometry; preview fixtures are excluded.
+
+## Rocket speed increase
+
+Changed the shared rocket multiplier from 1.5625 to 1.75. Normal movement caps at 577.5 px/s and rocket boost bursts reach 1137.5 px/s, before zombie bonuses. All 124 tests and syntax checks pass, including grounded/airborne speed, unchanged vertical motion, boost equip/expiry and zombie-stack multiplication. Diff review confirmed the runtime change is limited to the shared multiplier.

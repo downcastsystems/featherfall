@@ -110,3 +110,9 @@ Completed portrait and CSS animation changes; verified at actual size and enlarg
 Rework Luna with broad four-lobed patterned ivory/gray wings, eyespots, fluffy collar, large dark eye and branched antennae, including folded dive wings. Add a tiny rear stinger to Buzz in normal and dive poses. Preserve collision geometry. Verify grounded, upstroke, downstroke and dive artwork plus existing checks.
 
 Completed both artwork changes and reviewed all four poses in the browser. Syntax checks and all 124 tests pass; no outstanding findings.
+
+## Rocket speed adjustment
+
+Raise the rocket multiplier from 1.5625 to 1.75: 75% above normal and 12% above its previous speed. Preserve ten-second duration, unlimited charges, vertical physics and zombie-stack multiplication. Update documented speeds and existing regression expectations, then run checks and review the diff.
+
+Completed and reviewed. All 124 tests and syntax checks pass.

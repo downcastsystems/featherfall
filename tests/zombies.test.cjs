@@ -388,7 +388,7 @@ test("speed chains multiply rocket speed, expire normally and clear on death/res
   m.equip(p, "rocket");
   p.facing = 1;
   tick(m, 1, [{ boost: true }]);
-  assert.ok(Math.abs(p.vx - 650 * 1.5625 * 1.2) < 0.001);
+  assert.ok(Math.abs(p.vx - 650 * 1.75 * 1.2) < 0.001);
   p.invincible = 0;
   m.kill(p, null, "zombie");
   assert.equal(p.zombieSpeedStacks, 0);

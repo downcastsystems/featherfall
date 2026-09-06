@@ -659,7 +659,7 @@ test("each power lasts its full configured duration in simulation time", () => {
   }
 });
 
-test("rocket adds 56.25 percent horizontal speed without changing vertical movement", () => {
+test("rocket adds 75 percent horizontal speed without changing vertical movement", () => {
   for (const grounded of [false, true]) {
     const normal = make(),
       rocket = make();
@@ -670,11 +670,11 @@ test("rocket adds 56.25 percent horizontal speed without changing vertical movem
       m.players[1].invincible = 999;
     }
     rocket.equip(rocket.players[0], "rocket");
-    rocket.players[0].vx *= 1.5625;
+    rocket.players[0].vx *= 1.75;
     tick(normal, 20, [{ move: 1 }]);
     tick(rocket, 20, [{ move: 1 }]);
     assert.ok(
-      Math.abs(rocket.players[0].vx - normal.players[0].vx * 1.5625) < 0.001,
+      Math.abs(rocket.players[0].vx - normal.players[0].vx * 1.75) < 0.001,
     );
     assert.equal(rocket.players[0].vy, normal.players[0].vy);
   }
@@ -684,7 +684,7 @@ test("rocket adds 56.25 percent horizontal speed without changing vertical movem
   p.vx = 600;
   m.equip(p, "rocket");
   tick(m, 1, [{ move: 1 }]);
-  assert.equal(p.vx, 515.625);
+  assert.equal(p.vx, 577.5);
 });
 test("rocket boosts are faster in either direction, rebound, and lose bonus on expiry", () => {
   for (const direction of [-1, 1]) {
@@ -694,7 +694,7 @@ test("rocket boosts are faster in either direction, rebound, and lose bonus on e
     p.facing = direction;
     m.equip(p, "rocket");
     tick(m, 1, [{ boost: true }]);
-    assert.equal(p.vx, direction * 1015.625);
+    assert.equal(p.vx, direction * 1137.5);
     assert.equal(p.boostCharge, 1);
     p.powerTime = 0.001;
     tick(m);
@@ -707,7 +707,7 @@ test("rocket boosts are faster in either direction, rebound, and lose bonus on e
   m.equip(p, "rocket");
   tick(m, 1, [{ boost: true }]);
   assert.ok(
-    p.vx > 1015.625,
+    p.vx > 1137.5,
     "swept platform collision rebounds the faster boost",
   );
   assert.ok(p.x > 715, "rider stays outside the platform");
@@ -720,9 +720,9 @@ test("collecting rocket during a boost adds its bonus once and dive still wins",
   tick(m, 1, [{ boost: true }]);
   const before = p.vx;
   m.equip(p, "rocket");
-  assert.equal(p.vx, before * 1.5625);
+  assert.equal(p.vx, before * 1.75);
   m.equip(p, "rocket");
-  assert.equal(p.vx, before * 1.5625);
+  assert.equal(p.vx, before * 1.75);
   m.equip(p, "flame");
   assert.equal(p.vx, before);
   m.equip(p, "rocket");

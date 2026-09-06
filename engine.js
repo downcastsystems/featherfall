@@ -238,7 +238,7 @@
     BOOST_RECHARGE = 3.5,
     BOOST_DURATION = 0.32;
   const POWERUPS = Object.freeze({ flame: 5, sawblade: 3, rocket: 10 });
-  const ROCKET_SPEED = 1.5625;
+  const ROCKET_SPEED = 1.75;
   const BODY = Object.freeze({ halfWidth: 10, head: 21, feet: 12 });
   const TEAMS = [
     { name: "SUN", color: "#ff8a32", dark: "#49251e" },
