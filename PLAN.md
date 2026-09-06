@@ -54,3 +54,10 @@ Complete: 49 automated tests and syntax checks pass. Browser checks cover all sc
 - Show prominent KO totals and OUT panels. Preserve concurrent kills in a bounded six-second feed.
 - Flap/A confirms the current character; B unreadies before leaving; mouse Ready toggles. Keep explicit host launch and controller menu navigation.
 - Verify automated simulation/input tests, browser ready controls and match rendering, then review the diff and sync the tested files to the standalone repository.
+
+## Power-up and HUD polish
+
+- Replace pickup boxes and names with feather-style radial glows. Draw a recognizable rocket pickup and rear exhaust on powered mounts, including left-facing and diving poses.
+- Remove input-device labels and KO background flashes. Use singular/plural KO text in HUD, feed and results. Put unnamed power timers beside KO totals.
+- Rocket increases horizontal acceleration, top speed and boost speed by 25% for its existing ten seconds. Preserve dive/flap rules, unlimited charges, collision rebounds, and speed restoration on expiry/replacement.
+- Verify speed transitions and pluralized combat feedback, run the full suite, inspect browser visuals, and review the final diff.

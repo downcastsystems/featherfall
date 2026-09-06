@@ -689,6 +689,54 @@
     ctx.fill();
     ctx.restore();
   }
+  function drawRocketPickup(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(-0.35);
+    ctx.fillStyle = "#ff9658";
+    ctx.fillRect(-27, -3, 12, 6);
+    ctx.fillStyle = "#ffe8ac";
+    ctx.fillRect(-23, -2, 9, 4);
+    ctx.fillStyle = "#54758c";
+    ctx.fillRect(-15, -6, 5, 12);
+    ctx.fillStyle = "#d9f6ff";
+    ctx.fillRect(-10, -7, 22, 14);
+    ctx.fillStyle = "#73eaff";
+    ctx.fillRect(-8, 4, 20, 3);
+    ctx.fillStyle = "#ff9064";
+    ctx.fillRect(12, -5, 5, 10);
+    ctx.fillRect(17, -3, 4, 6);
+    ctx.fillRect(21, -1, 3, 2);
+    ctx.fillRect(-12, -13, 6, 6);
+    ctx.fillRect(-6, -10, 6, 3);
+    ctx.fillRect(-12, 7, 6, 6);
+    ctx.fillRect(-6, 7, 6, 3);
+    ctx.fillStyle = "#315d79";
+    ctx.fillRect(1, -4, 7, 7);
+    ctx.fillStyle = "#a7efff";
+    ctx.fillRect(2, -3, 3, 3);
+    ctx.restore();
+  }
+  function drawRocketExhaust(p, x) {
+    ctx.save();
+    ctx.translate(x, p.y);
+    // The plume follows the mount's tail, including its nose-down dive pose.
+    if (p.diving && !p.grounded) ctx.rotate(Math.PI / 2);
+    else ctx.scale(p.facing, 1);
+    const tail = p.diving && !p.grounded ? 20 : 23;
+    const length =
+      (p.boosting ? 42 : 26) + Math.floor(Math.sin(match.time * 36) * 5);
+    ctx.fillStyle = "#ed633d";
+    ctx.fillRect(-tail - length, -2, length, 4);
+    ctx.fillRect(-tail - length + 5, -4, length - 5, 8);
+    ctx.fillRect(-tail - length + 12, -6, length - 12, 12);
+    ctx.fillStyle = "#ffb94e";
+    ctx.fillRect(-tail - length + 9, -4, length - 7, 8);
+    ctx.fillStyle = "#fff0b0";
+    ctx.fillRect(-tail - 11, -2, 13, 4);
+    ctx.restore();
+  }
+  const koLabel = (count) => `${count} ${count === 1 ? "KO" : "KOs"}`;
   function processEvents() {
     for (const event of match.events) {
       const color =
@@ -702,7 +750,7 @@
         const victim = match.players[event.id];
         const attacker = match.players[event.attackerId];
         const text = attacker
-          ? `${playerName(attacker)} → ${playerName(victim)} · ${event.kills} KO`
+          ? `${playerName(attacker)} → ${playerName(victim)} · ${koLabel(event.kills)}`
           : `${playerName(victim)} LOST A LIFE`;
         koFeed.push({
           text: text + (event.eliminated ? " · OUT!" : ""),
@@ -710,7 +758,6 @@
           ttl: 6,
         });
         koFeed = koFeed.slice(-4);
-        if (attacker) attacker.koFlash = 1.2;
       }
       if (event.type === "spawn") {
         burst(event.x, event.y, "#fff1c8", 16, 0.4);
@@ -743,13 +790,9 @@
       }
       if (event.type === "power") {
         burst(event.x, event.y, powerColor[event.kind], 28);
-        announce(
-          `${playerName(match.players[event.id])} · ${event.kind.toUpperCase()}!`,
-        );
         tone(420, 0.35, "triangle", 0.06, 1300);
       }
       if (event.type === "power-appeared") {
-        announce(`${event.kind.toUpperCase()} POWER-UP HAS APPEARED`);
         tone(600, 0.25, "triangle", 0.04, 1000);
       }
       if (event.type === "pickup") {
@@ -764,7 +807,7 @@
     $("players-hud").innerHTML = match.players
       .map((p) => {
         const b = birds[p.character];
-        return `<div class="hud-player ${p.koFlash > 0 ? "ko-flash" : ""} ${p.lives === 0 ? "out" : ""} ${mode === "teams" ? "team-hud" : ""}" style="--bird:${b.color};--team:${TEAMS[p.team].color}"><div class="name">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</div><div class="lives" aria-label="${p.lives} lives">${p.lives ? Array.from({ length: p.lives }, () => '<i class="pixel-heart" aria-hidden="true"></i>').join("") : "✕ OUT"}</div><div class="boost-meter ${p.boostCharge >= 1 ? "charged" : ""}" role="progressbar" aria-label="${playerName(p)} boost" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.boostCharge * 100)}"><i style="width:${p.boostCharge * 100}%"></i><span>${p.power === "rocket" ? "UNLIMITED BOOST" : p.boostCharge >= 1 ? "BOOST READY" : "BOOST"}</span></div><div class="ko-count">${p.kills} KO</div>${p.power ? `<div class="power-timer" style="color:${powerColor[p.power]}">${p.power.toUpperCase()} ${Math.ceil(p.powerTime)}s</div>` : ""}<div class="meta">${!p.alive && p.lives ? `RETURNING IN ${Math.ceil(p.respawn)}...` : `${p.kind === "bot" ? "BOT" : p.kind === "pad" ? "PAD " + (p.source + 1) : "KEYS " + (p.source + 1)}`}</div></div>`;
+        return `<div class="hud-player ${p.lives === 0 ? "out" : ""} ${mode === "teams" ? "team-hud" : ""}" style="--bird:${b.color};--team:${TEAMS[p.team].color}"><div class="name">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</div><div class="lives" aria-label="${p.lives} lives">${p.lives ? Array.from({ length: p.lives }, () => '<i class="pixel-heart" aria-hidden="true"></i>').join("") : "✕ OUT"}</div><div class="boost-meter ${p.boostCharge >= 1 ? "charged" : ""}" role="progressbar" aria-label="${playerName(p)} boost" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.boostCharge * 100)}"><i style="width:${p.boostCharge * 100}%"></i><span>${p.power === "rocket" ? "UNLIMITED BOOST" : p.boostCharge >= 1 ? "BOOST READY" : "BOOST"}</span></div><div class="hud-stats"><span class="ko-count">${koLabel(p.kills)}</span>${p.power ? `<span class="power-timer" aria-label="Power-up time remaining" style="color:${powerColor[p.power]}">${Math.ceil(p.powerTime)}s</span>` : ""}</div>${!p.alive && p.lives ? `<div class="meta">RETURNING IN ${Math.ceil(p.respawn)}...</div>` : ""}</div>`;
       })
       .join("");
     const time = Math.floor(match.time);
@@ -791,7 +834,7 @@
       .sort((a, b) => b.lives - a.lives || b.kills - a.kills)
       .map(
         (p) =>
-          `<div><span style="color:${birds[p.character].color}">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</span><span>${p.kills} KO &nbsp; · &nbsp; ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT</span></div>`,
+          `<div><span style="color:${birds[p.character].color}">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</span><span>${koLabel(p.kills)} &nbsp; · &nbsp; ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT</span></div>`,
       )
       .join("");
     const c = $("winner-bird").getContext("2d");
@@ -1207,28 +1250,14 @@
         const p = match.powerPickup,
           y = p.y + Math.sin(clock * 4) * 4;
         if (p.ttl > 3 || Math.sin(clock * 14) > 0) {
-          ctx.fillStyle = "#142638";
-          ctx.fillRect(p.x - 27, y - 27, 54, 54);
-          ctx.strokeStyle = powerColor[p.kind];
-          ctx.lineWidth = 3;
-          ctx.strokeRect(p.x - 27, y - 27, 54, 54);
+          const glow = ctx.createRadialGradient(p.x, y, 2, p.x, y, 44);
+          glow.addColorStop(0, powerColor[p.kind] + "40");
+          glow.addColorStop(1, powerColor[p.kind] + "00");
+          ctx.fillStyle = glow;
+          ctx.fillRect(p.x - 44, y - 44, 88, 88);
           if (p.kind === "flame") drawFireball(p.x, y);
           else if (p.kind === "sawblade") drawSaw(p.x, y, clock * 6, 20);
-          else {
-            ctx.fillStyle = powerColor.rocket;
-            ctx.beginPath();
-            ctx.moveTo(p.x, y - 20);
-            ctx.lineTo(p.x + 12, y + 12);
-            ctx.lineTo(p.x - 12, y + 12);
-            ctx.closePath();
-            ctx.fill();
-            ctx.fillStyle = "#ff9658";
-            ctx.fillRect(p.x - 5, y + 12, 10, 10);
-          }
-          ctx.fillStyle = powerColor[p.kind];
-          ctx.font = "16px Silkscreen";
-          ctx.textAlign = "center";
-          ctx.fillText(p.kind.toUpperCase(), p.x, y - 38);
+          else drawRocketPickup(p.x, y);
         }
       }
       for (const f of match.projectiles) drawFireball(f.x, f.y);
@@ -1257,6 +1286,7 @@
           ...(p.x < 85 ? [W] : p.x > W - 85 ? [-W] : []),
         ]) {
           const x = p.x + offset;
+          if (p.power === "rocket") drawRocketExhaust(p, x);
           if (p.power === "sawblade") drawSaw(x, p.y, match.time * 32);
           else
             drawBird(
@@ -1277,28 +1307,19 @@
             );
           if (p.power === "flame")
             for (const f of match.fireballs(p)) drawFireball(f.x + offset, f.y);
-          if (p.power === "rocket") {
-            ctx.fillStyle = powerColor.rocket;
-            ctx.fillRect(x - p.facing * 21 - 4, p.y - 8, 8, 19);
-            ctx.fillStyle = "#ff9658";
-            ctx.fillRect(
-              x - p.facing * 21 - 3,
-              p.y + 11,
-              6,
-              10 + Math.sin(clock * 30) * 5,
-            );
-          }
           ctx.font = "bold 14px Silkscreen";
           ctx.textAlign = "center";
           ctx.fillStyle = b.color;
-          ctx.fillText(playerName(p), x, p.y - 34);
+          const nameOffset =
+            p.power === "rocket" && p.diving && !p.grounded ? 70 : 34;
+          ctx.fillText(playerName(p), x, p.y - nameOffset);
           if (mode === "teams") {
             ctx.fillStyle = TEAMS[p.team].color;
             ctx.fillRect(x - 23, p.y + 19, 46, 5);
             ctx.fillRect(x - 26, p.y + 16, 4, 10);
             ctx.fillRect(x + 22, p.y + 16, 4, 10);
             ctx.font = "12px Silkscreen";
-            ctx.fillText(TEAMS[p.team].name, x, p.y - 50);
+            ctx.fillText(TEAMS[p.team].name, x, p.y - nameOffset - 16);
           }
           if (p.invincible > 0) {
             ctx.strokeStyle = "#fff0c677";
@@ -1402,8 +1423,6 @@
     if (["match", "ending"].includes(screen)) {
       koFeed.forEach((entry) => (entry.ttl -= dt));
       koFeed = koFeed.filter((entry) => entry.ttl > 0);
-      for (const p of match.players)
-        p.koFlash = Math.max(0, (p.koFlash || 0) - dt);
     }
     const feedHtml = koFeed
       .map(

@@ -98,10 +98,10 @@ One random power-up appears every 25–40 seconds, with equal chances for each t
 
 - Flame: six lethal fireballs orbit for five seconds, then launch outward at 1,200 pixels/second and leave the arena. Launched balls pass through platforms.
 - Sawblade: become a spinning blade for three seconds, moving at 900 pixels/second horizontally and 560 vertically. Ricochet off platforms and arena edges. Movement inputs resume when it expires.
-- Rocket: unlimited boost charges for ten seconds. Release and press boost for each burst; dive still takes priority.
+- Rocket: unlimited boost charges and 25% faster horizontal movement for ten seconds. Top movement speed is 412.5 pixels/second; boosts reach 812.5 pixels/second. Release and press boost for each burst; flap and dive physics stay the same. Rear exhaust follows the mount, with a longer plume during boosts.
 
-A pickup activates on contact. A new power replaces the current one, and death clears it. Fired projectiles finish their flight. Powers respect team immunity and spawn protection. Timers stop while paused. The HUD shows the active power and remaining seconds.
+A pickup activates on contact. A new power replaces the current one, and death clears it. Fired projectiles finish their flight. Powers respect team immunity and spawn protection. Timers stop while paused. Power-ups have soft glows with no name labels. The HUD shows remaining seconds beside the KO count.
 
 Bots seek useful pickups, favor feathers when missing lives, boost toward nearby targets, and dive at aligned opponents when platforms do not block the descent.
 
-KO totals stay visible in each player's HUD, with a brief highlight on a kill. A six-second feed keeps the last four KOs, including simultaneous eliminations. Eliminated players have a red OUT panel. Opposing powers can trade kills; if nobody has lives remaining, the match is a draw. If several attackers hit one victim in the same step, the first resolved hit gets the single KO.
+KO totals stay visible in each player's HUD, using "1 KO" and "0 KOs" or "2 KOs". Input-device labels and KO background flashes are omitted to keep the HUD compact. A six-second feed keeps the last four KOs, including simultaneous eliminations. Eliminated players have a red OUT panel. Opposing powers can trade kills; if nobody has lives remaining, the match is a draw. If several attackers hit one victim in the same step, the first resolved hit gets the single KO.

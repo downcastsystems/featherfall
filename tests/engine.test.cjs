@@ -632,3 +632,73 @@ test("each power lasts its full configured duration in simulation time", () => {
     assert.equal(p.power, null);
   }
 });
+
+test("rocket adds 25 percent horizontal speed without changing vertical movement", () => {
+  for (const grounded of [false, true]) {
+    const normal = make(),
+      rocket = make();
+    for (const m of [normal, rocket]) {
+      position(m.players[0], 740, grounded ? 998 : 900);
+      m.players[0].grounded = grounded;
+      m.players[0].vx = 100;
+      m.players[1].invincible = 999;
+    }
+    rocket.equip(rocket.players[0], "rocket");
+    rocket.players[0].vx *= 1.25;
+    tick(normal, 20, [{ move: 1 }]);
+    tick(rocket, 20, [{ move: 1 }]);
+    assert.ok(
+      Math.abs(rocket.players[0].vx - normal.players[0].vx * 1.25) < 0.001,
+    );
+    assert.equal(rocket.players[0].vy, normal.players[0].vy);
+  }
+  const m = make(),
+    p = m.players[0];
+  position(p, 740, 900);
+  p.vx = 500;
+  m.equip(p, "rocket");
+  tick(m, 1, [{ move: 1 }]);
+  assert.equal(p.vx, 412.5);
+});
+test("rocket boosts are faster in either direction, rebound, and lose bonus on expiry", () => {
+  for (const direction of [-1, 1]) {
+    const m = make(),
+      p = m.players[0];
+    position(p, 740, 900);
+    p.facing = direction;
+    m.equip(p, "rocket");
+    tick(m, 1, [{ boost: true }]);
+    assert.equal(p.vx, direction * 812.5);
+    assert.equal(p.boostCharge, 1);
+    p.powerTime = 0.001;
+    tick(m);
+    assert.equal(p.vx, direction * 650);
+  }
+  const m = make(),
+    p = m.players[0];
+  position(p, 720, 790);
+  p.facing = -1;
+  m.equip(p, "rocket");
+  tick(m, 1, [{ boost: true }]);
+  assert.ok(p.vx > 812.5, "swept platform collision rebounds the faster boost");
+  assert.ok(p.x > 715, "rider stays outside the platform");
+});
+test("collecting rocket during a boost adds its bonus once and dive still wins", () => {
+  const m = make(),
+    p = m.players[0];
+  position(p, 740, 900);
+  p.grounded = false;
+  tick(m, 1, [{ boost: true }]);
+  const before = p.vx;
+  m.equip(p, "rocket");
+  assert.equal(p.vx, before * 1.25);
+  m.equip(p, "rocket");
+  assert.equal(p.vx, before * 1.25);
+  m.equip(p, "flame");
+  assert.equal(p.vx, before);
+  m.equip(p, "rocket");
+  tick(m, 1, [{ dive: true, boost: true }]);
+  assert.equal(p.vx, 0);
+  assert.ok(p.diving);
+  assert.equal(p.boostTime, 0);
+});

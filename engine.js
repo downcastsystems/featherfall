@@ -56,6 +56,7 @@
     BOOST_RECHARGE = 3.5,
     BOOST_DURATION = 0.32;
   const POWERUPS = Object.freeze({ flame: 5, sawblade: 3, rocket: 10 });
+  const ROCKET_SPEED = 1.25;
   const BODY = Object.freeze({ halfWidth: 10, head: 21, feet: 12 });
   const TEAMS = [
     { name: "SUN", color: "#ff8a32", dark: "#49251e" },
@@ -236,6 +237,9 @@
     }
     equip(p, kind) {
       if (!POWERUPS[kind] || !p.alive) return;
+      const wasRocket = p.power === "rocket";
+      if (p.boostTime > 0 && wasRocket !== (kind === "rocket"))
+        p.vx *= kind === "rocket" ? ROCKET_SPEED : 1 / ROCKET_SPEED;
       p.power = kind;
       p.powerTime = POWERUPS[kind];
       if (kind === "rocket") p.boostCharge = 1;
@@ -326,6 +330,7 @@
                   ttl: 2,
                 })),
               );
+            if (p.power === "rocket" && p.boostTime > 0) p.vx /= ROCKET_SPEED;
             if (p.power === "sawblade") {
               p.vx *= 0.3;
               p.vy *= 0.3;
@@ -351,6 +356,7 @@
           }
           continue;
         }
+        const speedScale = p.power === "rocket" ? ROCKET_SPEED : 1;
         if (p.power === "rocket") p.boostCharge = 1;
         p.flapCooldown = Math.max(0, p.flapCooldown - dt);
         p.boostTime = Math.max(0, p.boostTime - dt);
@@ -368,13 +374,13 @@
           if (input.boost && p.boostCharge >= 1 && !p.boostTime) {
             p.boostCharge = p.power === "rocket" ? 1 : 0;
             p.boostTime = BOOST_DURATION;
-            p.vx = p.facing * 650;
+            p.vx = p.facing * 650 * speedScale;
             this.events.push({ type: "boost", id: p.id, x: p.x, y: p.y });
           }
           if (!p.boostTime) {
-            p.vx += move * (p.grounded ? 1150 : 750) * dt;
+            p.vx += move * (p.grounded ? 1150 : 750) * speedScale * dt;
             p.vx *= Math.exp(-(move ? 1.5 : p.grounded ? 8 : 1.2) * dt);
-            p.vx = clamp(p.vx, -330, 330);
+            p.vx = clamp(p.vx, -330 * speedScale, 330 * speedScale);
           }
           if (
             !input.dive &&

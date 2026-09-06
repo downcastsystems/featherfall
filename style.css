@@ -974,15 +974,16 @@ footer {
 .ko-count {
   color: #fff1ba;
   font-size: 22px;
-  margin-top: 8px;
 }
-.ko-flash {
-  background: #6a5226e6;
-  box-shadow: 0 0 0 2px #ffe4a1;
+.hud-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
 }
 .power-timer {
   font-size: 13px;
-  margin-top: 7px;
 }
 #ko-feed {
   position: absolute;

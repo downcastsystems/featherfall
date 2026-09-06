@@ -512,13 +512,11 @@ test("A readies the character directly, B unreadies, mouse Ready toggles", () =>
   assert.match(f.element("seats").innerHTML, /CONTROLLER 1/);
   assert.doesNotMatch(f.element("seats").innerHTML, /✓ READY/);
   const clickReady = () =>
-    f
-      .element("seats")
-      .click({
-        target: {
-          closest: () => ({ dataset: { action: "ready", seat: "0" } }),
-        },
-      });
+    f.element("seats").click({
+      target: {
+        closest: () => ({ dataset: { action: "ready", seat: "0" } }),
+      },
+    });
   clickReady();
   assert.match(f.element("seats").innerHTML, /✓ READY/);
   clickReady();
@@ -575,7 +573,7 @@ test("power timers freeze when paused and reset on rematch", () => {
   const p = f.match.players[0];
   f.match.equip(p, "rocket");
   f.advance(0.2);
-  assert.match(f.element("players-hud").innerHTML, /ROCKET 10s/);
+  assert.match(f.element("players-hud").innerHTML, />10s<\/span>/);
   f.press("Escape");
   const t = p.powerTime;
   f.advance(5);
@@ -584,4 +582,29 @@ test("power timers freeze when paused and reset on rematch", () => {
   f.press("Enter");
   f.advance(3.2);
   assert.ok(f.match.players.every((p) => p.power === null));
+});
+
+test("HUD, kill feed and results use singular KO only for one knockout", () => {
+  const f = fixture();
+  f.press("Enter");
+  for (const n of [1, 2, 3]) f.press(`Digit${n}`);
+  f.press("Enter");
+  f.advance(3.2);
+  const [a, b, c] = f.match.players;
+  assert.match(f.element("players-hud").innerHTML, /0 KOs/);
+  b.invincible = c.invincible = 0;
+  f.match.kill(b, a);
+  f.advance(0.2);
+  assert.match(f.element("players-hud").innerHTML, /1 KO<\/span>/);
+  f.match.kill(c, a);
+  f.advance(0.2);
+  const hud = f.element("players-hud").innerHTML;
+  assert.match(hud, /2 KOs/);
+  assert.doesNotMatch(hud, /KEYS|PAD |BOT|ko-flash/);
+  assert.match(hud, /RETURNING IN/);
+  assert.match(f.element("ko-feed").innerHTML, /· 2 KOs/);
+  b.lives = c.lives = 0;
+  f.advance(1.8);
+  assert.match(f.element("scoreboard").innerHTML, /2 KOs/);
+  assert.match(f.element("scoreboard").innerHTML, /0 KOs/);
 });
