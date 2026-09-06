@@ -90,3 +90,11 @@ Complete: 49 automated tests and syntax checks pass. Browser checks cover all sc
 - Rank Match Totals by wins then KOs, share exact ties and skip occupied places. Preserve individual award lookup and round results.
 - Clear the lineup when returning to the main menu. Add a controller-focusable Remove Last Bot button and an RB shortcut, preserving X team selection and gameplay boosts. Bot cards show automatic readiness and individual mouse removal.
 - Verify seven-character selection/physics, controller-only bot management, reset flows, tie ranking and audio. Inspect new artwork and full-lobby/results layouts before saving and pushing.
+
+## Volcano rain and zombie speed chains
+
+- Add volcano-only warning and nine falling fireballs, one second apart, sweeping from a random side. Sweep collisions against platforms and players; respect protection, pause and round reset.
+- Let height advantage and active boosting destroy zombies. Attribute player kills without awarding KOs; grant additive 10% horizontal speed stacks, refreshed to five seconds and cleared on death/expiry.
+- Render warning/fireballs and a compact boost-meter bonus; verify collisions, schedules, stacking, expiry and existing gameplay, then review the diff.
+
+Completed: volcano simulation and presentation, zombie collision changes and speed chains, regression checks and browser artwork inspection. Review verified hazard ownership, first-hit ordering, timer reset and power combinations; corrected sawblade entry scaling. All 124 tests and syntax checks pass.

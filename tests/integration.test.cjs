@@ -948,3 +948,37 @@ test("X still changes teams and does not remove bots", () => {
     4,
   );
 });
+
+test("volcano warnings and rain pause together and reset on a new arena", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  for (let i = 0; i < 5; i++) f.press("KeyN");
+  assert.equal(f.match.arena.id, "volcanic");
+  f.advance(3.2);
+  f.match.nextEruption = 0;
+  f.advance(1.5);
+  assert.ok(f.match.volcanoFireballs.length);
+  f.press("Escape");
+  const snapshot = JSON.stringify([
+    f.match.eruption,
+    f.match.volcanoFireballs,
+    f.match.time,
+  ]);
+  f.advance(3);
+  assert.equal(
+    JSON.stringify([f.match.eruption, f.match.volcanoFireballs, f.match.time]),
+    snapshot,
+  );
+  f.press("Enter");
+  f.advance(0.2);
+  assert.notEqual(
+    JSON.stringify([f.match.eruption, f.match.volcanoFireballs, f.match.time]),
+    snapshot,
+  );
+  f.press("KeyN");
+  assert.equal(f.match.volcanoFireballs.length, 0);
+  assert.equal(f.match.eruption, null);
+});

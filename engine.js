@@ -354,6 +354,9 @@
       this.zombies = [];
       this.nextZombie = 5;
       this.nextZombieId = 0;
+      this.volcanoFireballs = [];
+      this.eruption = null;
+      this.nextEruption = 18;
       this.rng = rng;
       this.mode = mode;
       this.time = 0;
@@ -423,6 +426,8 @@
         wasDiving: false,
         power: null,
         powerTime: 0,
+        zombieSpeedStacks: 0,
+        zombieSpeedTime: 0,
         botExit: null,
         botClimb: null,
         botDive: false,
@@ -436,6 +441,7 @@
       victim.alive = false;
       victim.power = null;
       victim.powerTime = 0;
+      victim.zombieSpeedStacks = victim.zombieSpeedTime = 0;
       victim.lives--;
       victim.respawn = victim.lives > 0 ? 2.6 : 0;
       if (attacker) {
@@ -455,6 +461,77 @@
         y: victim.y,
         id: victim.id,
       });
+    }
+    stepVolcano(dt, before) {
+      if (this.arena.id !== "volcanic") return;
+      if (!this.eruption && this.time >= this.nextEruption) {
+        this.eruption = {
+          start: this.time,
+          direction: this.rng() < 0.5 ? 1 : -1,
+          dropped: 0,
+        };
+        this.events.push({ type: "eruption-warning" });
+      }
+      const wave = this.eruption;
+      if (
+        wave &&
+        wave.dropped < 9 &&
+        this.time >= wave.start + 1.2 + wave.dropped
+      ) {
+        const column = wave.direction > 0 ? wave.dropped : 8 - wave.dropped;
+        this.volcanoFireballs.push({ x: 100 + column * 215, y: -20, vy: 360 });
+        wave.dropped++;
+        if (wave.dropped === 9) {
+          this.eruption = null;
+          this.nextEruption = this.time + 22 + this.rng() * 12;
+        }
+      }
+      for (const f of this.volcanoFireballs) {
+        const oldY = f.y;
+        f.vy = Math.min(760, f.vy + 420 * dt);
+        const distance = f.vy * dt;
+        let hit = null;
+        for (const platform of this.platforms) {
+          const t = (platform.y - 10 - oldY) / distance;
+          if (
+            f.x + 10 >= platform.x &&
+            f.x - 10 <= platform.x + platform.w &&
+            t >= 0 &&
+            t <= 1 &&
+            (!hit || t < hit.t)
+          )
+            hit = { t };
+        }
+        for (const p of this.players) {
+          const prev = before[p.id];
+          if (!p.alive || !prev.alive || p.invincible > 0) continue;
+          const dx = wrapDelta(p.x, prev.x);
+          const dy = p.y - prev.y - distance;
+          const slab = (origin, delta, low, high) =>
+            delta === 0
+              ? origin >= low && origin <= high
+                ? [-Infinity, Infinity]
+                : null
+              : [(low - origin) / delta, (high - origin) / delta].sort(
+                  (a, b) => a - b,
+                );
+          const tx = slab(wrapDelta(prev.x, f.x), dx, -20, 20);
+          const ty = slab(prev.y - oldY, dy, -22, 31);
+          if (!tx || !ty) continue;
+          const t = Math.max(0, tx[0], ty[0]);
+          if (t <= Math.min(1, tx[1], ty[1]) && (!hit || t < hit.t))
+            hit = { t, player: p };
+        }
+        f.y += distance * (hit ? hit.t : 1);
+        if (hit) {
+          if (hit.player) this.kill(hit.player, null, "volcano");
+          this.events.push({ type: "volcano-impact", x: f.x, y: f.y });
+          f.dead = true;
+        }
+      }
+      this.volcanoFireballs = this.volcanoFireballs.filter(
+        (f) => !f.dead && f.y < H + 30,
+      );
     }
     graveOccupied(grave) {
       return this.players.some(
@@ -489,9 +566,15 @@
         alive: true,
       });
     }
-    popZombie(z, reason) {
+    popZombie(z, reason, player = null) {
       if (!z.alive) return;
       z.alive = false;
+      if (player?.alive) {
+        const oldScale = 1 + player.zombieSpeedStacks * 0.1;
+        player.zombieSpeedStacks++;
+        player.zombieSpeedTime = 5;
+        player.vx *= (1 + player.zombieSpeedStacks * 0.1) / oldScale;
+      }
       this.events.push({
         type: "zombie-pop",
         x: z.x,
@@ -561,7 +644,7 @@
               (f) => Math.hypot(wrapDelta(f.x, z.x), f.y - (z.y - 8)) < 18,
             )
           ) {
-            this.popZombie(z, "flame");
+            this.popZombie(z, "flame", p);
             continue;
           }
           const rx = wrapDelta(prev.x, old.x),
@@ -582,10 +665,13 @@
             Math.max(0, tx[0], ty[0]) > Math.min(1, tx[1], ty[1])
           )
             continue;
-          const stomp = prev.y + 12 <= old.y - 16 + 3 && dy > 0 && p.y > prev.y;
-          if (stomp || p.power === "sawblade") {
-            this.popZombie(z, stomp ? "stomp" : "sawblade");
-            if (stomp) {
+          const contactTime = Math.max(0, tx[0], ty[0]);
+          // Compare standing anchors, so same-floor contact is never a stomp.
+          const stomp = old.y - 12 - prev.y - dy * contactTime > 7;
+          const smash = p.boosting || p.power === "sawblade";
+          if (stomp || smash) {
+            this.popZombie(z, smash ? "boost" : "stomp", p);
+            if (stomp && !smash) {
               p.vy = -210;
               p.grounded = false;
             }
@@ -602,7 +688,7 @@
             1,
           );
           if (Math.hypot(z.x - f.oldX - t * dx, z.y - 8 - f.oldY - t * dy) < 18)
-            this.popZombie(z, "flame");
+            this.popZombie(z, "flame", this.players[f.owner]);
         }
         if (landing && z.alive) {
           if (landing.y - z.fallFrom >= 320) this.popZombie(z, "fall");
@@ -633,7 +719,7 @@
       if (kind === "rocket") p.boostCharge = 1;
       if (kind === "sawblade") {
         p.boostTime = 0;
-        p.vx = p.facing * 900;
+        p.vx = p.facing * 900 * (1 + p.zombieSpeedStacks * 0.1);
         p.vy = -560;
       }
       this.events.push({ type: "power", id: p.id, kind, x: p.x, y: p.y });
@@ -737,6 +823,13 @@
           }
           continue;
         }
+        if (p.zombieSpeedTime > 0) {
+          p.zombieSpeedTime = Math.max(0, p.zombieSpeedTime - dt);
+          if (!p.zombieSpeedTime) {
+            p.vx /= 1 + p.zombieSpeedStacks * 0.1;
+            p.zombieSpeedStacks = 0;
+          }
+        }
         if (p.powerTime > 0) {
           p.powerTime = Math.max(0, p.powerTime - dt);
           if (!p.powerTime) {
@@ -775,7 +868,9 @@
           }
           continue;
         }
-        const speedScale = p.power === "rocket" ? ROCKET_SPEED : 1;
+        const speedScale =
+          (p.power === "rocket" ? ROCKET_SPEED : 1) *
+          (1 + p.zombieSpeedStacks * 0.1);
         if (p.power === "rocket") p.boostCharge = 1;
         p.flapCooldown = Math.max(0, p.flapCooldown - dt);
         p.boostTime = Math.max(0, p.boostTime - dt);
@@ -847,6 +942,7 @@
       }
       this.powerHits();
       this.stepZombies(dt, before);
+      this.stepVolcano(dt, before);
       this.projectiles = this.projectiles.filter(
         (f) => f.ttl > 0 && f.x >= -20 && f.x <= W + 20 && f.y >= 0 && f.y <= H,
       );

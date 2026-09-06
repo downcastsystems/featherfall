@@ -796,6 +796,18 @@
         event.id !== undefined
           ? birds[match.players[event.id].character].color
           : "#ffe9b4";
+      if (event.type === "eruption-warning") {
+        broadcast.say(
+          "The volcano has entered the match. Lovely. More hotheads.",
+          {},
+          1,
+        );
+      }
+      if (event.type === "volcano-impact") {
+        burst(event.x, event.y, "#ff9b45", 18, 0.7);
+        burst(event.x, event.y, "#ffe8a0", 6, 0.4);
+        sound.play("zombie-pop", 1);
+      }
       if (event.type === "zombie-pop") {
         burst(event.x, event.y, "#e84b4b", 15, 0.7);
         burst(event.x, event.y, "#992e3c", 7, 0.5);
@@ -820,7 +832,9 @@
           broadcast.say(
             event.cause === "zombie"
               ? `${playerName(victim)} ${event.eliminated ? "is out. Outplayed by the dearly departed." : "loses a life to a zombie. Brains were clearly on the menu."}`
-              : `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
+              : event.cause === "volcano"
+                ? `${playerName(victim)} caught a fireball. With their face.`
+                : `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
             {},
             1,
           );
@@ -877,7 +891,7 @@
         const kills = total.kills + (series.recorded.has(match) ? 0 : p.kills);
         return `<div class="hud-player ${p.lives === 0 ? "out" : ""} ${mode === "teams" ? "team-hud" : ""}" style="--bird:${b.color};--team:${TEAMS[p.team].color}">
           <div class="hud-heading"><div class="name">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</div><div class="hud-stats"><span class="ko-count">${koLabel(kills)}</span><span class="win-count">${total.wins} ${total.wins === 1 ? "WIN" : "WINS"}</span></div></div>
-          <div class="hud-vitals"><div class="lives" aria-label="${p.lives} lives">${p.lives ? Array.from({ length: p.lives }, () => '<i class="pixel-heart" aria-hidden="true"></i>').join("") : "✕ OUT"}</div><div class="hud-flight">${!p.alive ? (p.lives ? `<span class="meta">RETURNING IN ${Math.ceil(p.respawn)}...</span>` : "") : `${p.power ? `<span class="power-timer" aria-label="Power-up time remaining" style="color:${powerColor[p.power]}">${Math.ceil(p.powerTime)}s</span>` : ""}<div class="boost-meter ${p.boostCharge >= 1 ? "charged" : ""}" role="progressbar" aria-label="${playerName(p)} boost" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.boostCharge * 100)}"><i style="width:${p.boostCharge * 100}%"></i><span>${p.power === "rocket" ? "UNLIMITED BOOST" : p.boostCharge >= 1 ? "BOOST READY" : "BOOST"}</span></div>`}</div></div>
+          <div class="hud-vitals"><div class="lives" aria-label="${p.lives} lives">${p.lives ? Array.from({ length: p.lives }, () => '<i class="pixel-heart" aria-hidden="true"></i>').join("") : "✕ OUT"}</div><div class="hud-flight">${!p.alive ? (p.lives ? `<span class="meta">RETURNING IN ${Math.ceil(p.respawn)}...</span>` : "") : `${p.power ? `<span class="power-timer" aria-label="Power-up time remaining" style="color:${powerColor[p.power]}">${Math.ceil(p.powerTime)}s</span>` : ""}<div class="boost-meter ${p.boostCharge >= 1 ? "charged" : ""}" role="progressbar" aria-label="${playerName(p)} boost" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.boostCharge * 100)}"><i style="width:${p.boostCharge * 100}%"></i><span>${p.zombieSpeedStacks ? `+${p.zombieSpeedStacks * 10}% · ${Math.ceil(p.zombieSpeedTime)}s` : p.power === "rocket" ? "UNLIMITED BOOST" : p.boostCharge >= 1 ? "BOOST READY" : "BOOST"}</span></div>`}</div></div>
         </div>`;
       })
       .join("");
@@ -1676,6 +1690,18 @@
         ctx.fillRect(0, 100, W, H - 180);
       }
     } else {
+      if (match.eruption) {
+        const warningAge = match.time - match.eruption.start;
+        if (warningAge < 1.2) {
+          ctx.fillStyle = `rgba(255, 185, 100, ${0.24 * Math.max(0, 1 - warningAge / 1.2)})`;
+          ctx.fillRect(0, 0, W, H);
+        }
+      }
+      for (const f of match.volcanoFireballs) {
+        ctx.fillStyle = "#ff803e80";
+        ctx.fillRect(f.x - 5, f.y - 27, 10, 22);
+        drawFireball(f.x, f.y);
+      }
       for (const z of match.zombies) {
         drawZombie(ctx, z, match.time);
         if (z.x < 18) drawZombie(ctx, { ...z, x: z.x + W }, match.time);

@@ -136,7 +136,7 @@ Secret testing shortcut: press **N** during play, the countdown, or the round-en
 
 Amethyst Ruins has four little graves in mirrored pairs. Starting five seconds into a round, one tiny zombie emerges at a time, with a new random delay of two to five seconds between appearances and a random unoccupied grave each time. Graves beneath live players cannot spawn zombies; arriving during emergence cancels that zombie harmlessly. At most twelve can be alive. They climb out over 0.9 seconds, independently choose to walk left or right, and panic when they fall off a ledge, throwing their hands overhead, kicking unevenly and opening their mouths in a little scream.
 
-Drops under 320 pixels let zombies land and keep walking. Drops of 320 pixels or more end in a harmless burst of red pixels with a short synthesized splat. Walking into a zombie or being struck by one from above costs a life; dropping onto its head destroys it and gives the player a small bounce. Respawn protection still works. Sawblades, orbiting fireballs and launched fireballs can also destroy zombies. Zombie kills award no KOs, wins or award statistics. Player deaths to zombies have no credited attacker.
+Drops under 320 pixels let zombies land and keep walking. Drops of 320 pixels or more end in a harmless burst of red pixels with a short synthesized splat. Walking into a zombie or being struck by one from above costs a life; contact from a clear height advantage destroys it and gives the player a small bounce. Active boosts also smash through zombies safely. Respawn protection still works. Sawblades, orbiting fireballs and launched fireballs can also destroy zombies. Zombie kills award no KOs, wins or award statistics. Player deaths to zombies have no credited attacker.
 
 Zombies pause with the round and disappear when it restarts or changes arenas. They wrap horizontally like players, including during a fall, and leave play after surviving forty seconds. Use **N** to cycle to the purple ruins to try them.
 
@@ -145,3 +145,9 @@ Zombies pause with the round and disappear when it restarts or changes arenas. T
 The original four mounts are joined by Acorn, a brown flying squirrel; Buzz, a yellow-and-black bee; and Luna, a pale gray-and-ivory moth. All seven have the same flight and collision rules, with individual standing, flying and diving artwork and flap sounds. Cycle left/right through the roster; any player or bot can use any mount.
 
 Match Totals displays a rank beside each player, ordered by round wins, then KOs. Equal wins and KOs share a rank, with occupied places skipped: 1, 2, 2, 4. Round result screens keep their existing layout. Bot cards show automatic readiness and a Remove Bot button instead of human ready/unready instructions.
+
+## Volcano eruptions and zombie speed chains
+
+Cinder Crown flashes before an eruption. After a 1.2-second warning, nine fireballs fall in a row, one second apart, sweeping from a randomly chosen side. Fireballs explode against the first platform or vulnerable player they hit. Platforms provide cover; impact particles have no splash damage. The first warning is 18 seconds into the round, with 22–34 seconds of quiet after each wave finishes dropping. Rain pauses and resets with the round.
+
+Every player-attributed zombie kill grants another 10% horizontal movement and boost speed, including kills using powers. Stacks add: 10%, 20%, 30%, and so on. Each kill refreshes the timer to five seconds; expiry or death removes the entire chain. This multiplies rocket speed and applies to horizontal sawblade movement too. The boost meter displays the bonus and remaining seconds. Zombie kills still grant no KOs or wins.

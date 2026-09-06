@@ -151,3 +151,9 @@ Occupied graves are excluded from spawn selection, and an emergence is canceled 
 115 tests and syntax checks pass. New coverage includes seven-character selection and shared physics, the new flap sounds and mute, wins/KO ranking with exact ties, displayed ranks, controller-only bot removal with RB or the focused button, preservation of X team switching, empty lineups after returning to the main menu, and bot-specific instructions.
 
 Browser checks inspected Acorn, Buzz and Luna in standing, flapping and diving poses, the full four-player lobby, bot removal and a cleared lobby after returning to the main menu. A temporary results fixture verified ranks 1, 2, 2, 4 fit alongside names and awards. No console errors. Preview fixtures are excluded from the repository.
+
+## Volcano rain and zombie speed chains
+
+All 124 tests and syntax checks pass. New checks cover warning-before-rain timing, both nine-column sweep directions, one-second spacing, arena restriction, first-platform cover, swept player hits, protection, no KO attribution, pause/resume and fresh-round cleanup. Zombie checks cover rising height advantage, boost-through collisions, additive stacks, five-second refresh, active burst expiry, rocket multiplication, death/respawn reset and launched-flame ownership.
+
+Browser fixtures verified the glowing fireballs and tails against Cinder Crown and the compact bonus/timer inside the existing HUD. Fixtures are excluded from the shipped files. Final diff review corrected sawblade entry to preserve horizontal speed bonuses. No unresolved findings.

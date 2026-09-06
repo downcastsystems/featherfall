@@ -341,3 +341,83 @@ test("scheduled appearances emit one zombie at a time with independently randomi
     assert.equal(m.nextZombieId, count + 1);
   }
 });
+
+test("height advantage kills even while rising, but same-height contact remains lethal", () => {
+  const m = make(),
+    p = m.players[0];
+  Object.assign(p, { x: 700, y: 986, vy: -60, grounded: false, invincible: 0 });
+  const z = zombie(m, { vx: 0 });
+  tick(m);
+  assert.equal(z.alive, false);
+  assert.equal(p.alive, true);
+  assert.equal(p.zombieSpeedStacks, 1);
+  assert.equal(p.zombieSpeedTime, 5);
+});
+test("boost sweeps through zombies and additive chains refresh rather than add duration", () => {
+  const m = make(),
+    p = m.players[0];
+  Object.assign(p, { x: 677, invincible: 0, facing: 1 });
+  let z = zombie(m, { vx: 0 });
+  tick(m, 2, [{ boost: true }]);
+  assert.equal(z.alive, false);
+  assert.equal(p.alive, true);
+  assert.equal(p.zombieSpeedStacks, 1);
+  assert.ok(Math.abs(p.vx - 715) < 0.001);
+  p.zombieSpeedTime = 1;
+  z = zombie(m, { x: p.x + 10, vx: 0 });
+  tick(m);
+  assert.equal(z.alive, false);
+  assert.equal(p.zombieSpeedStacks, 2);
+  assert.equal(p.zombieSpeedTime, 5);
+  assert.ok(Math.abs(p.vx - 780) < 0.001);
+  zombie(m, { x: p.x + 10, vx: 0 });
+  tick(m);
+  assert.equal(p.zombieSpeedStacks, 3);
+  assert.ok(Math.abs(p.vx - 845) < 0.001);
+  assert.equal(p.kills, 0);
+  p.zombieSpeedTime = 0.001;
+  tick(m);
+  assert.equal(p.zombieSpeedStacks, 0);
+  assert.ok(Math.abs(p.vx - 650) < 0.001);
+});
+test("speed chains multiply rocket speed, expire normally and clear on death/respawn", () => {
+  const m = make(),
+    p = m.players[0];
+  m.popZombie(zombie(m), "stomp", p);
+  m.popZombie(zombie(m), "stomp", p);
+  m.equip(p, "rocket");
+  p.facing = 1;
+  tick(m, 1, [{ boost: true }]);
+  assert.ok(Math.abs(p.vx - 650 * 1.5625 * 1.2) < 0.001);
+  p.invincible = 0;
+  m.kill(p, null, "zombie");
+  assert.equal(p.zombieSpeedStacks, 0);
+  assert.equal(p.zombieSpeedTime, 0);
+  m.spawn(p);
+  assert.equal(p.zombieSpeedStacks, 0);
+  m.popZombie(zombie(m), "fall");
+  assert.equal(p.zombieSpeedStacks, 0);
+  m.popZombie(zombie(m), "stomp", p);
+  tick(m, 601);
+  assert.equal(p.zombieSpeedStacks, 0);
+});
+test("a zombie awards its chain only once and launched flame credits its owner", () => {
+  const m = make(),
+    p = m.players[0],
+    z = zombie(m, { vx: 0 });
+  m.projectiles.push({
+    owner: 0,
+    x: 650,
+    y: 1002,
+    oldX: 650,
+    oldY: 1002,
+    vx: 1200,
+    vy: 0,
+    ttl: 2,
+  });
+  tick(m, 5);
+  assert.equal(z.alive, false);
+  assert.equal(p.zombieSpeedStacks, 1);
+  m.popZombie(z, "stomp", p);
+  assert.equal(p.zombieSpeedStacks, 1);
+});
