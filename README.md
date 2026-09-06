@@ -132,8 +132,8 @@ Secret testing shortcut: press **N** during play, the countdown, or the round-en
 
 ## Graveyard zombies
 
-Amethyst Ruins has four little graves in mirrored pairs. Starting five seconds into a round, two tiny zombies emerge every seven seconds, each choosing its own random grave. At most twelve can be alive. They climb out over 0.9 seconds, independently choose to walk left or right, and panic when they fall off a ledge, throwing their hands overhead, kicking unevenly and opening their mouths in a little scream.
+Amethyst Ruins has four little graves in mirrored pairs. Starting five seconds into a round, two tiny zombies emerge every seven seconds, each choosing its own random unoccupied grave. Graves beneath live players cannot spawn zombies; arriving during emergence cancels that zombie harmlessly. At most twelve can be alive. They climb out over 0.9 seconds, independently choose to walk left or right, and panic when they fall off a ledge, throwing their hands overhead, kicking unevenly and opening their mouths in a little scream.
 
 Drops under 320 pixels let zombies land and keep walking. Drops of 320 pixels or more end in a harmless burst of red pixels with a short synthesized splat. Walking into a zombie or being struck by one from above costs a life; dropping onto its head destroys it and gives the player a small bounce. Respawn protection still works. Sawblades, orbiting fireballs and launched fireballs can also destroy zombies. Zombie kills award no KOs, wins or award statistics. Player deaths to zombies have no credited attacker.
 
-Zombies pause with the round and disappear when it restarts or changes arenas. They leave play after walking offscreen or surviving forty seconds. Use **N** to cycle to the purple ruins to try them.
+Zombies pause with the round and disappear when it restarts or changes arenas. They wrap horizontally like players, including during a fall, and leave play after surviving forty seconds. Use **N** to cycle to the purple ruins to try them.

@@ -141,3 +141,7 @@ Browser checks verified grave placement and live walking zombies on Amethyst Rui
 ## Panicked zombie falls
 
 Replaced the rotary arm poses with four asymmetrical overhead flails, scissoring kicks and a wide-eyed, open-mouth expression at ten frames per second. Checked enlarged frames facing both directions. Syntax checks and all 103 tests pass; collision and fall-height behavior are unchanged.
+
+## Safe graves and zombie wrapping
+
+Occupied graves are excluded from spawn selection, and an emergence is canceled if a live player arrives. Zombies wrap horizontally while preserving velocity and fall height; rendering draws them across the seam. All 108 tests and syntax checks pass, including fully occupied graveyards, arrivals during emergence, both wrapping directions, grounded/falling states, seam contact without false cross-arena hits, and ground landings during a wrap.

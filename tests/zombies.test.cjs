@@ -168,7 +168,7 @@ test("spawn protection blocks hazards, emerging zombies are harmless, sawblades 
   assert.equal(target.alive, false);
   assert.equal(q.kills, 0);
 });
-test("bursts have no area damage and old or offscreen zombies are removed", () => {
+test("bursts have no area damage and old zombies are removed", () => {
   const m = make(),
     p = m.players[0];
   Object.assign(p, { x: 730, invincible: 0 });
@@ -184,7 +184,6 @@ test("bursts have no area damage and old or offscreen zombies are removed", () =
   assert.equal(m.zombies.length, 0);
   assert.equal(p.alive, true);
   zombie(m, { age: 41 });
-  zombie(m, { id: 1, x: -20 });
   tick(m);
   assert.equal(m.zombies.length, 0);
 });
@@ -233,4 +232,94 @@ test("zombies independently choose any grave and either direction without mirror
   assert.equal(m.zombies[3].x, m.graves[3].x);
   assert.equal(m.zombies[3].vx, -72);
   assert.equal(rolls.length, 0);
+});
+
+test("occupied graves are skipped and a fully occupied graveyard spawns nothing", () => {
+  const m = make();
+  const g = m.graves[0];
+  Object.assign(m.players[0], { x: g.x, y: g.y - 12, alive: true });
+  m.rng = () => 0;
+  m.spawnZombies();
+  assert.ok(m.zombies.every((z) => z.x !== g.x || z.y !== g.y));
+  const full = new Match(
+    Array.from({ length: 4 }, (_, character) => ({ character })),
+    "ffa",
+    () => 0.5,
+    arena,
+  );
+  full.players.forEach((p, i) =>
+    Object.assign(p, {
+      x: full.graves[i].x,
+      y: full.graves[i].y - 12,
+      alive: true,
+    }),
+  );
+  full.spawnZombies();
+  assert.equal(full.zombies.length, 0);
+  full.players[0].alive = false;
+  full.spawnZombies();
+  assert.equal(full.zombies.length, 2);
+  assert.ok(full.zombies.every((z) => z.x === full.graves[0].x));
+});
+test("walking onto a grave during emergence cancels its zombie without hurting the player", () => {
+  const m = make(),
+    g = m.graves[0];
+  m.rng = () => 0;
+  m.spawnZombies();
+  Object.assign(m.players[0], {
+    x: g.x,
+    y: g.y - 12,
+    invincible: 0,
+    vx: 0,
+    vy: 0,
+  });
+  tick(m);
+  assert.equal(m.zombies.length, 0);
+  assert.equal(m.players[0].alive, true);
+  assert.equal(m.events.filter((e) => e.type === "zombie-pop").length, 0);
+});
+test("walking and falling zombies wrap both edges without reversing or losing fall height", () => {
+  for (const direction of [-1, 1])
+    for (const grounded of [true, false]) {
+      const m = make(),
+        z = zombie(m, {
+          x: direction > 0 ? 1919.8 : 0.2,
+          y: grounded ? 1010 : 600,
+          vx: direction * 72,
+          vy: grounded ? 0 : 200,
+          grounded,
+          fallFrom: 230,
+        });
+      tick(m);
+      assert.ok(direction > 0 ? z.x < 1 : z.x > 1919);
+      assert.equal(z.alive, true);
+      assert.equal(z.vx, direction * 72);
+      assert.equal(z.grounded, grounded);
+      assert.equal(z.fallFrom, 230);
+    }
+});
+test("wrapping zombies hit players at the seam without sweeping across the whole arena", () => {
+  const m = make();
+  Object.assign(m.players[0], { x: 3, invincible: 0 });
+  Object.assign(m.players[1], { x: 960, invincible: 0 });
+  zombie(m, { x: 1919.8, vx: 72 });
+  tick(m);
+  assert.equal(m.players[0].alive, false);
+  assert.equal(m.players[1].alive, true);
+});
+test("a falling zombie can cross the seam and land on the ground normally", () => {
+  const m = make(),
+    z = zombie(m, {
+      x: 1919.8,
+      y: 1009,
+      vx: 72,
+      vy: 200,
+      grounded: false,
+      fallFrom: 800,
+    });
+  tick(m);
+  assert.ok(z.x < 1);
+  assert.equal(z.y, 1010);
+  assert.equal(z.grounded, true);
+  assert.equal(z.alive, true);
 });

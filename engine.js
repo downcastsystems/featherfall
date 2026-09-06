@@ -432,15 +432,25 @@
         id: victim.id,
       });
     }
+    graveOccupied(grave) {
+      return this.players.some(
+        (p) =>
+          p.alive &&
+          Math.abs(wrapDelta(p.x, grave.x)) < 30 &&
+          Math.abs(p.y + 12 - grave.y) < 28,
+      );
+    }
     spawnZombies() {
       if (!this.graves.length || this.zombies.length > 10) return;
-      // Each zombie independently picks a grave and direction.
+      const available = this.graves.filter((g) => !this.graveOccupied(g));
+      if (!available.length) return;
+      // Each zombie independently picks a clear grave and direction.
       for (let i = 0; i < 2; i++) {
         const grave =
-          this.graves[
+          available[
             Math.min(
-              this.graves.length - 1,
-              Math.floor(this.rng() * this.graves.length),
+              available.length - 1,
+              Math.floor(this.rng() * available.length),
             )
           ];
         this.zombies.push({
@@ -476,16 +486,21 @@
       }
       for (const z of this.zombies) {
         z.age += dt;
-        if (z.age > 40 || z.x < -12 || z.x > W + 12) {
+        if (z.age > 40) {
           z.alive = false;
           continue;
         }
         if (z.emerge > 0) {
+          // Cancel an emergence if a rider arrives before the zombie is active.
+          if (this.graveOccupied(z)) {
+            z.alive = false;
+            continue;
+          }
           z.emerge = Math.max(0, z.emerge - dt);
           continue;
         }
         const old = { x: z.x, y: z.y };
-        z.x += z.vx * dt;
+        z.x = (((z.x + z.vx * dt) % W) + W) % W;
         if (
           z.grounded &&
           !this.platforms.some(
@@ -507,7 +522,7 @@
                 s.y <= nextY &&
                 (() => {
                   const t = (s.y - old.y) / (nextY - old.y || 1);
-                  const x = old.x + (z.x - old.x) * t;
+                  const x = (((old.x + z.vx * dt * t) % W) + W) % W;
                   return x >= s.x && x <= s.x + s.w;
                 })(),
             )
@@ -529,7 +544,7 @@
           }
           const rx = wrapDelta(prev.x, old.x),
             ry = prev.y - 4 - (old.y - 8);
-          const dx = wrapDelta(p.x, prev.x) - (z.x - old.x),
+          const dx = wrapDelta(p.x, prev.x) - wrapDelta(z.x, old.x),
             dy = p.y - prev.y - (z.y - old.y);
           const slab = (v, d, r) =>
             d === 0

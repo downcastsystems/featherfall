@@ -988,7 +988,12 @@
       r(rightX - 1, rightY - 2, 4, 3, "#cbdba0");
       r(rightX + 2, rightY - 3, 1, 2, "#cbdba0");
       // Scissoring knees and mismatched kicks keep the whole body looking frantic.
-      const [leftKick, rightKick] = [[-6, 4], [-4, 7], [-7, 5], [-5, 6]][phase];
+      const [leftKick, rightKick] = [
+        [-6, 4],
+        [-4, 7],
+        [-7, 5],
+        [-5, 6],
+      ][phase];
       r(-3, -3, 2, 4, "#484252");
       r(leftKick, -1, -leftKick - 1, 2, "#484252");
       r(leftKick, -1, 2, phase % 2 ? 5 : 2, "#484252");
@@ -1549,7 +1554,11 @@
         ctx.fillRect(0, 100, W, H - 180);
       }
     } else {
-      for (const z of match.zombies) drawZombie(ctx, z, match.time);
+      for (const z of match.zombies) {
+        drawZombie(ctx, z, match.time);
+        if (z.x < 18) drawZombie(ctx, { ...z, x: z.x + W }, match.time);
+        if (z.x > W - 18) drawZombie(ctx, { ...z, x: z.x - W }, match.time);
+      }
       if (match.pickup) {
         const p = match.pickup,
           y = p.y + Math.sin(clock * 4) * 4;
