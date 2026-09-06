@@ -1125,6 +1125,8 @@
         r(-1, 15, 3, 3, "#322c30");
         r(2, 7, 2, 2, "#231f28");
       } else if (b.mount === "bee") {
+        r(-1, -28, 2, 5, "#e6dfcb");
+        r(-2, -24, 4, 4, b.dark);
         r(-4, -11, 10, 20, b.color);
         r(-4, -7, 10, 4, b.dark);
         r(-4, 1, 10, 4, b.dark);
@@ -1135,17 +1137,26 @@
         r(-4, 15, 2, 7, b.dark);
         r(5, 15, 2, 7, b.dark);
       } else if (b.mount === "moth") {
-        r(-11 + tuck, -19, 6, 23, b.color);
-        r(-9 + tuck, -16, 5, 23, b.light);
-        r(6 - tuck, -17, 6, 22, b.light);
-        r(-8 + tuck, -9, 3, 5, b.dark);
-        r(7 - tuck, -7, 3, 5, b.dark);
-        r(-3, 4, 9, 11, b.light);
-        r(2, 9, 2, 2, "#343747");
-        r(-4, 13, 2, 8, b.dark);
-        r(6, 13, 2, 8, b.dark);
-        r(-6, 17, 6, 2, b.color);
-        r(4, 18, 6, 2, b.color);
+        // Fold the patterned lobes upward for the dive.
+        for (const side of [-1, 1]) {
+          const wx = side < 0 ? -13 + tuck : 6 - tuck;
+          r(wx, -23, 7, 25, "#777f96");
+          r(wx + 1, -21, 5, 25, "#c6bbc0");
+          r(wx + 2, -18, 4, 24, "#f4efdf");
+          r(wx + 2, -11, 4, 6, "#777f96");
+          r(wx + 3, -10, 2, 4, "#d7c4a9");
+          r(wx + 3, -9, 1, 2, "#45556d");
+        }
+        r(-4, 3, 12, 11, b.light);
+        r(-2, 12, 8, 4, b.light);
+        r(1, 7, 5, 5, "#303748");
+        r(2, 7, 1, 1, "#fffaf0");
+        for (const ax of [-3, 6]) {
+          r(ax, 14, 1, 9, b.dark);
+          r(ax - 2, 17, 5, 1, b.color);
+          r(ax - 2, 20, 5, 1, b.light);
+          r(ax - 1, 22, 3, 1, b.color);
+        }
       } else {
         r(-4, 3, 10, 9, b.color);
         r(-2, 6, 7, 6, b.light);
@@ -1278,7 +1289,9 @@
       r(-14, -3, 28, 8, b.color);
       r(-8, -7, 4, 16, b.dark);
       r(1, -7, 4, 16, b.dark);
-      r(-18, 0, 5, 2, b.dark);
+      r(-18, -1, 5, 4, b.dark);
+      r(-21, 0, 3, 2, "#e6dfcb");
+      r(-23, 0, 2, 1, "#e6dfcb");
       // Two translucent-looking pixel wings extend clear of the rider.
       r(-17, flap ? -18 : -10, 8, 10, "#bdcbd5");
       r(-15, flap ? -20 : -12, 6, 10, "#edf0dc");
@@ -1296,29 +1309,79 @@
         r(lx, 11 + walk, 5, 2, b.dark);
       }
     } else if (b.mount === "moth") {
-      // Scalloped ivory wings, gray eyespots, and feathery antennae.
-      const wy = flap ? -18 : -5;
-      r(-24, wy + 3, 17, 12, b.dark);
-      r(-21, wy, 13, 20, b.color);
-      r(-18, wy + 2, 12, 20, b.light);
-      r(-13, wy + 6, 9, 18, b.color);
-      r(-20, wy + 7, 5, 5, b.dark);
-      r(-19, wy + 8, 3, 3, b.light);
-      r(-9, -4, 20, 13, b.color);
-      r(-6, 0, 16, 12, b.light);
-      r(0, 4, 6, 5, b.dark);
-      r(1, 5, 4, 3, b.color);
-      r(-5, -7, 12, 16, b.dark);
-      r(-2, -6, 7, 17, b.color);
-      r(6, -12, 10, 12, b.light);
-      r(13, -9, 2, 3, "#343747");
-      r(7, -18, 2, 7, b.dark);
-      r(13, -18, 2, 7, b.dark);
-      r(5, -18, 6, 2, b.color);
-      r(11, -20, 6, 2, b.color);
-      r(5, -15, 6, 2, b.color);
-      r(-4, 9, 2, 4 + walk, b.dark);
-      r(5, 9, 2, 4 - walk, b.dark);
+      // Four broad, stepped lobes with layered borders and small eyespots.
+      // The upper lobes rise on the upstroke; the lower pair fans outward.
+      const lift = grounded ? -2 : flap ? -11 : 3;
+      const wingLobe = (x, y, mirror, lower = false) => {
+        const rows = lower
+          ? [
+              [3, 0, 12, 3],
+              [0, 3, 19, 4],
+              [1, 7, 20, 4],
+              [3, 11, 16, 3],
+              [6, 14, 10, 2],
+            ]
+          : [
+              [4, 0, 9, 2],
+              [1, 2, 16, 3],
+              [0, 5, 20, 4],
+              [1, 9, 21, 4],
+              [3, 13, 19, 4],
+              [6, 17, 15, 4],
+              [10, 21, 10, 3],
+            ];
+        const wr = (a, d, w, h, color) =>
+          r(x + (mirror ? -a - w : a), y + d, w, h, color);
+        for (const [a, d, w, h] of rows) wr(a, d, w, h, "#777f96");
+        for (const [a, d, w, h] of rows.slice(1, -1))
+          wr(a + 2, d, w - 4, h, "#c6bbc0");
+        for (const [a, d, w, h] of rows.slice(2, -1))
+          wr(a + 4, d, w - 8, h, "#f4efdf");
+        wr(8, lower ? 5 : 8, 7, 7, "#777f96");
+        wr(9, lower ? 6 : 9, 5, 5, "#d7c4a9");
+        wr(10, lower ? 7 : 10, 3, 3, "#45556d");
+        wr(10, lower ? 7 : 10, 1, 1, "#fff8e4");
+        wr(15, lower ? 12 : 18, 3, 2, "#a9a4b4");
+      };
+      wingLobe(15, -17 + lift, true);
+      wingLobe(-26, 0 + Math.max(0, lift), false, true);
+      wingLobe(-31, -17 + lift, false);
+      wingLobe(-9, 2 + Math.max(0, lift), false, true);
+      // Soft segmented abdomen and a fluffy collar around a large dark eye.
+      r(-12, -2, 20, 10, b.color);
+      r(-15, 0, 5, 6, b.dark);
+      r(-10, 5, 16, 4, b.light);
+      r(-12, 0, 2, 6, "#a5a7b3");
+      r(-7, 1, 2, 7, "#b9bac4");
+      r(-2, 2, 2, 6, "#b9bac4");
+      r(3, -9, 12, 16, b.light);
+      r(1, -5, 3, 10, b.color);
+      r(5, 6, 3, 3, b.color);
+      r(10, 5, 3, 3, b.light);
+      r(7, -14, 12, 15, b.light);
+      r(5, -11, 16, 9, b.light);
+      r(12, -11, 6, 7, "#303748");
+      r(13, -11, 2, 2, "#fffaf0");
+      r(18, -4, 3, 2, b.color);
+      // Branched antennae, slanting out from the fuzzy forehead.
+      for (const [ax, ay] of [
+        [8, -15],
+        [17, -16],
+      ]) {
+        r(ax, ay - 6, 1, 8, b.dark);
+        r(ax - 2, ay - 7, 2, 2, b.color);
+        r(ax - 3, ay - 5, 3, 1, b.light);
+        r(ax + 1, ay - 4, 3, 1, b.color);
+        r(ax - 2, ay - 2, 2, 1, b.light);
+      }
+      for (const [lx, offset] of [
+        [-5, walk],
+        [3, -walk],
+        [10, walk],
+      ]) {
+        r(lx, 8, 1, 4 + offset, b.dark);
+        r(lx, 11 + offset, 3, 1, b.dark);
+      }
     } else {
       r(-14, -3, 26, 12, "#0c1625");
       r(-11, -6, 20, 16, b.dark);

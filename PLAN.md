@@ -104,3 +104,9 @@ Completed: volcano simulation and presentation, zombie collision changes and spe
 Give the existing pixel portrait a feather crest, half-lidded eye and raised brow, defined beak, broadcast headset/mic and bow tie. Keep the footer height; animate the beak, head and eyebrow during existing speech state with occasional blinks. Check artwork at HUD size and enlarged, run existing checks and review the diff.
 
 Completed portrait and CSS animation changes; verified at actual size and enlarged in the browser. Footer height and event-driven commentary remain intact. All 124 tests and syntax checks pass; review complete.
+
+## Luna and Buzz artwork
+
+Rework Luna with broad four-lobed patterned ivory/gray wings, eyespots, fluffy collar, large dark eye and branched antennae, including folded dive wings. Add a tiny rear stinger to Buzz in normal and dive poses. Preserve collision geometry. Verify grounded, upstroke, downstroke and dive artwork plus existing checks.
+
+Completed both artwork changes and reviewed all four poses in the browser. Syntax checks and all 124 tests pass; no outstanding findings.

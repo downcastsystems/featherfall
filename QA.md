@@ -161,3 +161,7 @@ Browser fixtures verified the glowing fireballs and tails against Cinder Crown a
 ## Chirp portrait
 
 Refreshed the native SVG portrait with a crest, half-lidded eye, raised eyebrow, shaped beak, headset microphone and bow tie. Existing talking state drives beak motion, subtle head bob and eyebrow movement; an occasional blink adds idle expression. Decorative head/eyebrow/blink animation respects reduced motion. Browser inspection at actual 48px HUD size and 6x enlargement confirmed silhouette and footer fit. Syntax checks and all 124 existing tests pass. Diff review found no remaining issues; temporary preview HTML is excluded.
+
+## Luna moth and Buzz stinger
+
+Luna now has four broad stepped ivory wings with muted gray borders, warm ringed eyespots, a fluffy collar, large dark eye and branched antennae. Folded dive wings retain the pattern. Buzz has a small pointed rear stinger, oriented upward when diving. Browser pose-sheet inspection checked rest, upstroke, downstroke and dive using the actual drawing function, including rider visibility. Syntax checks and all 124 tests pass. Diff review confirmed presentation-only changes and unchanged collision geometry; preview fixtures are excluded.
