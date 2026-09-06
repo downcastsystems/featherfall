@@ -122,3 +122,9 @@ Completed and reviewed. All 124 tests and syntax checks pass.
 Start the first warning at ten seconds. Keep each wave active until all nine drops and their impacts finish, then schedule the next warning after 8–14 seconds. Explicitly block new warnings while fireballs remain. Verify timing, overdue timers, wave cleanup and existing gameplay.
 
 Completed timing and overlap protection. Diff reviewed; all 126 tests and syntax checks pass.
+
+## Simplify Luna silhouette
+
+Remove only the lower wing lobes, preserve the upper pattern and animation, and replace the exposed underside with small jointed insect legs. Check rest and both flap poses, run syntax and existing tests, and review the artwork-only diff.
+
+Completed lower-wing removal and jointed legs. Browser pose review and all 126 tests plus syntax checks pass.

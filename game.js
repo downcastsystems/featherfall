@@ -1309,27 +1309,18 @@
         r(lx, 11 + walk, 5, 2, b.dark);
       }
     } else if (b.mount === "moth") {
-      // Four broad, stepped lobes with layered borders and small eyespots.
-      // The upper lobes rise on the upstroke; the lower pair fans outward.
+      // The upper wing pair keeps its broad patterned silhouette.
       const lift = grounded ? -2 : flap ? -11 : 3;
-      const wingLobe = (x, y, mirror, lower = false) => {
-        const rows = lower
-          ? [
-              [3, 0, 12, 3],
-              [0, 3, 19, 4],
-              [1, 7, 20, 4],
-              [3, 11, 16, 3],
-              [6, 14, 10, 2],
-            ]
-          : [
-              [4, 0, 9, 2],
-              [1, 2, 16, 3],
-              [0, 5, 20, 4],
-              [1, 9, 21, 4],
-              [3, 13, 19, 4],
-              [6, 17, 15, 4],
-              [10, 21, 10, 3],
-            ];
+      const wingLobe = (x, y, mirror) => {
+        const rows = [
+          [4, 0, 9, 2],
+          [1, 2, 16, 3],
+          [0, 5, 20, 4],
+          [1, 9, 21, 4],
+          [3, 13, 19, 4],
+          [6, 17, 15, 4],
+          [10, 21, 10, 3],
+        ];
         const wr = (a, d, w, h, color) =>
           r(x + (mirror ? -a - w : a), y + d, w, h, color);
         for (const [a, d, w, h] of rows) wr(a, d, w, h, "#777f96");
@@ -1337,16 +1328,14 @@
           wr(a + 2, d, w - 4, h, "#c6bbc0");
         for (const [a, d, w, h] of rows.slice(2, -1))
           wr(a + 4, d, w - 8, h, "#f4efdf");
-        wr(8, lower ? 5 : 8, 7, 7, "#777f96");
-        wr(9, lower ? 6 : 9, 5, 5, "#d7c4a9");
-        wr(10, lower ? 7 : 10, 3, 3, "#45556d");
-        wr(10, lower ? 7 : 10, 1, 1, "#fff8e4");
-        wr(15, lower ? 12 : 18, 3, 2, "#a9a4b4");
+        wr(8, 8, 7, 7, "#777f96");
+        wr(9, 9, 5, 5, "#d7c4a9");
+        wr(10, 10, 3, 3, "#45556d");
+        wr(10, 10, 1, 1, "#fff8e4");
+        wr(15, 18, 3, 2, "#a9a4b4");
       };
       wingLobe(15, -17 + lift, true);
-      wingLobe(-26, 0 + Math.max(0, lift), false, true);
       wingLobe(-31, -17 + lift, false);
-      wingLobe(-9, 2 + Math.max(0, lift), false, true);
       // Soft segmented abdomen and a fluffy collar around a large dark eye.
       r(-12, -2, 20, 10, b.color);
       r(-15, 0, 5, 6, b.dark);
@@ -1374,13 +1363,17 @@
         r(ax + 1, ay - 4, 3, 1, b.color);
         r(ax - 2, ay - 2, 2, 1, b.light);
       }
+      // Three visible jointed insect legs, dangling slightly during flight.
       for (const [lx, offset] of [
-        [-5, walk],
-        [3, -walk],
-        [10, walk],
+        [-7, walk],
+        [1, -walk],
+        [9, walk],
       ]) {
-        r(lx, 8, 1, 4 + offset, b.dark);
-        r(lx, 11 + offset, 3, 1, b.dark);
+        const knee = grounded ? offset : 1;
+        r(lx, 8, 2, 3, b.dark);
+        r(lx - 2, 10, 3, 2, b.dark);
+        r(lx - 2, 11, 1, 2 + knee, b.dark);
+        r(lx - 2, 12 + knee, 3, 1, b.color);
       }
     } else {
       r(-14, -3, 26, 12, "#0c1625");

@@ -173,3 +173,7 @@ Changed the shared rocket multiplier from 1.5625 to 1.75. Normal movement caps a
 ## Eruption frequency and overlap protection
 
 First warning now starts at ten seconds. Completed waves wait for the last fireball to disappear before starting an 8–14-second cooldown. New warnings also explicitly require an empty fireball list. All 126 tests and syntax checks pass, including first-warning timing, both sweep directions, cooldown bounds, forced overdue timers during an active wave and leftover fireballs. Reviewed the diff and confirmed warning rendering, pause/reset and one-second drop spacing remain compatible.
+
+## Luna lower-wing removal
+
+Removed the lower wing pair and its unused drawing branch, preserving the upper wing geometry, colors and flap positions. Three small jointed legs now show beneath the abdomen, with walking offsets and a slight airborne dangle. Browser inspection verified rest, upstroke and downstroke. All 126 tests and syntax checks pass. Artwork-only diff reviewed; no physics changes or unresolved findings.
