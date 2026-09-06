@@ -1006,8 +1006,8 @@ footer {
   pointer-events: none;
 }
 .announcer-avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   flex: none;
   image-rendering: pixelated;
 }
@@ -1127,17 +1127,66 @@ footer {
 }
 
 .announcer-beak {
-  transform-origin: 27px 21px;
+  transform-origin: 35px 29px;
+}
+.chirp-head {
+  transform-origin: 24px 35px;
+}
+.chirp-eye {
+  transform-origin: 30px 22px;
+  animation: chirp-blink 6.7s steps(1, end) infinite;
 }
 #announcer.is-talking .announcer-beak {
   animation: chirp-speaking 180ms steps(2, end) infinite alternate;
 }
+#announcer.is-talking .chirp-head {
+  animation: chirp-nod 720ms steps(2, end) infinite;
+}
+#announcer.is-talking .chirp-brow {
+  animation: chirp-brow 1.4s steps(1, end) infinite;
+}
 @keyframes chirp-speaking {
   from {
-    transform: rotate(0deg);
+    transform: translateY(0);
   }
   to {
-    transform: rotate(22deg);
+    transform: translateY(3px);
+  }
+}
+@keyframes chirp-nod {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+@keyframes chirp-brow {
+  0%,
+  65%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes chirp-blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.15);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chirp-eye,
+  #announcer.is-talking .chirp-head,
+  #announcer.is-talking .chirp-brow {
+    animation: none;
   }
 }
 

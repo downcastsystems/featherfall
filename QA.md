@@ -157,3 +157,7 @@ Browser checks inspected Acorn, Buzz and Luna in standing, flapping and diving p
 All 124 tests and syntax checks pass. New checks cover warning-before-rain timing, both nine-column sweep directions, one-second spacing, arena restriction, first-platform cover, swept player hits, protection, no KO attribution, pause/resume and fresh-round cleanup. Zombie checks cover rising height advantage, boost-through collisions, additive stacks, five-second refresh, active burst expiry, rocket multiplication, death/respawn reset and launched-flame ownership.
 
 Browser fixtures verified the glowing fireballs and tails against Cinder Crown and the compact bonus/timer inside the existing HUD. Fixtures are excluded from the shipped files. Final diff review corrected sawblade entry to preserve horizontal speed bonuses. No unresolved findings.
+
+## Chirp portrait
+
+Refreshed the native SVG portrait with a crest, half-lidded eye, raised eyebrow, shaped beak, headset microphone and bow tie. Existing talking state drives beak motion, subtle head bob and eyebrow movement; an occasional blink adds idle expression. Decorative head/eyebrow/blink animation respects reduced motion. Browser inspection at actual 48px HUD size and 6x enlargement confirmed silhouette and footer fit. Syntax checks and all 124 existing tests pass. Diff review found no remaining issues; temporary preview HTML is excluded.

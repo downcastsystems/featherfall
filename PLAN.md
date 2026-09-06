@@ -98,3 +98,9 @@ Complete: 49 automated tests and syntax checks pass. Browser checks cover all sc
 - Render warning/fireballs and a compact boost-meter bonus; verify collisions, schedules, stacking, expiry and existing gameplay, then review the diff.
 
 Completed: volcano simulation and presentation, zombie collision changes and speed chains, regression checks and browser artwork inspection. Review verified hazard ownership, first-hit ordering, timer reset and power combinations; corrected sawblade entry scaling. All 124 tests and syntax checks pass.
+
+## Chirp portrait refresh
+
+Give the existing pixel portrait a feather crest, half-lidded eye and raised brow, defined beak, broadcast headset/mic and bow tie. Keep the footer height; animate the beak, head and eyebrow during existing speech state with occasional blinks. Check artwork at HUD size and enlarged, run existing checks and review the diff.
+
+Completed portrait and CSS animation changes; verified at actual size and enlarged in the browser. Footer height and event-driven commentary remain intact. All 124 tests and syntax checks pass; review complete.
