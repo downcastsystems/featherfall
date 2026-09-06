@@ -529,15 +529,41 @@ test("powers honor teams and protection; simultaneous saw hits credit both playe
   const deaths = m.events.filter((e) => e.type === "death");
   assert.ok(deaths.every((e) => e.attackerId !== null && e.kills > 0));
 });
-test("saw ricochets off arena and terrain, expires without embedding", () => {
+test("saw wraps both horizontal edges without reversing velocity", () => {
+  for (const direction of [-1, 1]) {
+    const m = make(),
+      p = m.players[0];
+    position(p, direction > 0 ? W - 1 : 1, 900);
+    m.equip(p, "sawblade");
+    p.vx = direction * 900;
+    p.vy = 0;
+    tick(m);
+    assert.equal(p.vx, direction * 900);
+    assert.ok(direction > 0 ? p.x < 10 : p.x > W - 10);
+  }
+});
+test("saw still bounces off ceiling, ground and every platform face", () => {
+  const check = (x, y, vx, vy, axis) => {
+    const m = make(),
+      p = m.players[0];
+    position(p, x, y);
+    m.equip(p, "sawblade");
+    Object.assign(p, { vx, vy });
+    tick(m);
+    assert.equal(p[axis], -(axis === "vx" ? vx : vy));
+  };
+  check(700, 121, 0, -560, "vy");
+  check(700, 983, 0, 560, "vy");
+  for (const platform of PLATFORMS.filter((s) => !s.ground)) {
+    check(platform.x + platform.w / 2, platform.y - 13, 0, 560, "vy");
+    check(platform.x + platform.w / 2, platform.y + 57, 0, -560, "vy");
+    check(platform.x - 11, platform.y + 10, 900, 0, "vx");
+    check(platform.x + platform.w + 11, platform.y + 10, -900, 0, "vx");
+  }
+});
+test("saw expires without embedding in terrain", () => {
   const m = make(),
     p = m.players[0];
-  position(p, 1890, 900);
-  m.equip(p, "sawblade");
-  p.vx = 900;
-  tick(m, 3);
-  assert.ok(p.vx < 0);
-  assert.ok(p.x <= W - 26);
   position(p, 700, 760);
   m.equip(p, "sawblade");
   p.vy = 560;

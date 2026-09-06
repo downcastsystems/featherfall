@@ -147,7 +147,7 @@
         p.grounded = !saw;
       }
     }
-    if (!saw) p.x = ((p.x % W) + W) % W;
+    p.x = ((p.x % W) + W) % W;
     if (
       p.grounded &&
       !PLATFORMS.some(
@@ -413,10 +413,6 @@
         if (p.power === "sawblade") {
           p.grounded = p.diving = p.boosting = false;
           moveAgainstPlatforms(p, dt, this.events, true);
-          if (p.x < 26 || p.x > W - 26) {
-            p.x = clamp(p.x, 26, W - 26);
-            p.vx *= -1;
-          }
           if (p.y < 120 || p.y > 984) {
             p.y = clamp(p.y, 120, 984);
             p.vy *= -1;

@@ -97,7 +97,7 @@ All menus, HUD text, and arena labels use the locally bundled Silkscreen font by
 One random power-up appears every 25–40 seconds, with equal chances for each type. Only one waits in the arena at a time; it disappears after 12 seconds if unclaimed. Golden feathers keep their separate spawn schedule.
 
 - Flame: six lethal fireballs orbit for five seconds, then launch outward at 1,200 pixels/second and leave the arena. Launched balls pass through platforms.
-- Sawblade: become a spinning blade for three seconds, moving at 900 pixels/second horizontally and 560 vertically. Ricochet off platforms and arena edges. Movement inputs resume when it expires.
+- Sawblade: become a spinning blade for three seconds, moving at 900 pixels/second horizontally and 560 vertically. Wrap across the left and right edges, and ricochet off platforms, the ceiling and the ground. Movement inputs resume when it expires.
 - Rocket: unlimited boost charges and 56.25% faster horizontal movement for ten seconds. Top movement speed is 515.625 pixels/second; boosts reach 1015.625 pixels/second. Release and press boost for each burst; flap and dive physics stay the same. Rear exhaust follows the mount, with a longer plume during boosts.
 
 A pickup activates on contact. A new power replaces the current one, and death clears it. Fired projectiles finish their flight. Powers respect team immunity and spawn protection. Timers stop while paused. Power-ups have soft glows with no name labels. The HUD shows remaining seconds beside the hearts.

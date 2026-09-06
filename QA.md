@@ -113,3 +113,7 @@ Browser checks at 1280×720 cover the jay preview, live bottom commentary beneat
 ## Two-row player HUD
 
 Moved the boost meter into the hearts row and shortened it to 150 pixels. Respawn countdowns replace the meter; active power timers sit beside it. All 81 tests and syntax checks pass. A four-player browser check showed ready, recharging and respawning states with no panel overflow, and each panel is now 57 pixels tall.
+
+## Sawblade horizontal wrapping
+
+Sawblades now use the same horizontal wrapping as riders, preserving horizontal velocity across either edge. Regression checks cover both wrap directions, ceiling and ground bounces, all four faces of every floating platform, and safe power expiry. All 83 tests and syntax checks pass. Existing rendering already draws sawblades across the wrap seam.
