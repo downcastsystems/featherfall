@@ -782,8 +782,8 @@
           ? birds[match.players[event.id].character].color
           : "#ffe9b4";
       if (event.type === "zombie-pop") {
-        burst(event.x, event.y, "#a9c985", 15, 0.7);
-        burst(event.x, event.y, "#756484", 7, 0.5);
+        burst(event.x, event.y, "#e84b4b", 15, 0.7);
+        burst(event.x, event.y, "#992e3c", 7, 0.5);
         sound.play("zombie-pop", event.variant);
       }
       if (event.type === "death") {
