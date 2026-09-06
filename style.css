@@ -483,7 +483,7 @@ h2 {
   left: 46px;
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 450px);
+  grid-auto-columns: minmax(0, 360px);
   justify-content: space-between;
   right: 32px;
   gap: 30px;
