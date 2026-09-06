@@ -876,13 +876,13 @@ h2 {
   height: 14px;
   width: 100%;
   margin: 6px 0;
-  border: 1px solid #7e909f;
-  background: #0b1424;
+  border: 1px solid color-mix(in srgb, var(--bird) 65%, #0b1424);
+  background: color-mix(in srgb, var(--bird) 15%, #0b1424);
 }
 .boost-meter i {
   display: block;
   height: 100%;
-  background: #658995;
+  background: color-mix(in srgb, var(--bird) 55%, #0b1424);
 }
 .boost-meter span {
   position: absolute;
@@ -895,10 +895,10 @@ h2 {
   letter-spacing: 0;
 }
 .boost-meter.charged {
-  border-color: #a3ffd9;
+  border-color: var(--bird);
 }
 .boost-meter.charged i {
-  background: #387d69;
+  background: color-mix(in srgb, var(--bird) 55%, #0b1424);
 }
 .match-info {
   font-size: 14px;
