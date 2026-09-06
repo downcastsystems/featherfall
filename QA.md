@@ -121,3 +121,7 @@ Sawblades now use the same horizontal wrapping as riders, preserving horizontal 
 ## Retained Chirp commentary
 
 Completed calls remain visible and fade to 55% opacity over 600ms after the existing 4.5-second reading period. New calls replace them at full brightness. All 84 tests and syntax checks pass, including retained text, replacement, reset, and the speaking/pause lifecycle.
+
+## Player panel width cap
+
+Player HUD columns now cap at 450 pixels with space distributed between panels. A two-player browser check confirmed both panels remain 450 pixels wide with no content overflow. All 84 tests and syntax checks pass.
