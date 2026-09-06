@@ -82,11 +82,17 @@
           <span><b>MOVE</b> LEFT/RIGHT · STICK OR D-PAD</span
           ><span><b>FLAP</b> TAP OR HOLD A</span
           ><span><b>DIVE / BOOST</b> DOWN / X</span
-          ><span><b>LEAVE</b> B BACK / LEAVE</span>
+          ><span><b>LEAVE</b> B UNREADY / LEAVE</span>
         </div>
       </section>
       <section id="hud" hidden aria-label="Match status">
         <div id="players-hud"></div>
+        <div
+          id="ko-feed"
+          role="log"
+          aria-live="polite"
+          aria-label="Knockouts"
+        ></div>
         <div class="match-info">
           <span id="match-mode">FREE FOR ALL</span
           ><strong id="match-time">00:00</strong

@@ -440,3 +440,195 @@ test("vertical stick and d-pad expose navigation and dive; X boost is edge-trigg
   assert.equal(edges(state).boost, true);
   assert.equal(edges(state, state).boost, false);
 });
+
+test("bots pursue feathers and powers, boost on approaches and dive on aligned rivals", () => {
+  const m = make(),
+    [p, q] = m.players;
+  position(p, 700, 700);
+  position(q, 1100, 710);
+  assert.equal(botInput(p, m, 1 / 120).boost, true);
+  position(p, 740, 700);
+  position(q, 740, 850);
+  p.grounded = false;
+  assert.equal(botInput(p, m, 1 / 120).dive, true);
+  p.lives = 3;
+  m.pickup = { x: 450, y: 700, ttl: 10 };
+  assert.equal(botInput(p, m, 1 / 120).move, -1);
+  assert.equal(botInput(p, m, 1 / 120).dive, false);
+  m.pickup = null;
+  m.powerPickup = { x: 450, y: 700, kind: "rocket", ttl: 10 };
+  assert.equal(botInput(p, m, 1 / 120).move, -1);
+});
+test("power-ups are scarce, expire uncollected and apply once on contact", () => {
+  const m = make();
+  assert.equal(m.powerPickup, null);
+  assert.ok(m.nextPower >= 25 && m.nextPower <= 40);
+  m.time = m.nextPower;
+  tick(m);
+  assert.ok(["flame", "sawblade", "rocket"].includes(m.powerPickup.kind));
+  assert.ok(m.nextPower - m.time >= 25);
+  m.powerPickup.ttl = 0;
+  tick(m);
+  assert.equal(m.powerPickup, null);
+  const p = m.players[0];
+  m.powerPickup = { x: p.x, y: p.y, kind: "rocket", ttl: 12 };
+  tick(m);
+  assert.equal(p.power, "rocket");
+  assert.equal(m.powerPickup, null);
+  assert.equal(m.events.filter((e) => e.type === "power").length, 1);
+});
+test("flame orbits for five seconds then launches six fast lethal projectiles", () => {
+  const m = make(),
+    [p, q] = m.players;
+  position(p, 700, 700);
+  position(q, 765, 700);
+  m.equip(p, "flame");
+  m.powerHits();
+  assert.equal(q.lives, 4);
+  assert.equal(p.kills, 1);
+  assert.equal(p.powerTime, 5);
+  position(q, 1400, 900);
+  p.powerTime = 0.005;
+  tick(m);
+  assert.equal(p.power, null);
+  assert.equal(m.projectiles.length, 6);
+  assert.ok(
+    m.projectiles.every((f) => Math.abs(Math.hypot(f.vx, f.vy) - 1200) < 0.01),
+  );
+  const f = m.projectiles[0];
+  position(q, f.x + f.vx / 240, f.y + f.vy / 240);
+  tick(m);
+  assert.equal(q.alive, false);
+  assert.equal(p.kills, 2);
+  tick(m, 250);
+  assert.equal(m.projectiles.length, 0);
+});
+test("powers honor teams and protection; simultaneous saw hits credit both players", () => {
+  const m = make("teams", 3),
+    [a, b, c] = m.players;
+  position(a, 700, 700);
+  position(b, 715, 700);
+  position(c, 720, 700);
+  m.equip(a, "sawblade");
+  b.invincible = 1;
+  m.powerHits();
+  assert.ok(b.alive && c.alive);
+  b.invincible = 0;
+  a.invincible = 1;
+  m.powerHits();
+  assert.ok(b.alive);
+  a.invincible = 0;
+  m.equip(b, "sawblade");
+  m.powerHits();
+  assert.equal(a.alive, false);
+  assert.equal(b.alive, false);
+  assert.equal(a.kills, 1);
+  assert.equal(b.kills, 2); // b also touches c
+  assert.equal(a.power, null);
+  assert.equal(b.power, null);
+  const deaths = m.events.filter((e) => e.type === "death");
+  assert.ok(deaths.every((e) => e.attackerId !== null && e.kills > 0));
+});
+test("saw ricochets off arena and terrain, expires without embedding", () => {
+  const m = make(),
+    p = m.players[0];
+  position(p, 1890, 900);
+  m.equip(p, "sawblade");
+  p.vx = 900;
+  tick(m, 3);
+  assert.ok(p.vx < 0);
+  assert.ok(p.x <= W - 26);
+  position(p, 700, 760);
+  m.equip(p, "sawblade");
+  p.vy = 560;
+  tick(m, 370);
+  assert.equal(p.power, null);
+  assert.ok(Number.isFinite(p.x) && p.y <= 998);
+  assert.ok(
+    !PLATFORMS.some(
+      (s) =>
+        p.x > s.x - 10 &&
+        p.x < s.x + s.w + 10 &&
+        p.y > s.y - 12 + 0.1 &&
+        p.y < s.y + 56 - 0.1,
+    ),
+  );
+});
+test("rocket permits repeated boosts for ten seconds and death clears power", () => {
+  const m = make(),
+    p = m.players[0];
+  position(p, 700, 900);
+  p.boostCharge = 0;
+  m.equip(p, "rocket");
+  tick(m, 100, [{ boost: true }]);
+  assert.ok(m.events.filter((e) => e.type === "boost").length >= 3);
+  assert.equal(p.boostCharge, 1);
+  p.powerTime = 0.005;
+  p.boostTime = 0;
+  tick(m, 1, [{ boost: true }]);
+  assert.equal(p.power, null);
+  assert.equal(p.boostCharge, 0);
+  m.equip(p, "flame");
+  m.kill(p);
+  assert.equal(p.power, null);
+  tick(m, 320);
+  assert.equal(p.power, null);
+  assert.equal(m.projectiles.length, 0);
+});
+test("opposing final power hits produce a draw and elimination events", () => {
+  const m = make(),
+    [a, b] = m.players;
+  position(a, 700, 900);
+  position(b, 720, 900);
+  a.lives = b.lives = 1;
+  m.equip(a, "sawblade");
+  m.equip(b, "sawblade");
+  tick(m);
+  assert.equal(m.winner.draw, true);
+  assert.equal(
+    m.events.filter((e) => e.type === "death" && e.eliminated).length,
+    2,
+  );
+});
+
+test("bots reach elevated feathers and every power-up before expiration", () => {
+  for (const kind of ["life", "flame", "sawblade", "rocket"]) {
+    const m = make(),
+      [p, q] = m.players;
+    position(p, 740, 998);
+    p.lives = 3;
+    position(q, 1600, 998);
+    q.invincible = 999;
+    const pickup = { x: 950, y: 554, ttl: 12, kind };
+    if (kind === "life") m.pickup = pickup;
+    else m.powerPickup = pickup;
+    let collected = false;
+    for (let i = 0; i < 1440; i++) {
+      tick(m, 1, [botInput(p, m, 1 / 120)]);
+      if (
+        m.events.some(
+          (e) => e.id === p.id && ["life", "power"].includes(e.type),
+        )
+      ) {
+        collected = true;
+        break;
+      }
+      m.events.length = 0;
+    }
+    assert.ok(collected, kind + " should be collected before despawning");
+  }
+});
+test("each power lasts its full configured duration in simulation time", () => {
+  for (const [kind, duration] of Object.entries(
+    require("../engine.js").POWERUPS,
+  )) {
+    const m = make(),
+      p = m.players[0];
+    m.players[1].invincible = 999;
+    m.equip(p, kind);
+    tick(m, duration * 120 - 1);
+    assert.equal(p.power, kind);
+    tick(m, 2);
+    assert.equal(p.power, null);
+  }
+});

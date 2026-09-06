@@ -216,7 +216,9 @@ test("four gamepads join, select, ready, flap, disconnect, reconnect and leave",
   assert.ok(f.match.time > time);
   f.button(pads[0], 9);
   f.element("quit").click();
-  f.button(pads[3], 1);
+  f.button(pads[3], 1); // unready first
+  assert.match(f.element("seats").innerHTML, /CONTROLLER 4/);
+  f.button(pads[3], 1); // then leave
   assert.doesNotMatch(f.element("seats").innerHTML, /CONTROLLER 4/);
 });
 test("team lobby requires two sides, then produces the team winner", () => {
@@ -498,4 +500,88 @@ test("holding boost on a controller never retriggers after recharge", () => {
   f.advance();
   assert.equal(p.vx, 0);
   assert.ok(p.vy > 580);
+});
+
+test("A readies the character directly, B unreadies, mouse Ready toggles", () => {
+  const f = fixture(),
+    p = f.pad(0);
+  f.button(p, 9);
+  f.button(p, 0);
+  assert.match(f.element("seats").innerHTML, /✓ READY/);
+  f.button(p, 1);
+  assert.match(f.element("seats").innerHTML, /CONTROLLER 1/);
+  assert.doesNotMatch(f.element("seats").innerHTML, /✓ READY/);
+  const clickReady = () =>
+    f
+      .element("seats")
+      .click({
+        target: {
+          closest: () => ({ dataset: { action: "ready", seat: "0" } }),
+        },
+      });
+  clickReady();
+  assert.match(f.element("seats").innerHTML, /✓ READY/);
+  clickReady();
+  assert.doesNotMatch(f.element("seats").innerHTML, /✓ READY/);
+  f.button(p, 0);
+  f.button(p, 15);
+  assert.doesNotMatch(f.element("seats").innerHTML, /✓ READY/);
+});
+test("keyboard flap confirms selection and all-ready starts the game", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  assert.doesNotMatch(f.element("seats").innerHTML, /✓ READY/);
+  f.press("KeyW");
+  assert.match(f.element("seats").innerHTML, /✓ READY/);
+  f.press("KeyB");
+  assert.doesNotMatch(f.element("seats").innerHTML, /✓ READY/);
+  f.press("KeyW");
+  f.press("ArrowUp");
+  f.advance(3.2);
+  assert.equal(f.match.players.length, 2);
+});
+test("KO feed preserves simultaneous eliminations and HUD highlights OUT and totals", () => {
+  const f = fixture();
+  f.press("Enter");
+  for (const n of [1, 2, 3, 4]) f.press(`Digit${n}`);
+  f.press("Enter");
+  f.advance(3.2);
+  const [a, b, c, d] = f.match.players;
+  b.invincible = d.invincible = 0;
+  b.lives = d.lives = 1;
+  f.match.kill(b, a);
+  f.match.kill(d, c);
+  f.advance(0.2);
+  const feed = f.element("ko-feed").innerHTML;
+  assert.match(feed, /EMBER \(P1\) → MINT \(P2\) · 1 KO · OUT!/);
+  assert.match(feed, /IRIS \(P3\) → SOL \(P4\) · 1 KO · OUT!/);
+  assert.match(f.element("players-hud").innerHTML, /✕ OUT/);
+  f.press("Escape");
+  f.advance(7);
+  assert.equal(f.element("ko-feed").innerHTML, feed);
+  f.press("Enter");
+  f.advance(6.1);
+  assert.equal(f.element("ko-feed").innerHTML, "");
+});
+test("power timers freeze when paused and reset on rematch", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  f.advance(3.2);
+  const p = f.match.players[0];
+  f.match.equip(p, "rocket");
+  f.advance(0.2);
+  assert.match(f.element("players-hud").innerHTML, /ROCKET 10s/);
+  f.press("Escape");
+  const t = p.powerTime;
+  f.advance(5);
+  assert.equal(p.powerTime, t);
+  f.element("quit").click();
+  f.press("Enter");
+  f.advance(3.2);
+  assert.ok(f.match.players.every((p) => p.power === null));
 });

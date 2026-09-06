@@ -85,3 +85,9 @@ Physical controller feel, Windows receiver drivers, native fullscreen, and large
 ## Dive animation
 
 Added original nose-down pixel poses for all four mounts, tucked wing motion, a trailing scarf, and segmented upward speed streaks. The rider leans along the mount. Animation uses simulation time and freezes during pause; landing or releasing dive restores normal artwork. Physics and hitboxes are unchanged. Reviewed all four poses enlarged and at game size in the browser, facing both directions. All 49 existing tests and syntax checks pass with the new renderer.
+
+## September 6, 2026 update
+
+62 automated tests and syntax checks pass. Added coverage for actual bot collection of elevated feathers and each power before expiry; boost and unobstructed dive decisions; scarcity and single collection; full power durations; orbit and launch damage; saw ricochets; repeated rocket bursts; team/protection rules; death cleanup; simultaneous final kills and draw resolution. Input tests cover direct A/flap readiness, B unready before leaving, mouse toggles, selection changes, concurrent KO messages, and paused/reset power timers.
+
+Browser checks at 1280×720 cover the ready checkmark, four-player match, KO feed and totals. A temporary deterministic scene exercises the real renderer for all three active powers, pickup art and the red OUT panel. No browser console errors were recorded. The temporary scene is not part of the shipped game. Physical controller and Windows hardware limitations above still apply.

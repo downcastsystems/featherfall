@@ -45,3 +45,12 @@ Enable audio on first user interaction, with a visible browser-unlock fallback. 
 ### Update verification
 
 Complete: 49 automated tests and syntax checks pass. Browser checks cover all screens and a completed match. Reviewed input edges, simultaneous dive/flap landing, boost collision/recharge, independent character choices, names, and offline fonts. Hardware limitations are recorded in QA.md.
+
+## Bot, power-up, KO and readiness update
+
+- Bots use boost and dive inputs, approach feathers and powers, and retain platform routing. Check both input decisions and completed collection before expiry.
+- Add one random power every 25–40 seconds, expiring unclaimed after 12 seconds. Flame lasts 5 seconds then launches six balls; sawblade ricochets for 3 seconds; rocket removes recharge for 10 seconds.
+- Keep team immunity, protection, pause, death/respawn and rematch consistent. Resolve power hits together so trades can produce a draw; credit each victim once.
+- Show prominent KO totals and OUT panels. Preserve concurrent kills in a bounded six-second feed.
+- Flap/A confirms the current character; B unreadies before leaving; mouse Ready toggles. Keep explicit host launch and controller menu navigation.
+- Verify automated simulation/input tests, browser ready controls and match rendering, then review the diff and sync the tested files to the standalone repository.

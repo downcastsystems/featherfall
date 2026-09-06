@@ -55,6 +55,7 @@
   const FLAP_INTERVAL = 0.22,
     BOOST_RECHARGE = 3.5,
     BOOST_DURATION = 0.32;
+  const POWERUPS = Object.freeze({ flame: 5, sawblade: 3, rocket: 10 });
   const BODY = Object.freeze({ halfWidth: 10, head: 21, feet: 12 });
   const TEAMS = [
     { name: "SUN", color: "#ff8a32", dark: "#49251e" },
@@ -85,7 +86,7 @@
   }
   // Sweep the rider's body against expanded platform rectangles, choosing the
   // first face struck. This prevents fast and diagonal impacts from tunneling.
-  function moveAgainstPlatforms(p, dt, events) {
+  function moveAgainstPlatforms(p, dt, events, saw = false) {
     p.grounded = false;
     let remaining = dt;
     for (let pass = 0; pass < 4 && remaining > 0; pass++) {
@@ -133,19 +134,19 @@
       remaining *= 1 - hit.time;
       if (hit.side) {
         p.x = p.vx > 0 ? hit.left - 0.01 : hit.right + 0.01;
-        p.vx *= -1.1;
+        p.vx *= saw ? -1 : -1.1;
         events.push({ type: "bump", id: p.id, x: p.x, y: p.y });
       } else if (p.vy < 0) {
         p.y = hit.bottom + 0.01;
-        p.vy = clamp(-p.vy * 0.25, 65, 110);
+        p.vy = saw ? -p.vy : clamp(-p.vy * 0.25, 65, 110);
         events.push({ type: "bump", id: p.id, x: p.x, y: p.y - 21 });
       } else {
-        p.y = hit.top;
-        p.vy = 0;
-        p.grounded = true;
+        p.y = hit.top - (saw ? 0.01 : 0);
+        p.vy = saw ? -p.vy : 0;
+        p.grounded = !saw;
       }
     }
-    p.x = ((p.x % W) + W) % W;
+    if (!saw) p.x = ((p.x % W) + W) % W;
     if (
       p.grounded &&
       !PLATFORMS.some(
@@ -161,6 +162,9 @@
       this.time = 0;
       this.events = [];
       this.pickup = null;
+      this.powerPickup = null;
+      this.projectiles = [];
+      this.nextPower = 25 + rng() * 15;
       this.nextLife = 18 + rng() * 8;
       this.winner = null;
       this.players = seats.map((s, id) => ({
@@ -200,6 +204,8 @@
         walkDistance: 0,
         foot: 0,
         wasDiving: false,
+        power: null,
+        powerTime: 0,
         botExit: null,
         botClimb: null,
         botDive: false,
@@ -210,18 +216,88 @@
     kill(victim, attacker) {
       if (!victim.alive || victim.invincible > 0) return;
       victim.alive = false;
+      victim.power = null;
+      victim.powerTime = 0;
       victim.lives--;
       victim.respawn = victim.lives > 0 ? 2.6 : 0;
       if (attacker) {
         attacker.kills++;
-        attacker.vy = -210;
+        if (attacker.power !== "sawblade") attacker.vy = -210;
       }
       this.events.push({
         type: "death",
+        attackerId: attacker?.id ?? null,
+        kills: attacker?.kills ?? 0,
+        eliminated: victim.lives === 0,
         x: victim.x,
         y: victim.y,
         id: victim.id,
       });
+    }
+    equip(p, kind) {
+      if (!POWERUPS[kind] || !p.alive) return;
+      p.power = kind;
+      p.powerTime = POWERUPS[kind];
+      if (kind === "rocket") p.boostCharge = 1;
+      if (kind === "sawblade") {
+        p.boostTime = 0;
+        p.vx = p.facing * 900;
+        p.vy = -560;
+      }
+      this.events.push({ type: "power", id: p.id, kind, x: p.x, y: p.y });
+    }
+    fireballs(p) {
+      return Array.from({ length: 6 }, (_, i) => {
+        const angle = this.time * 5 + (i * Math.PI) / 3;
+        return {
+          x: p.x + Math.cos(angle) * 65,
+          y: p.y + Math.sin(angle) * 65,
+          angle,
+        };
+      });
+    }
+    canHit(attacker, victim) {
+      return (
+        victim.alive &&
+        victim.id !== attacker.id &&
+        victim.invincible <= 0 &&
+        attacker.invincible <= 0 &&
+        (this.mode !== "teams" || attacker.team !== victim.team)
+      );
+    }
+    powerHits() {
+      // Collect hits before applying them so opposing powers can trade KOs.
+      const hits = new Map();
+      for (const p of this.players) {
+        if (!p.alive || !["flame", "sawblade"].includes(p.power)) continue;
+        const points = p.power === "flame" ? this.fireballs(p) : [p];
+        const radius = p.power === "flame" ? 29 : 43;
+        for (const q of this.players)
+          if (
+            this.canHit(p, q) &&
+            points.some(
+              (f) => Math.hypot(wrapDelta(f.x, q.x), f.y - q.y) < radius,
+            )
+          )
+            if (!hits.has(q.id)) hits.set(q.id, p);
+      }
+      for (const f of this.projectiles) {
+        const owner = this.players[f.owner];
+        for (const q of this.players) {
+          if (!this.canHit(owner, q)) continue;
+          const dx = f.x - f.oldX,
+            dy = f.y - f.oldY;
+          const t = clamp(
+            ((q.x - f.oldX) * dx + (q.y - f.oldY) * dy) /
+              (dx * dx + dy * dy || 1),
+            0,
+            1,
+          );
+          if (Math.hypot(q.x - f.oldX - t * dx, q.y - f.oldY - t * dy) < 29)
+            if (!hits.has(q.id)) hits.set(q.id, owner);
+        }
+      }
+      for (const [id, owner] of hits) this.kill(this.players[id], owner);
     }
     step(dt, inputs = []) {
       if (this.winner) return;
@@ -234,11 +310,48 @@
           }
           continue;
         }
+        if (p.powerTime > 0) {
+          p.powerTime = Math.max(0, p.powerTime - dt);
+          if (!p.powerTime) {
+            if (p.power === "flame")
+              this.projectiles.push(
+                ...this.fireballs(p).map((f) => ({
+                  ...f,
+                  x: ((f.x % W) + W) % W,
+                  oldX: ((f.x % W) + W) % W,
+                  oldY: f.y,
+                  owner: p.id,
+                  vx: Math.cos(f.angle) * 1200,
+                  vy: Math.sin(f.angle) * 1200,
+                  ttl: 2,
+                })),
+              );
+            if (p.power === "sawblade") {
+              p.vx *= 0.3;
+              p.vy *= 0.3;
+            }
+            p.power = null;
+          }
+        }
         p.invincible = Math.max(0, p.invincible - dt);
         p.flapTimer = Math.max(0, p.flapTimer - dt);
         p.clash = Math.max(0, p.clash - dt);
         const input = inputs[p.id] || {},
           move = clamp(input.move || 0, -1, 1);
+        if (p.power === "sawblade") {
+          p.grounded = p.diving = p.boosting = false;
+          moveAgainstPlatforms(p, dt, this.events, true);
+          if (p.x < 26 || p.x > W - 26) {
+            p.x = clamp(p.x, 26, W - 26);
+            p.vx *= -1;
+          }
+          if (p.y < 120 || p.y > 984) {
+            p.y = clamp(p.y, 120, 984);
+            p.vy *= -1;
+          }
+          continue;
+        }
+        if (p.power === "rocket") p.boostCharge = 1;
         p.flapCooldown = Math.max(0, p.flapCooldown - dt);
         p.boostTime = Math.max(0, p.boostTime - dt);
         if (!p.boostTime)
@@ -253,7 +366,7 @@
         } else {
           if (move && !p.boostTime) p.facing = Math.sign(move);
           if (input.boost && p.boostCharge >= 1 && !p.boostTime) {
-            p.boostCharge = 0;
+            p.boostCharge = p.power === "rocket" ? 1 : 0;
             p.boostTime = BOOST_DURATION;
             p.vx = p.facing * 650;
             this.events.push({ type: "boost", id: p.id, x: p.x, y: p.y });
@@ -293,6 +406,17 @@
           p.vy = Math.max(0, p.vy);
         }
       }
+      for (const f of this.projectiles) {
+        f.oldX = f.x;
+        f.oldY = f.y;
+        f.x += f.vx * dt;
+        f.y += f.vy * dt;
+        f.ttl -= dt;
+      }
+      this.powerHits();
+      this.projectiles = this.projectiles.filter(
+        (f) => f.ttl > 0 && f.x >= -20 && f.x <= W + 20 && f.y >= 0 && f.y <= H,
+      );
       for (let i = 0; i < this.players.length; i++)
         for (let j = i + 1; j < this.players.length; j++) {
           const a = this.players[i],
@@ -353,6 +477,38 @@
         this.nextLife = this.time + 24 + this.rng() * 12;
         this.events.push({ type: "pickup", x: s.x, y: s.y });
       }
+      if (this.powerPickup) {
+        this.powerPickup.ttl -= dt;
+        for (const p of this.players) {
+          if (
+            p.alive &&
+            Math.abs(wrapDelta(p.x, this.powerPickup.x)) < 30 &&
+            Math.abs(p.y - this.powerPickup.y) < 34
+          ) {
+            this.equip(p, this.powerPickup.kind);
+            this.powerPickup = null;
+            break;
+          }
+        }
+        if (this.powerPickup?.ttl <= 0) this.powerPickup = null;
+      }
+      if (!this.powerPickup && this.time >= this.nextPower) {
+        const s = chooseSpawn(this.players, this.rng);
+        const kinds = Object.keys(POWERUPS);
+        this.powerPickup = {
+          x: s.x,
+          y: s.y - 14,
+          ttl: 12,
+          kind: kinds[
+            Math.min(kinds.length - 1, Math.floor(this.rng() * kinds.length))
+          ],
+        };
+        this.nextPower = this.time + 25 + this.rng() * 15;
+        this.events.push({
+          type: "power-appeared",
+          kind: this.powerPickup.kind,
+        });
+      }
       const survivors = this.players.filter((p) => p.lives > 0);
       if (this.mode === "teams") {
         const teams = [...new Set(survivors.map((p) => p.team))];
@@ -373,11 +529,33 @@
         q.alive &&
         (match.mode !== "teams" || q.team !== p.team),
     );
-    const target = targets.sort(
-      (a, b) =>
-        Math.hypot(wrapDelta(a.x, p.x), a.y - p.y) -
-        Math.hypot(wrapDelta(b.x, p.x), b.y - p.y),
-    )[0];
+    const enemy = targets
+      .filter((q) => q.invincible <= 0)
+      .sort(
+        (a, b) =>
+          Math.hypot(wrapDelta(a.x, p.x), a.y - p.y) -
+          Math.hypot(wrapDelta(b.x, p.x), b.y - p.y),
+      )[0];
+    const distance = (q) => Math.hypot(wrapDelta(q.x, p.x), q.y - p.y);
+    const pickups = [
+      match.pickup && {
+        ...match.pickup,
+        item: true,
+        priority: p.lives < MAX_LIVES ? 0.45 : 1.2,
+      },
+      match.powerPickup && {
+        ...match.powerPickup,
+        item: true,
+        priority: p.power ? 1.3 : 0.6,
+      },
+    ]
+      .filter(Boolean)
+      .sort((a, b) => distance(a) * a.priority - distance(b) * b.priority);
+    const item = pickups[0];
+    const target =
+      item && (!enemy || distance(item) * item.priority < distance(enemy) + 220)
+        ? item
+        : enemy;
     p.botClock = (p.botClock || 0) - dt;
     if (p.botClimb && (!target || p.y < p.botClimb.untilY)) p.botClimb = null;
     if (!p.botClimb && target && target.y < p.y - 40) {
@@ -423,17 +601,45 @@
     if (p.botExit)
       return { move: Math.sign(wrapDelta(p.botExit.x, p.x)), flap: false };
     const dx = target ? wrapDelta(target.x, p.x) : Math.sin(match.time) * 200;
-    const desiredY = target ? Math.max(125, target.y - 75) : 400;
+    const desiredY = target
+      ? Math.max(125, target.y - (target.item ? 0 : 75))
+      : 400;
     // Once above a rival, stop flapping and commit to a landing attack.
-    if (!target || Math.abs(dx) > 110 || p.y > target.y + 25) p.botDive = false;
-    if (target && Math.abs(dx) < 55 && p.y < target.y - 28) p.botDive = true;
+    if (!target || target.item || Math.abs(dx) > 30 || p.y > target.y + 25)
+      p.botDive = false;
+    if (target && !target.item && Math.abs(dx) < 24 && p.y < target.y - 28)
+      p.botDive = true;
     const flap =
       !p.botDive &&
       p.botClock <= 0 &&
       (p.y > desiredY || (p.vy > 160 && p.y > 180));
     if (flap) p.botClock = 0.18 + match.rng() * 0.14;
     const steering = dx - p.vx * 0.18;
-    return { move: Math.abs(steering) < 12 ? 0 : Math.sign(steering), flap };
+    const dive =
+      !!target &&
+      !target.item &&
+      p.botDive &&
+      !p.grounded &&
+      target.y > p.y + 28 &&
+      Math.abs(dx + target.vx * 0.12) < 26 &&
+      !PLATFORMS.some(
+        (s) =>
+          s.y > p.y && s.y < target.y && p.x > s.x - 10 && p.x < s.x + s.w + 10,
+      );
+    const boost =
+      !dive &&
+      !!target &&
+      p.boostCharge >= 1 &&
+      !p.boostTime &&
+      Math.abs(dx) > 180 &&
+      Math.abs(dx) < 650 &&
+      Math.abs(target.y - p.y) < 100;
+    return {
+      move: Math.abs(steering) < 12 ? 0 : Math.sign(steering),
+      flap,
+      dive,
+      boost,
+    };
   }
   function gamepadState(pad) {
     const pressed = (i) => !!pad?.buttons?.[i]?.pressed;
@@ -471,6 +677,7 @@
     CHARACTERS,
     BODY,
     TEAMS,
+    POWERUPS,
     BOOST_RECHARGE,
     BOOST_DURATION,
     FLAP_INTERVAL,

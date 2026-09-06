@@ -54,6 +54,12 @@
     seats = [null, null, null, null],
     mode = "ffa",
     match = null;
+  let koFeed = [];
+  const powerColor = {
+    flame: "#ff9658",
+    sawblade: "#d8e7ff",
+    rocket: "#73eaff",
+  };
   let countdown = 0,
     endingTime = 0,
     clock = 0,
@@ -211,8 +217,7 @@
     const s = seats[slot],
       row = s.cursor || "character";
     if (row === "character") {
-      s.cursor = mode === "teams" ? "team" : "ready";
-      renderSeats();
+      if (!s.ready) ready(slot);
     } else if (row === "team") {
       s.team ^= 1;
       s.ready = false;
@@ -238,7 +243,7 @@
       character: slot % birds.length,
       cursor: "character",
       team: slot % 2,
-      ready: kind !== "pad",
+      ready: kind === "bot",
     };
     tone(460, 0.1, "triangle", 0.05, 700);
     renderSeats();
@@ -247,7 +252,7 @@
     if (!seats[slot]) return;
     seats[slot].character =
       (seats[slot].character + direction + birds.length) % birds.length;
-    if (seats[slot].kind === "pad") seats[slot].ready = false;
+    if (seats[slot].kind !== "bot") seats[slot].ready = false;
     renderSeats();
   }
   function changeMode() {
@@ -290,7 +295,7 @@
           cursor = s.kind === "pad" ? s.cursor : "";
         const selected = (row) =>
           cursor === row ? ' data-selected="true"' : "";
-        return `<article class="seat joined ${mode === "teams" ? "team-seat" : ""}" style="--bird:${b.color};--team:${team.color};--team-dark:${team.dark}">${mode === "teams" ? `<div class="team-banner">${team.name} TEAM</div>` : ""}<div class="seat-label"><b>PLAYER 0${i + 1}</b><span>${source}</span></div><canvas id="preview-${i}" width="168" height="100" aria-label="${b.name} (P${i + 1}) ${b.bird}"></canvas><div class="character-picker"${selected("character")}><button data-action="prev" data-seat="${i}" aria-label="Previous character for player ${i + 1}">&lt;</button><div><h3>${b.name} <small>(P${i + 1})</small></h3><span class="bird-type">${b.bird}</span></div><button data-action="next" data-seat="${i}" aria-label="Next character for player ${i + 1}">&gt;</button></div><div class="seat-controls">${s.kind === "keyboard" ? keys[s.source].label : s.kind === "pad" ? "A TAP/HOLD FLAP · DOWN DIVE · X BOOST" : "AUTOPILOT · SAME RULES AS YOU"}</div><div class="seat-actions">${mode === "teams" ? `<button class="team-button"${selected("team")} data-action="team" data-seat="${i}">${s.team === 0 ? "SUN TEAM" : "MOON TEAM"} &lt;&gt;</button>` : ""}<button${selected("ready")} data-action="ready" data-seat="${i}">${s.ready ? "READY!" : "A: READY"}</button><button class="remove" data-action="remove" data-seat="${i}">LEAVE x</button></div><div class="ready">${s.ready ? "* READY TO FLY" : "UP/DOWN CHOOSE · A SELECT"}</div></article>`;
+        return `<article class="seat joined ${s.ready ? "is-ready" : ""} ${mode === "teams" ? "team-seat" : ""}" style="--bird:${b.color};--team:${team.color};--team-dark:${team.dark}">${mode === "teams" ? `<div class="team-banner">${team.name} TEAM</div>` : ""}<div class="seat-label"><b>PLAYER 0${i + 1}</b><span>${source}</span></div><canvas id="preview-${i}" width="168" height="100" aria-label="${b.name} (P${i + 1}) ${b.bird}"></canvas><div class="character-picker"${selected("character")}><button data-action="prev" data-seat="${i}" aria-label="Previous character for player ${i + 1}">&lt;</button><div><h3>${b.name} <small>(P${i + 1})</small></h3><span class="bird-type">${b.bird}</span></div><button data-action="next" data-seat="${i}" aria-label="Next character for player ${i + 1}">&gt;</button></div><div class="seat-controls">${s.kind === "keyboard" ? keys[s.source].label : s.kind === "pad" ? "A TAP/HOLD FLAP · DOWN DIVE · X BOOST" : "AUTOPILOT · SAME RULES AS YOU"}</div><div class="seat-actions">${mode === "teams" ? `<button class="team-button"${selected("team")} data-action="team" data-seat="${i}">${s.team === 0 ? "SUN TEAM" : "MOON TEAM"} &lt;&gt;</button>` : ""}<button aria-pressed="${s.ready}"${selected("ready")} data-action="ready" data-seat="${i}">${s.ready ? "✓ READY" : "READY"}</button><button class="remove" data-action="remove" data-seat="${i}">LEAVE x</button></div><div class="ready">${s.ready ? "✓ READY TO FLY · B UNREADY" : "FLAP / A TO READY"}</div></article>`;
       })
       .join("");
     seats.forEach((s, i) => {
@@ -322,7 +327,7 @@
         ? "Join a second player or add a practice bot."
         : !canStart()
           ? "Put at least one rider on each team."
-          : "UP/DOWN CHOOSE · A SELECT · START READY";
+          : "FLAP / A TO READY · B UNREADY · ENTER TO LAUNCH";
   }
   $("seats").addEventListener("click", (e) => {
     const button = e.target.closest("button");
@@ -340,7 +345,7 @@
     if (action === "ready" && seats[i]) ready(i);
     if (action === "team" && seats[i]) {
       seats[i].team ^= 1;
-      if (seats[i].kind === "pad") seats[i].ready = false;
+      if (seats[i].kind !== "bot") seats[i].ready = false;
       renderSeats();
     }
   });
@@ -354,6 +359,8 @@
       mode,
     );
     particles = [];
+    koFeed = [];
+    $("ko-feed").innerHTML = "";
     countdown = 3;
     endingTime = 0;
     show("countdown");
@@ -469,6 +476,11 @@
         if (s?.kind === "keyboard") {
           if (e.code === keys[s.source].left) rotate(i, -1);
           if (e.code === keys[s.source].right) rotate(i, 1);
+          if (e.code === keys[s.source].flap && !s.ready) ready(i);
+          if (e.code === "KeyB") {
+            s.ready = false;
+            renderSeats();
+          }
         }
       });
     }
@@ -530,7 +542,10 @@
           continue;
         }
         if (edge.back) {
-          seats[slot] = null;
+          if (seats[slot].ready) {
+            seats[slot].ready = false;
+            seats[slot].cursor = "character";
+          } else seats[slot] = null;
           renderSeats();
           continue;
         }
@@ -639,6 +654,41 @@
       });
     }
   }
+  function drawFireball(x, y) {
+    ctx.fillStyle = "#ff6b3260";
+    ctx.beginPath();
+    ctx.arc(x, y, 17, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ff843d";
+    ctx.beginPath();
+    ctx.arc(x, y, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff4b0";
+    ctx.fillRect(x - 4, y - 5, 8, 9);
+  }
+  function drawSaw(x, y, angle, radius = 28) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    for (let i = 0; i < 48; i++) {
+      const a = (i * Math.PI) / 24,
+        r = i % 4 < 2 ? radius : radius * 0.7;
+      if (!i) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "#d8e7ff";
+    ctx.fill();
+    ctx.strokeStyle = "#6b839f";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = "#31475e";
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
   function processEvents() {
     for (const event of match.events) {
       const color =
@@ -649,6 +699,18 @@
         burst(event.x, event.y, color, 35, 1.5);
         burst(event.x, event.y, "#eee7d3", 10);
         sound.play("death");
+        const victim = match.players[event.id];
+        const attacker = match.players[event.attackerId];
+        const text = attacker
+          ? `${playerName(attacker)} → ${playerName(victim)} · ${event.kills} KO`
+          : `${playerName(victim)} LOST A LIFE`;
+        koFeed.push({
+          text: text + (event.eliminated ? " · OUT!" : ""),
+          out: event.eliminated,
+          ttl: 6,
+        });
+        koFeed = koFeed.slice(-4);
+        if (attacker) attacker.koFlash = 1.2;
       }
       if (event.type === "spawn") {
         burst(event.x, event.y, "#fff1c8", 16, 0.4);
@@ -679,6 +741,17 @@
         );
         tone(660, 0.35, "triangle", 0.07, 1320);
       }
+      if (event.type === "power") {
+        burst(event.x, event.y, powerColor[event.kind], 28);
+        announce(
+          `${playerName(match.players[event.id])} · ${event.kind.toUpperCase()}!`,
+        );
+        tone(420, 0.35, "triangle", 0.06, 1300);
+      }
+      if (event.type === "power-appeared") {
+        announce(`${event.kind.toUpperCase()} POWER-UP HAS APPEARED`);
+        tone(600, 0.25, "triangle", 0.04, 1000);
+      }
       if (event.type === "pickup") {
         announce("A GOLDEN FEATHER HAS APPEARED");
         tone(700, 0.3, "sine", 0.04, 1050);
@@ -691,7 +764,7 @@
     $("players-hud").innerHTML = match.players
       .map((p) => {
         const b = birds[p.character];
-        return `<div class="hud-player ${p.lives === 0 ? "out" : ""} ${mode === "teams" ? "team-hud" : ""}" style="--bird:${b.color};--team:${TEAMS[p.team].color}"><div class="name">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</div><div class="lives" aria-label="${p.lives} lives">${p.lives ? Array.from({ length: p.lives }, () => '<i class="pixel-heart" aria-hidden="true"></i>').join("") : "OUT"}</div><div class="boost-meter ${p.boostCharge >= 1 ? "charged" : ""}" role="progressbar" aria-label="${playerName(p)} boost" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.boostCharge * 100)}"><i style="width:${p.boostCharge * 100}%"></i><span>${p.boostCharge >= 1 ? "BOOST READY" : "BOOST"}</span></div><div class="meta">${!p.alive && p.lives ? `RETURNING IN ${Math.ceil(p.respawn)}...` : `${p.kills} KO · ${p.kind === "bot" ? "BOT" : p.kind === "pad" ? "PAD " + (p.source + 1) : "KEYS " + (p.source + 1)}`}</div></div>`;
+        return `<div class="hud-player ${p.koFlash > 0 ? "ko-flash" : ""} ${p.lives === 0 ? "out" : ""} ${mode === "teams" ? "team-hud" : ""}" style="--bird:${b.color};--team:${TEAMS[p.team].color}"><div class="name">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</div><div class="lives" aria-label="${p.lives} lives">${p.lives ? Array.from({ length: p.lives }, () => '<i class="pixel-heart" aria-hidden="true"></i>').join("") : "✕ OUT"}</div><div class="boost-meter ${p.boostCharge >= 1 ? "charged" : ""}" role="progressbar" aria-label="${playerName(p)} boost" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.boostCharge * 100)}"><i style="width:${p.boostCharge * 100}%"></i><span>${p.power === "rocket" ? "UNLIMITED BOOST" : p.boostCharge >= 1 ? "BOOST READY" : "BOOST"}</span></div><div class="ko-count">${p.kills} KO</div>${p.power ? `<div class="power-timer" style="color:${powerColor[p.power]}">${p.power.toUpperCase()} ${Math.ceil(p.powerTime)}s</div>` : ""}<div class="meta">${!p.alive && p.lives ? `RETURNING IN ${Math.ceil(p.respawn)}...` : `${p.kind === "bot" ? "BOT" : p.kind === "pad" ? "PAD " + (p.source + 1) : "KEYS " + (p.source + 1)}`}</div></div>`;
       })
       .join("");
     const time = Math.floor(match.time);
@@ -1130,6 +1203,35 @@
           sparkle(p.x + 18, y - 12, 3, "#ffeac1");
         }
       }
+      if (match.powerPickup) {
+        const p = match.powerPickup,
+          y = p.y + Math.sin(clock * 4) * 4;
+        if (p.ttl > 3 || Math.sin(clock * 14) > 0) {
+          ctx.fillStyle = "#142638";
+          ctx.fillRect(p.x - 27, y - 27, 54, 54);
+          ctx.strokeStyle = powerColor[p.kind];
+          ctx.lineWidth = 3;
+          ctx.strokeRect(p.x - 27, y - 27, 54, 54);
+          if (p.kind === "flame") drawFireball(p.x, y);
+          else if (p.kind === "sawblade") drawSaw(p.x, y, clock * 6, 20);
+          else {
+            ctx.fillStyle = powerColor.rocket;
+            ctx.beginPath();
+            ctx.moveTo(p.x, y - 20);
+            ctx.lineTo(p.x + 12, y + 12);
+            ctx.lineTo(p.x - 12, y + 12);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = "#ff9658";
+            ctx.fillRect(p.x - 5, y + 12, 10, 10);
+          }
+          ctx.fillStyle = powerColor[p.kind];
+          ctx.font = "16px Silkscreen";
+          ctx.textAlign = "center";
+          ctx.fillText(p.kind.toUpperCase(), p.x, y - 38);
+        }
+      }
+      for (const f of match.projectiles) drawFireball(f.x, f.y);
       for (const p of match.players) {
         if (!p.alive) {
           if (p.lives > 0) {
@@ -1152,25 +1254,40 @@
         }
         for (const offset of [
           0,
-          ...(p.x < 30 ? [W] : p.x > W - 30 ? [-W] : []),
+          ...(p.x < 85 ? [W] : p.x > W - 85 ? [-W] : []),
         ]) {
           const x = p.x + offset;
-          drawBird(
-            ctx,
-            x,
-            p.y,
-            p.character,
-            p.facing,
-            p.flapTimer > 0,
-            p.grounded,
-            1,
-            p.diving && !p.grounded
-              ? match.time
-              : Math.abs(p.vx) > 15
-                ? clock
-                : 0,
-            p.diving && !p.grounded,
-          );
+          if (p.power === "sawblade") drawSaw(x, p.y, match.time * 32);
+          else
+            drawBird(
+              ctx,
+              x,
+              p.y,
+              p.character,
+              p.facing,
+              p.flapTimer > 0,
+              p.grounded,
+              1,
+              p.diving && !p.grounded
+                ? match.time
+                : Math.abs(p.vx) > 15
+                  ? clock
+                  : 0,
+              p.diving && !p.grounded,
+            );
+          if (p.power === "flame")
+            for (const f of match.fireballs(p)) drawFireball(f.x + offset, f.y);
+          if (p.power === "rocket") {
+            ctx.fillStyle = powerColor.rocket;
+            ctx.fillRect(x - p.facing * 21 - 4, p.y - 8, 8, 19);
+            ctx.fillStyle = "#ff9658";
+            ctx.fillRect(
+              x - p.facing * 21 - 3,
+              p.y + 11,
+              6,
+              10 + Math.sin(clock * 30) * 5,
+            );
+          }
           ctx.font = "bold 14px Silkscreen";
           ctx.textAlign = "center";
           ctx.fillStyle = b.color;
@@ -1282,6 +1399,19 @@
       pendingFlaps.clear();
       pendingBoosts.clear();
     }
+    if (["match", "ending"].includes(screen)) {
+      koFeed.forEach((entry) => (entry.ttl -= dt));
+      koFeed = koFeed.filter((entry) => entry.ttl > 0);
+      for (const p of match.players)
+        p.koFlash = Math.max(0, (p.koFlash || 0) - dt);
+    }
+    const feedHtml = koFeed
+      .map(
+        (entry) =>
+          `<div class="ko-entry ${entry.out ? "elimination" : ""}">${entry.text}</div>`,
+      )
+      .join("");
+    if ($("ko-feed").innerHTML !== feedHtml) $("ko-feed").innerHTML = feedHtml;
     render(dt);
     requestAnimationFrame(frame);
   }
