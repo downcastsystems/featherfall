@@ -173,6 +173,17 @@
     },
   ];
   for (const arena of ARENAS) {
+    arena.graves = Object.freeze(
+      arena.id === "crystal"
+        ? [110, 1580, 340, 1300].map((x) => {
+            const platform = arena.platforms.find((s) => s.x === x);
+            return Object.freeze({
+              x: platform.x + platform.w / 2,
+              y: platform.y,
+            });
+          })
+        : [],
+    );
     arena.platforms.forEach(Object.freeze);
     Object.freeze(arena.platforms);
     Object.freeze(arena);
@@ -315,6 +326,11 @@
     constructor(seats, mode = "ffa", rng = Math.random, arena = ARENAS[0]) {
       this.arena = arena;
       this.platforms = arena.platforms;
+      this.graves = arena.graves;
+      this.zombies = [];
+      this.nextZombie = 5;
+      this.nextZombieId = 0;
+      this.zombieWave = 0;
       this.rng = rng;
       this.mode = mode;
       this.time = 0;
@@ -408,6 +424,7 @@
       }
       this.events.push({
         type: "death",
+        cause,
         attackerId: attacker?.id ?? null,
         kills: attacker?.kills ?? 0,
         eliminated: victim.lives === 0,
@@ -415,6 +432,146 @@
         y: victim.y,
         id: victim.id,
       });
+    }
+    spawnZombies() {
+      if (!this.graves.length || this.zombies.length > 10) return;
+      // Each wave is a mirrored pair, so neither side gets extra hazards.
+      const pair = this.zombieWave++ % (this.graves.length / 2);
+      for (const grave of this.graves.slice(pair * 2, pair * 2 + 2)) {
+        this.zombies.push({
+          id: this.nextZombieId++,
+          x: grave.x,
+          y: grave.y,
+          vx: grave.x < W / 2 ? 72 : -72,
+          vy: 0,
+          grounded: true,
+          fallFrom: grave.y,
+          emerge: 0.9,
+          age: 0,
+          alive: true,
+        });
+      }
+    }
+    popZombie(z, reason) {
+      if (!z.alive) return;
+      z.alive = false;
+      this.events.push({
+        type: "zombie-pop",
+        x: z.x,
+        y: z.y - 8,
+        reason,
+        variant: z.id % 3,
+      });
+    }
+    stepZombies(dt, before) {
+      if (!this.graves.length) return;
+      if (this.time >= this.nextZombie) {
+        this.spawnZombies();
+        this.nextZombie = this.time + 7;
+      }
+      for (const z of this.zombies) {
+        z.age += dt;
+        if (z.age > 40 || z.x < -12 || z.x > W + 12) {
+          z.alive = false;
+          continue;
+        }
+        if (z.emerge > 0) {
+          z.emerge = Math.max(0, z.emerge - dt);
+          continue;
+        }
+        const old = { x: z.x, y: z.y };
+        z.x += z.vx * dt;
+        if (
+          z.grounded &&
+          !this.platforms.some(
+            (s) => Math.abs(s.y - z.y) < 0.1 && z.x >= s.x && z.x <= s.x + s.w,
+          )
+        ) {
+          z.grounded = false;
+          z.fallFrom = z.y;
+          z.vy = 0;
+        }
+        let landing = null;
+        if (!z.grounded) {
+          z.vy = Math.min(700, z.vy + 650 * dt);
+          const nextY = z.y + z.vy * dt;
+          landing = this.platforms
+            .filter(
+              (s) =>
+                s.y > old.y &&
+                s.y <= nextY &&
+                (() => {
+                  const t = (s.y - old.y) / (nextY - old.y || 1);
+                  const x = old.x + (z.x - old.x) * t;
+                  return x >= s.x && x <= s.x + s.w;
+                })(),
+            )
+            .sort((a, b) => a.y - b.y)[0];
+          z.y = landing ? landing.y : nextY;
+        }
+        // Sweep relative motion, including fast dives and the horizontal wrap seam.
+        for (const p of this.players) {
+          const prev = before[p.id];
+          if (!p.alive || !prev.alive || !z.alive) continue;
+          if (
+            p.power === "flame" &&
+            this.fireballs(p).some(
+              (f) => Math.hypot(wrapDelta(f.x, z.x), f.y - (z.y - 8)) < 18,
+            )
+          ) {
+            this.popZombie(z, "flame");
+            continue;
+          }
+          const rx = wrapDelta(prev.x, old.x),
+            ry = prev.y - 4 - (old.y - 8);
+          const dx = wrapDelta(p.x, prev.x) - (z.x - old.x),
+            dy = p.y - prev.y - (z.y - old.y);
+          const slab = (v, d, r) =>
+            d === 0
+              ? Math.abs(v) <= r
+                ? [-Infinity, Infinity]
+                : null
+              : [(-r - v) / d, (r - v) / d].sort((a, b) => a - b);
+          const tx = slab(rx, dx, 17),
+            ty = slab(ry, dy, 22);
+          if (
+            !tx ||
+            !ty ||
+            Math.max(0, tx[0], ty[0]) > Math.min(1, tx[1], ty[1])
+          )
+            continue;
+          const stomp = prev.y + 12 <= old.y - 16 + 3 && dy > 0 && p.y > prev.y;
+          if (stomp || p.power === "sawblade") {
+            this.popZombie(z, stomp ? "stomp" : "sawblade");
+            if (stomp) {
+              p.vy = -210;
+              p.grounded = false;
+            }
+          } else if (p.invincible <= 0) this.kill(p, null, "zombie");
+        }
+        for (const f of this.projectiles) {
+          if (!z.alive) break;
+          const dx = f.x - f.oldX,
+            dy = f.y - f.oldY;
+          const t = clamp(
+            ((z.x - f.oldX) * dx + (z.y - 8 - f.oldY) * dy) /
+              (dx * dx + dy * dy || 1),
+            0,
+            1,
+          );
+          if (Math.hypot(z.x - f.oldX - t * dx, z.y - 8 - f.oldY - t * dy) < 18)
+            this.popZombie(z, "flame");
+        }
+        if (landing && z.alive) {
+          if (landing.y - z.fallFrom >= 320) this.popZombie(z, "fall");
+          else {
+            z.grounded = true;
+            z.vy = 0;
+            z.fallFrom = z.y;
+          }
+        }
+      }
+      this.zombies = this.zombies.filter((z) => z.alive);
     }
     equip(p, kind) {
       if (!POWERUPS[kind] || !p.alive) return;
@@ -647,6 +804,7 @@
         f.ttl -= dt;
       }
       this.powerHits();
+      this.stepZombies(dt, before);
       this.projectiles = this.projectiles.filter(
         (f) => f.ttl > 0 && f.x >= -20 && f.x <= W + 20 && f.y >= 0 && f.y <= H,
       );

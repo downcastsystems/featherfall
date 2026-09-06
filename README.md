@@ -129,3 +129,11 @@ Six arenas rotate in shuffled order: The Hollow Sky, Amber Aerie, Frostglass Pea
 Every arena is used once before the next shuffle, with no immediate repeat across shuffle boundaries. The rotation continues across rematches while the game remains open.
 
 Secret testing shortcut: press **N** during play, the countdown, or the round-ending animation to advance to the next arena and restart the current round with a fresh countdown. Unfinished-round KOs, lives, powers and statistics reset; completed-round totals remain. N consumes the next arena in the same rotation. It is ignored on menus, results and pause, and holding it does not cycle repeatedly. **P** still spawns a random power-up.
+
+## Graveyard zombies
+
+Amethyst Ruins has four little graves in mirrored pairs. Starting five seconds into a round, one pair releases two tiny zombies every seven seconds, alternating between the upper and middle graves. At most twelve can be alive. They climb out over 0.9 seconds, walk toward the arena interior, and flail their arms when they fall off a ledge.
+
+Drops under 320 pixels let zombies land and keep walking. Drops of 320 pixels or more end in a harmless burst of green and purple pixels with a short synthesized splat. Walking into a zombie or being struck by one from above costs a life; dropping onto its head destroys it and gives the player a small bounce. Respawn protection still works. Sawblades, orbiting fireballs and launched fireballs can also destroy zombies. Zombie kills award no KOs, wins or award statistics. Player deaths to zombies have no credited attacker.
+
+Zombies pause with the round and disappear when it restarts or changes arenas. They leave play after walking offscreen or surviving forty seconds. Use **N** to cycle to the purple ruins to try them.

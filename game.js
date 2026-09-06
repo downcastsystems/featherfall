@@ -781,6 +781,11 @@
         event.id !== undefined
           ? birds[match.players[event.id].character].color
           : "#ffe9b4";
+      if (event.type === "zombie-pop") {
+        burst(event.x, event.y, "#a9c985", 15, 0.7);
+        burst(event.x, event.y, "#756484", 7, 0.5);
+        sound.play("zombie-pop", event.variant);
+      }
       if (event.type === "death") {
         burst(event.x, event.y, color, 35, 1.5);
         burst(event.x, event.y, "#eee7d3", 10);
@@ -798,7 +803,9 @@
           );
         else
           broadcast.say(
-            `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
+            event.cause === "zombie"
+              ? `${playerName(victim)} ${event.eliminated ? "is out. Outplayed by the dearly departed." : "loses a life to a zombie. Brains were clearly on the menu."}`
+              : `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
             {},
             1,
           );
@@ -934,6 +941,50 @@
     );
   }
   // Original pixel mounts. The dive pose is artwork only; physics stays shared.
+  function drawZombie(c, z, time) {
+    c.save();
+    c.translate(Math.round(z.x), Math.round(z.y));
+    // Rising from the soil, then alternating feet or windmilling little arms.
+    if (z.emerge > 0) {
+      c.beginPath();
+      c.rect(-18, -26, 36, 26);
+      c.clip();
+      c.translate(0, Math.ceil((z.emerge / 0.9) * 18));
+    }
+    c.scale(z.vx < 0 ? -1 : 1, 1);
+    const r = (x, y, w, h, color) => {
+      c.fillStyle = color;
+      c.fillRect(x, y, w, h);
+    };
+    const phase = Math.floor(time * (z.grounded ? 8 : 16) + z.id) % 4;
+    const leg = z.grounded ? (phase % 2 ? 2 : -2) : 1;
+    r(-4, -10, 8, 7, "#343041");
+    r(-3, -10, 7, 5, "#81718e");
+    r(-4, -17, 8, 8, "#4f6950");
+    r(-3, -17, 7, 6, "#b5cb8b");
+    r(-4, -18, 6, 2, "#687553");
+    r(2, -15, 2, 2, "#20232e");
+    r(1, -11, 4, 1, "#586143");
+    r(-3, -3, 2, 3 + Math.max(0, leg), "#484252");
+    r(2, -3, 2, 3 + Math.max(0, -leg), "#484252");
+    r(-4, Math.max(0, leg), 4, 2, "#b5cb8b");
+    r(1, Math.max(0, -leg), 4, 2, "#b5cb8b");
+    if (!z.grounded && z.emerge <= 0) {
+      const arms = [
+        [-11, -9, 8, 2, 4, -16, 2, 9],
+        [-6, -16, 2, 9, 3, -9, 9, 2],
+        [-11, -10, 8, 2, 4, -9, 2, 10],
+        [-6, -9, 2, 10, 4, -16, 2, 9],
+      ][phase];
+      r(...arms.slice(0, 4), "#b5cb8b");
+      r(...arms.slice(4), "#b5cb8b");
+    } else {
+      r(4, -10, 6, 2, "#b5cb8b");
+      r(8, -9, 2, 3, "#b5cb8b");
+      r(-6, -9, 3, 5, "#8d9f70");
+    }
+    c.restore();
+  }
   function drawBird(
     c,
     x,
@@ -1431,6 +1482,22 @@
         }
       }
     }
+    if (arena.id === "crystal") {
+      for (const p of arena.graves) {
+        const gx = p.x;
+        bg.fillStyle = "#252a38";
+        bg.fillRect(gx - 10, p.y - 20, 20, 20);
+        bg.fillRect(gx - 7, p.y - 24, 14, 4);
+        bg.fillStyle = "#85828e";
+        bg.fillRect(gx - 8, p.y - 19, 16, 18);
+        bg.fillRect(gx - 5, p.y - 22, 10, 4);
+        bg.fillStyle = "#424251";
+        bg.fillRect(gx - 1, p.y - 17, 2, 11);
+        bg.fillRect(gx - 4, p.y - 14, 8, 2);
+        bg.fillStyle = "#62566b";
+        bg.fillRect(gx - 14, p.y - 3, 28, 3);
+      }
+    }
   }
   buildBackground();
   function sparkle(x, y, size, color) {
@@ -1474,6 +1541,7 @@
         ctx.fillRect(0, 100, W, H - 180);
       }
     } else {
+      for (const z of match.zombies) drawZombie(ctx, z, match.time);
       if (match.pickup) {
         const p = match.pickup,
           y = p.y + Math.sin(clock * 4) * 4;

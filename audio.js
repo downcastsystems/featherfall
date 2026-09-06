@@ -160,7 +160,14 @@
     play(kind, variant = 0) {
       if (!this.enabled || this.context?.state !== "running") return;
       const now = this.context.currentTime;
-      const gap = kind === "step" ? 0.045 : kind === "flap" ? 0.018 : 0;
+      const gap =
+        kind === "zombie-pop"
+          ? 0.04
+          : kind === "step"
+            ? 0.045
+            : kind === "flap"
+              ? 0.018
+              : 0;
       const key = kind === "flap" ? `flap:${variant}` : kind;
       if (gap && now - (this.last[key] ?? -Infinity) < gap) return;
       this.last[key] = now;
@@ -192,6 +199,12 @@
           );
         });
         this.tone(2093, 0.28, "triangle", 0.045, 2093, 0.32);
+      } else if (kind === "zombie-pop") {
+        // A small rubbery splat: low thump, crushed noise, and a falling chirrup.
+        const pitch = 1 + (variant % 3) * 0.09;
+        this.tone(240 * pitch, 0.16, "triangle", 0.19, 38);
+        this.hiss(0.11, 0.13, 1300);
+        this.tone(690 * pitch, 0.085, "square", 0.055, 105, 0.025);
       } else if (kind === "death") {
         this.hiss(0.38, 0.32, 2400);
         this.tone(170, 0.28, "sawtooth", 0.2, 25);

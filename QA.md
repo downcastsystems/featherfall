@@ -131,3 +131,9 @@ Player HUD columns now cap at 450 pixels with space distributed between panels. 
 91 tests and syntax checks pass. New checks cover six unique layouts, mirrored platform geometry and separation, full shuffled cycles with no seam repeat, per-match spawns and pickups, rider landings and sawblade rebounds on every platform face, and bot simulation on all six arenas. Integration checks cover normal round changes, the N shortcut, current-round reset versus completed totals, pause/repeat guards and Player 3's L movement control.
 
 Inspected all six arenas in the browser: the original hollow moon, amber sun and mesas, frosty auroras, amethyst columns and shards, misty conifers, and volcanic crown. Platforms and player labels remain readable. Verified N visibly changes the arena and restarts the countdown. No browser console errors were reported.
+
+## Graveyard zombies
+
+102 tests and syntax checks pass. Coverage includes mirrored, capped waves; emergence; walking off ledges; short-drop survival; long-drop bursts; natural grave-to-platform-to-ground routes; side and falling contact deaths; stomps and dives; spawn immunity; offensive power hits; score neutrality; harmless burst effects; lifetime cleanup; simultaneous final deaths; pause and next-arena reset. Audio checks verify the layered splat, simultaneous-pop throttling and mute behavior.
+
+Browser checks verified grave placement and live walking zombies on Amethyst Ruins, player-death commentary and no console errors. Enlarged previews were used to inspect and refine all four falling-arm poses. Temporary preview pages are excluded from the repository.

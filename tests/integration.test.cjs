@@ -815,3 +815,39 @@ test("Player 3 can still move right with L without changing the arena", () => {
   assert.equal(f.match, m);
   assert.ok(p.vx > 0);
 });
+
+test("graveyard hazards pause, make splat sounds, and reset on next arena", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  for (let i = 0; i < 3; i++) f.press("KeyN");
+  assert.equal(f.match.arena.id, "crystal");
+  f.advance(9);
+  assert.ok(f.match.zombies.length > 0);
+  f.press("Escape");
+  const snapshot = JSON.stringify(f.match.zombies),
+    next = f.match.nextZombie;
+  f.advance(3);
+  assert.equal(JSON.stringify(f.match.zombies), snapshot);
+  assert.equal(f.match.nextZombie, next);
+  f.press("Enter");
+  f.match.zombies.push({
+    id: 99,
+    x: 960,
+    y: 1008,
+    vx: 0,
+    vy: 650,
+    grounded: false,
+    fallFrom: 500,
+    emerge: 0,
+    age: 0,
+    alive: true,
+  });
+  f.advance();
+  assert.ok(f.soundEvents.includes("zombie-pop"));
+  f.press("KeyN");
+  assert.equal(f.match.zombies.length, 0);
+  assert.equal(f.match.graves.length, 0);
+});

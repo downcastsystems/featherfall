@@ -77,3 +77,9 @@ Complete: 49 automated tests and syntax checks pass. Browser checks cover all sc
 - Shuffle all six arenas without replacement, avoid a repeat across cycle boundaries, and retain the rotation across rematches.
 - N advances the rotation and restarts only the unfinished round. Preserve completed totals, clear current-round effects and restart the countdown. Keep all four keyboard control schemes intact.
 - Verify symmetry and spacing, per-arena collision faces and spawn placement, bot simulations, shuffled cycles, input guards and match accounting. Inspect all six settings in the browser, review the diff, and push the verified result.
+
+## Graveyard hazards
+
+- Add four mirrored graves to Amethyst Ruins and bounded, mirrored zombie waves. Use existing pixel art and procedural audio, with emerging, walking and flailing poses.
+- Track fall height per ledge; survive short landings and burst after 320-pixel drops. Sweep player/zombie contact, allow downward stomps and offensive powers, honor respawn protection, and credit no zombie KOs or award metrics.
+- Keep bursts harmless, clear hazards on round changes and freeze them on pause. Verify natural routes, damage direction, scoring, cleanup, audio and presentation before pushing.

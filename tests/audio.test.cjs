@@ -202,3 +202,18 @@ test("every flap fades in gently and fades fully to silence", () => {
     );
   }
 });
+
+test("zombie splats have a short layered sound, throttle simultaneous pops, and obey mute", () => {
+  const { audio, nodes } = fixture();
+  audio.unlock();
+  audio.play("zombie-pop", 1);
+  assert.equal(nodes.filter((n) => n.kind === "tone").length, 2);
+  assert.equal(nodes.filter((n) => n.kind === "noise").length, 1);
+  const count = nodes.length;
+  audio.play("zombie-pop", 2);
+  assert.equal(nodes.length, count);
+  audio.context.currentTime += 0.1;
+  audio.toggle();
+  audio.play("zombie-pop");
+  assert.equal(nodes.length, count);
+});
