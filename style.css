@@ -985,25 +985,83 @@ footer {
 .power-timer {
   font-size: 13px;
 }
-#ko-feed {
+/* The commentary desk sits below the playable ground line. */
+#announcer {
   position: absolute;
-  top: 235px;
-  right: 32px;
-  display: grid;
-  gap: 8px;
-  max-width: 720px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 5px 32px;
+  box-sizing: border-box;
+  background: #101c2ef2;
+  border-top: 1px solid #33475b;
   pointer-events: none;
 }
-.ko-entry {
-  background: #101c30ed;
-  border-left: 4px solid #ffe4a1;
-  padding: 13px 16px;
-  color: #fff1ce;
-  font-size: 16px;
-  line-height: 1.5;
+.announcer-avatar {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  image-rendering: pixelated;
 }
-.ko-entry.elimination {
-  border-color: #ff7e88;
-  background: #521e2af2;
-  color: #ffe1e5;
+.announcer-name {
+  font-size: 15px;
+  color: #77e8ba;
+  flex: none;
+  line-height: 1.4;
+}
+.announcer-name small {
+  font-size: 10px;
+  color: #9eacb9;
+}
+#commentary {
+  font-size: 18px;
+  color: #d7e3df;
+  line-height: 1.35;
+}
+.win-count {
+  color: #a6dfc4;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.ko-count {
+  font-size: 18px;
+  white-space: nowrap;
+}
+.hud-stats {
+  gap: 8px;
+}
+#scoreboard .score-row {
+  display: block;
+  padding: 10px 0;
+}
+#scoreboard .score-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0;
+  border: 0;
+}
+#scoreboard .award {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 7px 0 0;
+  border: 0;
+}
+.award strong {
+  color: #f8d66d;
+  font-size: 17px;
+}
+.award small {
+  color: #a8b8bf;
+  font-size: 13px;
+}
+.result-box {
+  max-height: 1000px;
+  overflow-y: auto;
 }

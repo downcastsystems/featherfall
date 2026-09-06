@@ -70,6 +70,8 @@ function fixture() {
   }
   const sandbox = {
     Featherfall: { ...Engine, Match },
+    FeatherfallSeries: require("../match-series.js"),
+    FeatherfallBroadcast: require("../broadcast.js"),
     ArcadeAudio: RecordedAudio,
     document,
     window: {},
@@ -272,9 +274,12 @@ test("golden feather announces the cap or restored life accurately", () => {
     f.advance();
     assert.equal(player.lives, 5);
     assert.equal(f.match.pickup, null);
-    assert.equal(
-      f.element("announcement").textContent,
-      lives === 5 ? "EMBER (P1) MAX LIVES REACHED" : "EMBER (P1) +1 LIFE",
+    assert.equal(f.element("announcement").textContent, "");
+    f.advance(4.5);
+    assert.match(f.element("commentary").textContent, /EMBER \(P1\)/);
+    assert.match(
+      f.element("commentary").textContent,
+      lives === 5 ? /full tank|No room/ : /life|lifeline/,
     );
   }
 });
@@ -540,28 +545,30 @@ test("keyboard flap confirms selection and all-ready starts the game", () => {
   f.advance(3.2);
   assert.equal(f.match.players.length, 2);
 });
-test("KO feed preserves simultaneous eliminations and HUD highlights OUT and totals", () => {
+test("announcer queues simultaneous eliminations below the arena and pauses", () => {
   const f = fixture();
   f.press("Enter");
   for (const n of [1, 2, 3, 4]) f.press(`Digit${n}`);
   f.press("Enter");
-  f.advance(3.2);
+  f.advance(7.8);
   const [a, b, c, d] = f.match.players;
   b.invincible = d.invincible = 0;
   b.lives = d.lives = 1;
   f.match.kill(b, a);
   f.match.kill(d, c);
   f.advance(0.2);
-  const feed = f.element("ko-feed").innerHTML;
-  assert.match(feed, /EMBER \(P1\) → MINT \(P2\) · 1 KO · OUT!/);
-  assert.match(feed, /IRIS \(P3\) → SOL \(P4\) · 1 KO · OUT!/);
+  const call = f.element("commentary").textContent;
+  assert.match(call, /MINT \(P2\)/);
+  assert.match(call, /EMBER \(P1\)/);
+  assert.equal(f.element("announcement").textContent, "");
   assert.match(f.element("players-hud").innerHTML, /✕ OUT/);
   f.press("Escape");
   f.advance(7);
-  assert.equal(f.element("ko-feed").innerHTML, feed);
+  assert.equal(f.element("commentary").textContent, call);
   f.press("Enter");
-  f.advance(6.1);
-  assert.equal(f.element("ko-feed").innerHTML, "");
+  f.advance(4.5);
+  assert.match(f.element("commentary").textContent, /SOL \(P4\)/);
+  assert.match(f.element("commentary").textContent, /IRIS \(P3\)/);
 });
 test("power timers freeze when paused and reset on rematch", () => {
   const f = fixture();
@@ -602,9 +609,92 @@ test("HUD, kill feed and results use singular KO only for one knockout", () => {
   assert.match(hud, /2 KOs/);
   assert.doesNotMatch(hud, /KEYS|PAD |BOT|ko-flash/);
   assert.match(hud, /RETURNING IN/);
-  assert.match(f.element("ko-feed").innerHTML, /· 2 KOs/);
+  assert.equal(f.element("announcement").textContent, "");
   b.lives = c.lives = 0;
   f.advance(1.8);
   assert.match(f.element("scoreboard").innerHTML, /2 KOs/);
   assert.match(f.element("scoreboard").innerHTML, /0 KOs/);
+});
+
+test("three round wins show round results first, then match totals and awards, then reset", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  f.advance(3.2);
+  for (let n = 1; n <= 3; n++) {
+    const [a, b] = f.match.players;
+    b.lives = 1;
+    b.invincible = 0;
+    f.match.kill(b, a);
+    f.advance(1.8);
+    assert.equal(f.element("results").hidden, false);
+    assert.equal(
+      f.element("results-heading").textContent,
+      `ROUND ${n} RESULTS`,
+    );
+    assert.match(
+      f.element("scoreboard").innerHTML,
+      new RegExp(`${n} ${n === 1 ? "WIN" : "WINS"}`),
+    );
+    assert.match(f.element("scoreboard").innerHTML, /1 KO/);
+    f.press("Enter");
+    if (n < 3) {
+      f.advance(3.2);
+      assert.ok(f.match.players.every((p) => p.lives === 5 && p.kills === 0));
+      assert.match(
+        f.element("players-hud").innerHTML,
+        new RegExp(`${n} ${n === 1 ? "KO" : "KOs"}`),
+      );
+    }
+  }
+  assert.equal(f.element("results-heading").textContent, "MATCH TOTALS");
+  assert.match(f.element("scoreboard").innerHTML, /3 KOs · 3 WINS/);
+  assert.match(f.element("scoreboard").innerHTML, /class="award"/);
+  assert.equal(f.element("rematch").textContent, "PLAY AGAIN >");
+  f.press("Enter");
+  f.advance(3.2);
+  assert.match(f.element("players-hud").innerHTML, /0 KOs/);
+  assert.doesNotMatch(f.element("players-hud").innerHTML, /3 WINS/);
+});
+test("secret P key replaces a random pickup only during active play, never on repeat or pause", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  f.press("KeyP");
+  assert.equal(f.match.powerPickup, null);
+  f.advance(3.2);
+  f.press("KeyP");
+  const first = f.match.powerPickup;
+  assert.ok(first && ["flame", "sawblade", "rocket"].includes(first.kind));
+  f.key("KeyP", true);
+  assert.equal(f.match.powerPickup, first);
+  f.press("KeyP");
+  assert.notEqual(f.match.powerPickup, first);
+  f.press("Escape");
+  const paused = f.match.powerPickup;
+  f.press("KeyP");
+  assert.equal(f.match.powerPickup, paused);
+});
+test("controller Start advances rounds and final totals instead of resetting wins", () => {
+  const f = fixture(),
+    p = f.pad(0);
+  f.button(p, 9);
+  f.element("add-bot").click();
+  f.button(p, 0);
+  f.advance(3.2);
+  for (let n = 1; n <= 3; n++) {
+    const [a, b] = f.match.players;
+    b.lives = 1;
+    b.invincible = 0;
+    f.match.kill(b, a);
+    f.advance(1.8);
+    f.button(p, 9);
+    if (n < 3) f.advance(3.2);
+  }
+  assert.equal(f.element("results-heading").textContent, "MATCH TOTALS");
+  assert.match(f.element("scoreboard").innerHTML, /3 WINS/);
 });

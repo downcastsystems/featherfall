@@ -1,0 +1,163 @@
+# Match awards
+
+One random qualifying title per player, with no duplicate titles. Categories require a positive recorded value that leads or ties the field. Completed rounds provide fallback titles. Every award shows its supporting statistic.
+
+## Top speed
+
+- FASTEST
+- SPEED DEMON
+- SONIC BOOM
+- BLUR OF FEATHERS
+- SKY MISSILE
+
+## Distance flown or walked
+
+- GLOBETROTTER
+- SKY TOURIST
+- LONG HAUL
+- MILE HIGH CLUB
+- HORIZON CHASER
+
+## Time airborne
+
+- AIRBORNE ACE
+- CLOUD DWELLER
+- NEVER LANDS
+- SKY TENANT
+- WING COMMANDER
+
+## Time on platforms
+
+- LANDLUBBER
+- RUNWAY REGULAR
+- PERCH PATROL
+- GROUND CREW
+- ISLAND HOPPER
+
+## Flaps
+
+- FLAP HAPPY
+- WING MACHINE
+- CARDIO CHAMP
+- FEATHER ENGINE
+- HUMMINGBIRD ENERGY
+
+## Boosts used
+
+- AFTERBURNER
+- TURBO ADDICT
+- BOOST JUNKIE
+- FULL THROTTLE
+- EXPRESS DELIVERY
+
+## Dives started
+
+- DIVE BOMBER
+- GRAVITY FAN
+- NOSE FIRST
+- METEOR SHOWER
+- FLOOR INSPECTOR
+
+## Platform rebounds
+
+- PINBALL WIZARD
+- WALL TESTER
+- BOUNCE HOUSE
+- ROCK SOLID HEAD
+- RICOCHET ROYALTY
+
+## Tied-height clashes
+
+- HEAD BUTTER
+- STUBBORN STREAK
+- TRAFFIC JAM
+- BUMPER BIRD
+- PERSONAL SPACE INVADER
+
+## Golden feathers collected
+
+- GOLD DIGGER
+- FEATHER MAGNET
+- TREASURE HUNTER
+- GOLD RUSH
+- SHINY OBJECT EXPERT
+
+## Power-ups collected
+
+- POWER HUNGRY
+- MYSTERY SHOPPER
+- LOOT GOBLIN
+- BUFF BUFF
+- UPGRADE ENTHUSIAST
+
+## Flame pickups
+
+- FIRE STARTER
+- HOT WINGS
+- INFERNO FAN
+- EXTRA CRISPY
+- RING OF FIRE
+
+## Sawblade pickups
+
+- BUZZ SAW
+- SHARP OPERATOR
+- SPIN DOCTOR
+- CUTTING EDGE
+- SAWDUST MAKER
+
+## Rocket pickups
+
+- ROCKET SCIENTIST
+- SPACE CADET
+- LAUNCH CONTROL
+- JET STREAM
+- ORBITAL MENACE
+
+## Total knockouts
+
+- KO KING
+- FLOCK BREAKER
+- TOP PREDATOR
+- FEATHERWEIGHT HEAVYWEIGHT
+- SKY SHERIFF
+
+## Dive knockouts
+
+- DEATH FROM ABOVE
+- PRECISION STRIKE
+- TALON DROP
+- HIGH GROUND HERO
+- FALLING STAR
+
+## Power-up knockouts
+
+- WEAPONS EXPERT
+- SPECIAL DELIVERY
+- SUPERPOWER SHOWOFF
+- DANGER ZONE
+- ARCADE MENACE
+
+## Knockouts on the last life
+
+- CLUTCH CLAWS
+- LAST LIFE LEGEND
+- CORNERED CREATURE
+- NEVER SAY DIE
+- NERVES OF STEEL
+
+## Boosts, dives and rebounds
+
+- MOST INSANE
+- ABSOLUTE CHAOS
+- WILD CARD
+- LOOSE CANNON
+- UNLICENSED PILOT
+
+## Rounds completed
+
+- SKY REGULAR
+- FLOCK ORIGINAL
+- ARENA VETERAN
+- FEATHERED CONTENDER
+- IN IT TO WING IT

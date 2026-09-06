@@ -62,7 +62,7 @@ The game uses the browser's [standard gamepad mapping](https://developer.mozilla
 - When birds touch, the higher rider wins. Nearly equal heights bounce apart.
 - Each death costs one life and releases a burst of feathers. Riders with lives left respawn after 2.6 seconds on a floating platform chosen to maximize distance from living riders, including distance across the screen seam.
 - Respawns have two seconds of sparkling protection. Protected riders cannot kill or be killed.
-- A golden feather appears on an island after 18–26 seconds and periodically afterward. It restores one life, up to a maximum of five. Riders already at five lives can still collect it; they see “MAX LIVES REACHED” and stay at five. It disappears after 15 seconds if unclaimed. It flashes before expiring.
+- A golden feather appears on an island after 18–26 seconds and periodically afterward. It restores one life, up to a maximum of five. Riders already at five lives can still collect it; the announcer calls out their full life count, and they stay at five. It disappears after 15 seconds if unclaimed. It flashes before expiring.
 - Free for all ends when one rider has lives remaining, including riders awaiting respawn. After the final knockout, the arena stays visible for 1.6 seconds so the feather burst can finish before the winner screen appears.
 - Teams use bright orange Sun and cyan Moon sides, with team panels in the lobby, HUD accents, and in-arena labels/brackets, with no friendly fire. Each side needs at least one participant; 2v2 and uneven teams are supported. The last team with lives remaining wins.
 - Bots use the same physics and life rules. They are practice opponents, not a tuned difficulty system.
@@ -104,4 +104,18 @@ A pickup activates on contact. A new power replaces the current one, and death c
 
 Bots seek useful pickups, favor feathers when missing lives, boost toward nearby targets, and dive at aligned opponents when platforms do not block the descent.
 
-KO totals stay visible in each player's HUD, using "1 KO" and "0 KOs" or "2 KOs". Input-device labels and KO background flashes are omitted to keep the HUD compact. A six-second feed keeps the last four KOs, including simultaneous eliminations. Eliminated players have a red OUT panel. Opposing powers can trade kills; if nobody has lives remaining, the match is a draw. If several attackers hit one victim in the same step, the first resolved hit gets the single KO.
+KO totals stay visible in each player's HUD, using "1 KO" and "0 KOs" or "2 KOs". Input-device labels and KO background flashes are omitted to keep the HUD compact. Chirp, the text announcer at the bottom of the screen, calls out KOs, eliminations and pickups one at a time. A bounded queue handles simultaneous events without covering the playfield. Eliminated players have a red OUT panel. Opposing powers can trade kills; if nobody has lives remaining, the round is a draw and nobody earns a win. If several attackers hit one victim in the same step, the first resolved hit gets the single KO.
+
+## First to three
+
+Each round starts with five lives and a full boost meter. The first player to win three rounds wins the match. In team mode, the first team to win three rounds wins; every teammate receives the team win, including teammates eliminated earlier in the round. Drawn rounds award no wins, but their KOs and performance stats still count.
+
+The HUD shows cumulative KOs and wins. At each round's end, the round results show that round's KOs and remaining lives alongside accumulated wins. Choose Next round to continue. After the deciding round, choose Match totals to see every player's cumulative KOs, wins and a performance award. Play again starts a new match with zero totals. Enter or controller A selects the highlighted option; controller Start advances from results too. Returning to the lobby abandons the current match.
+
+Chirp's sports commentary is text-only and sits beneath the playable ground. Calls pause with gameplay. The central display is reserved for the countdown. Mint's jay now has a slim, pointed bill in both flying and diving poses.
+
+There are 100 award titles in [AWARDS.md](AWARDS.md). Each player receives one randomly selected title from categories where their measured performance leads or ties the field. Awards show the supporting stat. No two players receive the same title. Completed-round awards provide a truthful fallback for players without another leading stat. Movement and action stats exclude dead time and pause time.
+
+## Developer shortcut
+
+Press **P** during active play to replace the waiting power-up with a random one on a random floating island. Press again to reroll. This does not stack pickups or activate one on a player. Held-key repeats, countdowns, pause and results ignore the shortcut. It is deliberately absent from the in-game controls. Normal power-up spawning resumes 25–40 seconds after the latest test spawn.

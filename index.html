@@ -47,7 +47,7 @@
           PRESS ENTER <span>OR</span> CONTROLLER A / START
         </div>
         <div class="menu-specs">
-          <span>2–4 PLAYERS</span><b>*</b><span>5 LIVES</span><b>*</b
+          <span>2–4 PLAYERS</span><b>*</b><span>FIRST TO 3 WINS</span><b>*</b
           ><span>ONE BIG SKY</span>
         </div>
       </section>
@@ -87,21 +87,27 @@
       </section>
       <section id="hud" hidden aria-label="Match status">
         <div id="players-hud"></div>
-        <div
-          id="ko-feed"
-          role="log"
-          aria-live="polite"
-          aria-label="Knockouts"
-        ></div>
         <div class="match-info">
           <span id="match-mode">FREE FOR ALL</span
           ><strong id="match-time">00:00</strong
           ><button id="sound-play" aria-label="Mute sound">SOUND ON</button>
           <button id="pause-button">II PAUSE</button>
         </div>
-        <div class="arena-caption">
-          <span>THE HOLLOW SKY</span
-          ><span>A TAP/HOLD FLAP · DOWN DIVE · X BOOST · START PAUSE</span>
+        <div id="announcer" aria-label="Skybox commentary">
+          <svg class="announcer-avatar" viewBox="0 0 40 40" aria-hidden="true">
+            <path fill="#77e8ba" d="M7 10h20v19H7zM4 7h11v7H4z" />
+            <path fill="#edf8d2" d="M18 15h6v5h-6z" />
+            <path fill="#111b2c" d="M21 16h3v3h-3z" />
+            <path fill="#f8d66d" d="M27 18h10l-10 6z" />
+            <path fill="#b9a1ff" d="M3 13h4v16H3zM7 8h19v4H7zM26 12h4v7h-4z" />
+            <path fill="#b9a1ff" d="M7 28h17v3H7zM22 25h5v6h-5z" />
+          </svg>
+          <span class="announcer-name"
+            >CHIRP<br /><small>SKYBOX LIVE</small></span
+          >
+          <span id="commentary" role="status" aria-live="polite"
+            >Welcome to the wildest wings in sport.</span
+          >
         </div>
       </section>
       <div id="announcement" aria-live="polite"></div>
@@ -119,7 +125,7 @@
       </section>
       <section id="results" class="modal" hidden>
         <div class="modal-box result-box">
-          <div class="eyebrow">THE FEATHERS HAVE SETTLED</div>
+          <div id="results-heading" class="eyebrow">ROUND RESULTS</div>
           <canvas id="winner-bird" width="180" height="100"></canvas>
           <h2 id="winner-title"></h2>
           <p id="winner-subtitle"></p>
@@ -139,6 +145,8 @@
     </main>
     <script src="engine.js"></script>
     <script src="audio.js"></script>
+    <script src="match-series.js"></script>
+    <script src="broadcast.js"></script>
     <script src="game.js"></script>
   </body>
 </html>

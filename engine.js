@@ -179,6 +179,26 @@
         lives: MAX_LIVES,
         boostCharge: 1,
         kills: 0,
+        stats: {
+          deaths: 0,
+          peakSpeed: 0,
+          distance: 0,
+          airTime: 0,
+          groundTime: 0,
+          flaps: 0,
+          boosts: 0,
+          dives: 0,
+          bumps: 0,
+          clashes: 0,
+          feathers: 0,
+          powerups: 0,
+          flamePickups: 0,
+          sawPickups: 0,
+          rocketPickups: 0,
+          diveKOs: 0,
+          powerKOs: 0,
+          comebackKOs: 0,
+        },
         alive: false,
         invincible: 0,
         respawn: 0,
@@ -214,8 +234,9 @@
       });
       this.events.push({ type: "spawn", x: p.x, y: p.y, id: p.id });
     }
-    kill(victim, attacker) {
+    kill(victim, attacker, cause = "contact") {
       if (!victim.alive || victim.invincible > 0) return;
+      victim.stats.deaths++;
       victim.alive = false;
       victim.power = null;
       victim.powerTime = 0;
@@ -223,6 +244,9 @@
       victim.respawn = victim.lives > 0 ? 2.6 : 0;
       if (attacker) {
         attacker.kills++;
+        if (cause !== "contact") attacker.stats.powerKOs++;
+        if (attacker.diving && cause === "contact") attacker.stats.diveKOs++;
+        if (attacker.lives === 1) attacker.stats.comebackKOs++;
         if (attacker.power !== "sawblade") attacker.vy = -210;
       }
       this.events.push({
@@ -237,6 +261,14 @@
     }
     equip(p, kind) {
       if (!POWERUPS[kind] || !p.alive) return;
+      p.stats.powerups++;
+      p.stats[
+        {
+          flame: "flamePickups",
+          sawblade: "sawPickups",
+          rocket: "rocketPickups",
+        }[kind]
+      ]++;
       const wasRocket = p.power === "rocket";
       if (p.boostTime > 0 && wasRocket !== (kind === "rocket"))
         p.vx *= kind === "rocket" ? ROCKET_SPEED : 1 / ROCKET_SPEED;
@@ -283,7 +315,7 @@
               (f) => Math.hypot(wrapDelta(f.x, q.x), f.y - q.y) < radius,
             )
           )
-            if (!hits.has(q.id)) hits.set(q.id, p);
+            if (!hits.has(q.id)) hits.set(q.id, { owner: p, cause: p.power });
       }
       for (const f of this.projectiles) {
         const owner = this.players[f.owner];
@@ -298,13 +330,48 @@
             1,
           );
           if (Math.hypot(q.x - f.oldX - t * dx, q.y - f.oldY - t * dy) < 29)
-            if (!hits.has(q.id)) hits.set(q.id, owner);
+            if (!hits.has(q.id)) hits.set(q.id, { owner, cause: "flame" });
         }
       }
-      for (const [id, owner] of hits) this.kill(this.players[id], owner);
+      for (const [id, hit] of hits)
+        this.kill(this.players[id], hit.owner, hit.cause);
+    }
+    spawnPower(randomLocation = false) {
+      if (this.winner) return;
+      let spot;
+      if (randomLocation) {
+        const platform =
+          PLATFORMS[
+            Math.min(
+              PLATFORMS.length - 2,
+              Math.floor(this.rng() * (PLATFORMS.length - 1)),
+            )
+          ];
+        spot = {
+          x: platform.x + 30 + this.rng() * (platform.w - 60),
+          y: platform.y - 12,
+        };
+      } else spot = chooseSpawn(this.players, this.rng);
+      const kinds = Object.keys(POWERUPS);
+      this.powerPickup = {
+        x: spot.x,
+        y: spot.y - 14,
+        ttl: 12,
+        kind: kinds[
+          Math.min(kinds.length - 1, Math.floor(this.rng() * kinds.length))
+        ],
+      };
+      this.nextPower = this.time + 25 + this.rng() * 15;
+      this.events.push({ type: "power-appeared", kind: this.powerPickup.kind });
     }
     step(dt, inputs = []) {
       if (this.winner) return;
+      const eventStart = this.events.length;
+      const before = this.players.map((p) => ({
+        x: p.x,
+        y: p.y,
+        alive: p.alive,
+      }));
       this.time += dt;
       for (const p of this.players) {
         if (!p.alive) {
@@ -412,6 +479,13 @@
           p.vy = Math.max(0, p.vy);
         }
       }
+      for (const p of this.players) {
+        const old = before[p.id];
+        if (!old.alive || !p.alive) continue;
+        p.stats.distance += Math.hypot(wrapDelta(p.x, old.x), p.y - old.y);
+        p.stats.peakSpeed = Math.max(p.stats.peakSpeed, Math.hypot(p.vx, p.vy));
+        p.stats[p.grounded ? "groundTime" : "airTime"] += dt;
+      }
       for (const f of this.projectiles) {
         f.oldX = f.x;
         f.oldY = f.y;
@@ -447,6 +521,8 @@
               b.vx = -side * 260;
               a.vy = b.vy = -100;
               a.clash = b.clash = 0.2;
+              a.stats.clashes++;
+              b.stats.clashes++;
               this.events.push({
                 type: "clash",
                 x: (b.x + dx / 2 + W) % W,
@@ -463,6 +539,7 @@
             Math.abs(wrapDelta(p.x, this.pickup.x)) < 28 &&
             Math.abs(p.y - this.pickup.y) < 32
           ) {
+            p.stats.feathers++;
             const maxReached = p.lives >= MAX_LIVES;
             p.lives = Math.min(MAX_LIVES, p.lives + 1);
             this.events.push({
@@ -498,22 +575,17 @@
         }
         if (this.powerPickup?.ttl <= 0) this.powerPickup = null;
       }
-      if (!this.powerPickup && this.time >= this.nextPower) {
-        const s = chooseSpawn(this.players, this.rng);
-        const kinds = Object.keys(POWERUPS);
-        this.powerPickup = {
-          x: s.x,
-          y: s.y - 14,
-          ttl: 12,
-          kind: kinds[
-            Math.min(kinds.length - 1, Math.floor(this.rng() * kinds.length))
-          ],
-        };
-        this.nextPower = this.time + 25 + this.rng() * 15;
-        this.events.push({
-          type: "power-appeared",
-          kind: this.powerPickup.kind,
-        });
+      if (!this.powerPickup && this.time >= this.nextPower) this.spawnPower();
+      for (let i = eventStart; i < this.events.length; i++) {
+        const event = this.events[i];
+        const metric = {
+          flap: "flaps",
+          boost: "boosts",
+          dive: "dives",
+          bump: "bumps",
+        }[event.type];
+        if (metric && this.players[event.id])
+          this.players[event.id].stats[metric]++;
       }
       const survivors = this.players.filter((p) => p.lives > 0);
       if (this.mode === "teams") {

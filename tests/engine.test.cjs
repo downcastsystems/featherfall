@@ -702,3 +702,52 @@ test("collecting rocket during a boost adds its bonus once and dive still wins",
   assert.ok(p.diving);
   assert.equal(p.boostTime, 0);
 });
+
+test("award telemetry records real actions and survives respawn without counting dead time", () => {
+  const m = make(),
+    [p, q] = m.players;
+  position(p, 740, 900);
+  position(q, 1500, 900);
+  p.grounded = false;
+  q.invincible = 999;
+  tick(m, 1, [{ move: 1, flap: true, boost: true }]);
+  assert.equal(p.stats.flaps, 1);
+  assert.equal(p.stats.boosts, 1);
+  assert.ok(
+    p.stats.distance > 0 && p.stats.peakSpeed >= 650 && p.stats.airTime > 0,
+  );
+  tick(m, 1, [{ dive: true }]);
+  assert.equal(p.stats.dives, 1);
+  m.pickup = { x: p.x, y: p.y, ttl: 10 };
+  tick(m);
+  assert.equal(p.stats.feathers, 1);
+  m.equip(p, "flame");
+  assert.equal(p.stats.flamePickups, 1);
+  assert.equal(p.stats.powerups, 1);
+  m.kill(p);
+  const distance = p.stats.distance;
+  const air = p.stats.airTime;
+  tick(m, 200);
+  assert.equal(p.stats.distance, distance);
+  assert.equal(p.stats.airTime, air);
+  tick(m, 120);
+  assert.ok(p.alive);
+  assert.equal(p.stats.deaths, 1);
+  assert.equal(p.stats.flaps, 1);
+});
+test("awards distinguish dive KOs, power KOs, and last-life KOs", () => {
+  const m = make(),
+    [p, q] = m.players;
+  position(p, 740, 900);
+  position(q, 740, 920);
+  p.lives = 1;
+  p.diving = true;
+  m.kill(q, p);
+  assert.equal(p.stats.diveKOs, 1);
+  assert.equal(p.stats.comebackKOs, 1);
+  position(q, 800, 900);
+  p.diving = false;
+  m.kill(q, p, "flame");
+  assert.equal(p.stats.powerKOs, 1);
+  assert.equal(p.stats.diveKOs, 1);
+});

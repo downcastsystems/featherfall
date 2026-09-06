@@ -61,3 +61,11 @@ Complete: 49 automated tests and syntax checks pass. Browser checks cover all sc
 - Remove input-device labels and KO background flashes. Use singular/plural KO text in HUD, feed and results. Put unnamed power timers beside KO totals.
 - Rocket increases horizontal acceleration, top speed and boost speed by 25% for its existing ten seconds. Preserve dive/flap rules, unlimited charges, collision rebounds, and speed restoration on expiry/replacement.
 - Verify speed transitions and pluralized combat feedback, run the full suite, inspect browser visuals, and review the final diff.
+
+## Announcer and first-to-three matches
+
+- Put text-only sports calls in a 60-pixel bottom desk below the ground, with a small announcer portrait. Replace event pop-ups and the KO stack; retain only the central countdown. Queue concurrent events with bounded capacity, reading time and stale-call expiration.
+- Separate deterministic round physics from match accounting. First player/team to three wins; draws award none. Snapshot round results once, preserve cumulative KOs/wins, reset lives/powers between rounds, and show final totals only after the deciding round's results.
+- Track actual speed, movement, time airborne/on platforms, flaps, boosts, dives, rebounds, clashes, pickups and KO types. Choose one unique random qualifying award per player from 100 titles, with visible evidence and participation fallbacks.
+- Sharpen the jay bill in normal and dive artwork. P spawns/replaces one random power on a floating platform during active play only; leave the shortcut out of the UI.
+- Verify round/team/draw accounting, duplicate-result protection, complete keyboard/controller progression, telemetry, award eligibility, announcer concurrency/pause and debug input. Inspect live match and four-player final results in the browser, review the diff, and push the verified game.

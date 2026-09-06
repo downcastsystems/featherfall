@@ -95,3 +95,9 @@ Browser checks at 1280×720 cover the ready checkmark, four-player match, KO fee
 ## September 6 polish follow-up
 
 66 tests pass, plus syntax checks. Added checks for Rocket's 25% acceleration/top speed/boost bonus, both directions, faster platform rebounds, pickup/replacement/expiry during a burst, and dive precedence. Presentation checks cover 0/1/2 KOs in the HUD, feed and results, removal of device labels and flashes, and retained respawn feedback. Browser visual checks use a temporary deterministic scene at 1280×720 for glows, the rocket silhouette, compact HUD and rear exhaust facing left, right and up during dives. Temporary preview pages are excluded from the game repository.
+
+## Announcer and match scoring update
+
+80 automated tests and syntax checks pass. Checks cover cumulative first-to-three FFA and team scores, draws, duplicate result protection, round-to-final result sequencing, clean new matches, controller Start progression, 100 unique stat-qualified awards, truthful fallback awards, movement/action telemetry across death and respawn, bottom commentary queuing/pause/expiry, and the P shortcut's active-play-only behavior.
+
+Browser checks at 1280×720 cover the jay preview, live bottom commentary beneath the ground, cumulative KOs and wins in round two, P spawning a visible pickup, and round result layout. A temporary accelerated round fixture checks all three result transitions and the four-player match totals/award layout using the real presentation code. This fixture is excluded from the repository. Physical controller/Windows limitations above remain unchanged.

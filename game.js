@@ -54,7 +54,10 @@
     seats = [null, null, null, null],
     mode = "ffa",
     match = null;
-  let koFeed = [];
+  const { MatchSeries } = FeatherfallSeries;
+  const broadcast = new FeatherfallBroadcast.Broadcast();
+  let series = null,
+    resultsMode = "round";
   const powerColor = {
     flame: "#ff9658",
     sawblade: "#d8e7ff",
@@ -65,8 +68,7 @@
     clock = 0,
     last = 0,
     accumulator = 0,
-    hudClock = 0,
-    noticeTime = 0;
+    hudClock = 0;
   let pressed = new Set(),
     tapped = new Set(),
     padPrevious = new Map(),
@@ -137,7 +139,6 @@
     document.body.classList.toggle("playing", inArena);
     $("announcement").textContent = "";
     $("announcement").className = "";
-    noticeTime = 0;
     pressed.clear();
     tapped.clear();
     pendingFlaps.clear();
@@ -152,9 +153,8 @@
     if (next === "results") $("rematch").focus();
     refreshMenuFocus();
   }
-  function announce(text, seconds = 2.5) {
-    $("announcement").textContent = text;
-    noticeTime = seconds;
+  function announce(text) {
+    broadcast.say(text);
   }
   const playerName = (p) => `${birds[p.character].name} (P${p.slot + 1})`;
   function menuOptions() {
@@ -351,21 +351,31 @@
   });
   function startMatch() {
     if (!canStart()) return;
-    audioUnlock();
-    match = new Match(
-      seats
-        .filter(Boolean)
-        .map((s, slot) => ({ ...s, slot: seats.indexOf(s) })),
+    series = new MatchSeries(
+      seats.filter(Boolean).map((s) => ({ ...s, slot: seats.indexOf(s) })),
       mode,
     );
+    startRound();
+  }
+  function startRound() {
+    audioUnlock();
+    match = new Match(series.seats, series.mode);
+    mode = series.mode;
     particles = [];
-    koFeed = [];
-    $("ko-feed").innerHTML = "";
+    broadcast.reset();
+    $("commentary").textContent =
+      `Getting ready for round ${series.rounds.length + 1}. Fresh wings, fresh chances.`;
     countdown = 3;
     endingTime = 0;
+    resultsMode = "round";
     show("countdown");
     updateHud();
     tone(300, 0.15);
+  }
+  function continueResults() {
+    if (resultsMode === "match") startMatch();
+    else if (series.winner) showResults(true);
+    else startRound();
   }
   function pause(reason = "The sky can wait.", disconnect = false) {
     if (!["match", "countdown", "ending"].includes(screen)) return;
@@ -411,7 +421,7 @@
   $("pause-button").onclick = () => pause();
   $("resume").onclick = resume;
   $("quit").onclick = $("change-players").onclick = () => show("lobby");
-  $("rematch").onclick = startMatch;
+  $("rematch").onclick = continueResults;
   $("home-link").onclick = (e) => {
     e.preventDefault();
     if (screen === "lobby") show("menu");
@@ -439,9 +449,15 @@
       keys.some((k) =>
         [k.left, k.right, k.flap, k.dive, k.boost].includes(e.code),
       ) ||
-      ["Enter", "Escape", "Digit1", "Digit2", "Digit3", "Digit4"].includes(
-        e.code,
-      );
+      [
+        "Enter",
+        "Escape",
+        "Digit1",
+        "Digit2",
+        "Digit3",
+        "Digit4",
+        "KeyP",
+      ].includes(e.code);
     if (gameKey) e.preventDefault();
     if (e.repeat) return;
     pressed.add(e.code);
@@ -451,6 +467,10 @@
       return;
     }
     audioUnlock();
+    if (e.code === "KeyP" && screen === "match") {
+      match.spawnPower(true);
+      return;
+    }
     if (
       (screen === "pause" || screen === "results" || screen === "menu") &&
       ["ArrowUp", "ArrowDown"].includes(e.code)
@@ -583,7 +603,7 @@
         if (edge.up || edge.down) navigateMenu(edge.up ? -1 : 1);
         if (edge.flap) selectMenu();
         else if (edge.start && screen === "pause") resume();
-        else if (edge.start && screen === "results") startMatch();
+        else if (edge.start && screen === "results") continueResults();
         else if (edge.back) {
           if (screen === "pause") resume();
           else show("lobby");
@@ -749,15 +769,21 @@
         sound.play("death");
         const victim = match.players[event.id];
         const attacker = match.players[event.attackerId];
-        const text = attacker
-          ? `${playerName(attacker)} → ${playerName(victim)} · ${koLabel(event.kills)}`
-          : `${playerName(victim)} LOST A LIFE`;
-        koFeed.push({
-          text: text + (event.eliminated ? " · OUT!" : ""),
-          out: event.eliminated,
-          ttl: 6,
-        });
-        koFeed = koFeed.slice(-4);
+        if (attacker)
+          broadcast.say(
+            event.eliminated ? "out" : "ko",
+            {
+              a: playerName(attacker),
+              v: playerName(victim),
+            },
+            event.eliminated ? 2 : 1,
+          );
+        else
+          broadcast.say(
+            `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
+            {},
+            1,
+          );
       }
       if (event.type === "spawn") {
         burst(event.x, event.y, "#fff1c8", 16, 0.4);
@@ -783,20 +809,22 @@
       }
       if (event.type === "life") {
         burst(event.x, event.y, "#ffe6a0", 24);
-        announce(
-          `${playerName(match.players[event.id])} ${event.maxReached ? "MAX LIVES REACHED" : "+1 LIFE"}`,
-        );
+        broadcast.say(event.maxReached ? "capped" : "life", {
+          a: playerName(match.players[event.id]),
+        });
         tone(660, 0.35, "triangle", 0.07, 1320);
       }
       if (event.type === "power") {
         burst(event.x, event.y, powerColor[event.kind], 28);
+        broadcast.say("power", { a: playerName(match.players[event.id]) });
         tone(420, 0.35, "triangle", 0.06, 1300);
       }
       if (event.type === "power-appeared") {
+        broadcast.say("pickup");
         tone(600, 0.25, "triangle", 0.04, 1000);
       }
       if (event.type === "pickup") {
-        announce("A GOLDEN FEATHER HAS APPEARED");
+        broadcast.say("pickup");
         tone(700, 0.3, "sine", 0.04, 1050);
       }
     }
@@ -807,35 +835,63 @@
     $("players-hud").innerHTML = match.players
       .map((p) => {
         const b = birds[p.character];
-        return `<div class="hud-player ${p.lives === 0 ? "out" : ""} ${mode === "teams" ? "team-hud" : ""}" style="--bird:${b.color};--team:${TEAMS[p.team].color}"><div class="name">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</div><div class="lives" aria-label="${p.lives} lives">${p.lives ? Array.from({ length: p.lives }, () => '<i class="pixel-heart" aria-hidden="true"></i>').join("") : "✕ OUT"}</div><div class="boost-meter ${p.boostCharge >= 1 ? "charged" : ""}" role="progressbar" aria-label="${playerName(p)} boost" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.boostCharge * 100)}"><i style="width:${p.boostCharge * 100}%"></i><span>${p.power === "rocket" ? "UNLIMITED BOOST" : p.boostCharge >= 1 ? "BOOST READY" : "BOOST"}</span></div><div class="hud-stats"><span class="ko-count">${koLabel(p.kills)}</span>${p.power ? `<span class="power-timer" aria-label="Power-up time remaining" style="color:${powerColor[p.power]}">${Math.ceil(p.powerTime)}s</span>` : ""}</div>${!p.alive && p.lives ? `<div class="meta">RETURNING IN ${Math.ceil(p.respawn)}...</div>` : ""}</div>`;
+        const total = series.players[p.id];
+        const kills = total.kills + (series.recorded.has(match) ? 0 : p.kills);
+        return `<div class="hud-player ${p.lives === 0 ? "out" : ""} ${mode === "teams" ? "team-hud" : ""}" style="--bird:${b.color};--team:${TEAMS[p.team].color}"><div class="name">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</div><div class="lives" aria-label="${p.lives} lives">${p.lives ? Array.from({ length: p.lives }, () => '<i class="pixel-heart" aria-hidden="true"></i>').join("") : "✕ OUT"}</div><div class="boost-meter ${p.boostCharge >= 1 ? "charged" : ""}" role="progressbar" aria-label="${playerName(p)} boost" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.boostCharge * 100)}"><i style="width:${p.boostCharge * 100}%"></i><span>${p.power === "rocket" ? "UNLIMITED BOOST" : p.boostCharge >= 1 ? "BOOST READY" : "BOOST"}</span></div><div class="hud-stats"><span class="ko-count">${koLabel(kills)}</span><span class="win-count">${total.wins} ${total.wins === 1 ? "WIN" : "WINS"}</span>${p.power ? `<span class="power-timer" aria-label="Power-up time remaining" style="color:${powerColor[p.power]}">${Math.ceil(p.powerTime)}s</span>` : ""}</div>${!p.alive && p.lives ? `<div class="meta">RETURNING IN ${Math.ceil(p.respawn)}...</div>` : ""}</div>`;
       })
       .join("");
     const time = Math.floor(match.time);
     $("match-time").textContent =
       `${String(Math.floor(time / 60)).padStart(2, "0")}:${String(time % 60).padStart(2, "0")}`;
     $("match-mode").textContent =
-      mode === "ffa" ? "FREE FOR ALL" : "TEAM BATTLE";
+      `ROUND ${series.rounds.length + (series.recorded.has(match) ? 0 : 1)} · FIRST TO 3`;
   }
   function finish() {
     endingTime = 0;
+    series.recordRound(match);
+    showResults(false);
+  }
+  function showResults(final) {
+    resultsMode = final ? "match" : "round";
     updateHud();
     show("results");
     tone(440, 0.6, "triangle", 0.06, 880);
-    const result = match.winner,
+    const result = final ? series.winner : match.winner,
       winner = match.players.find((p) => p.id === result.id),
       teamName = result.team === 0 ? "Sun team" : "Moon team";
+    $("results-heading").textContent = final
+      ? "MATCH TOTALS"
+      : `ROUND ${series.rounds.length} RESULTS`;
     $("winner-title").textContent = result.draw
       ? "A sky without a winner."
       : mode === "teams"
         ? `${teamName} wins!`
         : `${playerName(winner)} wins!`;
-    $("winner-subtitle").textContent = "One big sky. A whole lot of feathers.";
-    $("scoreboard").innerHTML = [...match.players]
-      .sort((a, b) => b.lives - a.lives || b.kills - a.kills)
-      .map(
-        (p) =>
-          `<div><span style="color:${birds[p.character].color}">${playerName(p)}${mode === "teams" ? ` · ${p.team === 0 ? "SUN" : "MOON"}` : ""}</span><span>${koLabel(p.kills)} &nbsp; · &nbsp; ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT</span></div>`,
+    $("winner-subtitle").textContent = final
+      ? `First to three. ${series.rounds.length} rounds of flying mayhem.`
+      : result.draw
+        ? "No win awarded. The next round starts fresh."
+        : series.winner
+          ? "Three wins! Match totals and awards are up next."
+          : "Round complete. First to three wins takes the match.";
+    $("rematch").textContent = final
+      ? "PLAY AGAIN >"
+      : series.winner
+        ? "MATCH TOTALS >"
+        : "NEXT ROUND >";
+    $("scoreboard").className = final ? "match-totals" : "round-totals";
+    const rows = final ? series.players : match.players;
+    $("scoreboard").innerHTML = [...rows]
+      .sort((a, b) =>
+        final
+          ? b.wins - a.wins || b.kills - a.kills
+          : b.lives - a.lives || b.kills - a.kills,
       )
+      .map((p) => {
+        const total = series.players[p.id],
+          award = final ? series.awards[p.id] : null;
+        return `<div class="score-row"><div class="score-line"><span style="color:${birds[p.character].color}">${playerName(p)}${mode === "teams" ? ` · ${TEAMS[p.team].name}` : ""}</span><span>${koLabel(p.kills)} · ${total.wins} ${total.wins === 1 ? "WIN" : "WINS"}${final ? "" : ` · ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT`}</span></div>${award ? `<div class="award"><strong>${award.label}</strong><small>${award.reason}</small></div>` : ""}</div>`;
+      })
       .join("");
     const c = $("winner-bird").getContext("2d");
     c.clearRect(0, 0, 180, 100);
@@ -932,8 +988,9 @@
       } else {
         r(-4, 3, 10, 9, b.color);
         r(-2, 6, 7, 6, b.light);
-        r(-1, 12, 4, 5, "#edc06e");
-        r(0, 17, 2, 3, "#edc06e");
+        r(-1, 12, 4, 3, "#263747");
+        r(0, 15, 2, 5, "#263747");
+        r(0, 20, 1, 3, "#849eac");
         r(-2, 8, 2, 2, "#111829");
         r(-7, -24, 4, 8, b.color);
         r(-10 + tuck, -16, 2, 10, b.light);
@@ -1035,7 +1092,11 @@
       r(6, -10, 9, 10, b.color);
       r(11, -8, 4, 4, b.light);
       r(12, -7, 2, 2, "#111829");
-      r(15, -5, 6, 3, "#edc06e");
+      r(15, -6, 4, 4, "#263747");
+      r(19, -5, 4, 2, "#263747");
+      r(23, -5, 3, 1, "#617d8d");
+      r(19, -5, 4, 1, "#849eac");
+      r(15, -6, 4, 1, "#9fb5be");
       r(-18, -2, 7, 4, b.dark);
       r(-21, -5, 5, 4, b.color);
       wing(true);
@@ -1378,7 +1439,7 @@
       if (countdown <= 0) {
         countdown = 0;
         show("match");
-        announce("TAKE THE HIGH GROUND", 1.7);
+        broadcast.say("round", { r: series.rounds.length + 1 });
       }
       tapped.clear();
       pendingFlaps.clear();
@@ -1403,10 +1464,6 @@
         updateHud();
         hudClock = 0;
       }
-      if (noticeTime > 0) {
-        noticeTime -= dt;
-        if (noticeTime <= 0) $("announcement").textContent = "";
-      }
     } else if (screen === "ending") {
       // Keep the final arena and feather particles visible before the overlay.
       // Combat is already settled, so only presentation time advances here.
@@ -1421,16 +1478,10 @@
       pendingBoosts.clear();
     }
     if (["match", "ending"].includes(screen)) {
-      koFeed.forEach((entry) => (entry.ttl -= dt));
-      koFeed = koFeed.filter((entry) => entry.ttl > 0);
+      const call = broadcast.step(dt);
+      if ($("commentary").textContent !== call)
+        $("commentary").textContent = call;
     }
-    const feedHtml = koFeed
-      .map(
-        (entry) =>
-          `<div class="ko-entry ${entry.out ? "elimination" : ""}">${entry.text}</div>`,
-      )
-      .join("");
-    if ($("ko-feed").innerHTML !== feedHtml) $("ko-feed").innerHTML = feedHtml;
     render(dt);
     requestAnimationFrame(frame);
   }
