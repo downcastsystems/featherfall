@@ -1214,15 +1214,11 @@
       g.fill();
     };
     if (arena.motif === "sun") {
-      // A banded amber sun and distant wind-carved mesas.
+      // An amber sun and distant wind-carved mesas.
       g.fillStyle = "#edbf7f35";
       g.beginPath();
       g.arc(960, 330, 145, 0, Math.PI * 2);
       g.fill();
-      for (let y = 310; y < 480; y += 22) {
-        g.fillStyle = arena.sky[1] + "a0";
-        g.fillRect(800, y, 320, 9);
-      }
       for (const x of [50, 470, 1230, 1650]) {
         polygon(
           [
