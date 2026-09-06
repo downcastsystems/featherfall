@@ -41,7 +41,7 @@ function zombie(m, props = {}) {
 const tick = (m, n = 1, inputs = []) => {
   for (let i = 0; i < n; i++) m.step(1 / 120, inputs);
 };
-test("graves only exist on the ruins and emit two zombies per wave with a cap", () => {
+test("graves only exist on the ruins and emit one zombie per appearance with a cap", () => {
   for (const a of ARENAS) {
     const m = new Match(
       [{ character: 0 }, { character: 1 }],
@@ -51,7 +51,7 @@ test("graves only exist on the ruins and emit two zombies per wave with a cap", 
     );
     assert.equal(m.graves.length, a === arena ? 4 : 0);
     m.spawnZombies();
-    assert.equal(m.zombies.length, a === arena ? 2 : 0);
+    assert.equal(m.zombies.length, a === arena ? 1 : 0);
     if (a !== arena) continue;
     for (let i = 0; i < 20; i++) m.spawnZombies();
     assert.equal(m.zombies.length, 12);
@@ -204,6 +204,7 @@ test("naturally spawned zombies survive a first ledge and eventually splat after
   const rolls = [0, 0.9, 0.3, 0.1];
   m.rng = () => rolls.shift() ?? 0.5;
   m.spawnZombies();
+  m.spawnZombies();
   let shortLanding = false;
   for (let i = 0; i < 2400; i++) {
     tick(m);
@@ -222,10 +223,12 @@ test("zombies independently choose any grave and either direction without mirror
   const rolls = [0.1, 0.1, 0.1, 0.1, 0.6, 0.9, 0.9, 0.1];
   m.rng = () => rolls.shift();
   m.spawnZombies();
+  m.spawnZombies();
   assert.equal(m.zombies[0].x, m.graves[0].x);
   assert.equal(m.zombies[1].x, m.graves[0].x);
   assert.equal(m.zombies[0].vx, -72);
   assert.equal(m.zombies[1].vx, -72);
+  m.spawnZombies();
   m.spawnZombies();
   assert.equal(m.zombies[2].x, m.graves[2].x);
   assert.equal(m.zombies[2].vx, 72);
@@ -258,7 +261,7 @@ test("occupied graves are skipped and a fully occupied graveyard spawns nothing"
   assert.equal(full.zombies.length, 0);
   full.players[0].alive = false;
   full.spawnZombies();
-  assert.equal(full.zombies.length, 2);
+  assert.equal(full.zombies.length, 1);
   assert.ok(full.zombies.every((z) => z.x === full.graves[0].x));
 });
 test("walking onto a grave during emergence cancels its zombie without hurting the player", () => {
@@ -322,4 +325,19 @@ test("a falling zombie can cross the seam and land on the ground normally", () =
   assert.equal(z.y, 1010);
   assert.equal(z.grounded, true);
   assert.equal(z.alive, true);
+});
+
+test("scheduled appearances emit one zombie at a time with independently randomized gaps", () => {
+  const m = make();
+  m.nextZombie = 0;
+  for (const roll of [0.1, 0.9, 0.3]) {
+    m.rng = () => roll;
+    m.time = m.nextZombie;
+    const count = m.nextZombieId;
+    tick(m);
+    assert.equal(m.nextZombieId, count + 1);
+    assert.ok(Math.abs(m.nextZombie - m.time - (2 + roll * 3)) < 0.001);
+    tick(m, 120);
+    assert.equal(m.nextZombieId, count + 1);
+  }
 });

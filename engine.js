@@ -441,31 +441,29 @@
       );
     }
     spawnZombies() {
-      if (!this.graves.length || this.zombies.length > 10) return;
+      if (!this.graves.length || this.zombies.length >= 12) return;
       const available = this.graves.filter((g) => !this.graveOccupied(g));
       if (!available.length) return;
       // Each zombie independently picks a clear grave and direction.
-      for (let i = 0; i < 2; i++) {
-        const grave =
-          available[
-            Math.min(
-              available.length - 1,
-              Math.floor(this.rng() * available.length),
-            )
-          ];
-        this.zombies.push({
-          id: this.nextZombieId++,
-          x: grave.x,
-          y: grave.y,
-          vx: this.rng() < 0.5 ? -72 : 72,
-          vy: 0,
-          grounded: true,
-          fallFrom: grave.y,
-          emerge: 0.9,
-          age: 0,
-          alive: true,
-        });
-      }
+      const grave =
+        available[
+          Math.min(
+            available.length - 1,
+            Math.floor(this.rng() * available.length),
+          )
+        ];
+      this.zombies.push({
+        id: this.nextZombieId++,
+        x: grave.x,
+        y: grave.y,
+        vx: this.rng() < 0.5 ? -72 : 72,
+        vy: 0,
+        grounded: true,
+        fallFrom: grave.y,
+        emerge: 0.9,
+        age: 0,
+        alive: true,
+      });
     }
     popZombie(z, reason) {
       if (!z.alive) return;
@@ -482,7 +480,7 @@
       if (!this.graves.length) return;
       if (this.time >= this.nextZombie) {
         this.spawnZombies();
-        this.nextZombie = this.time + 7;
+        this.nextZombie = this.time + 2 + this.rng() * 3;
       }
       for (const z of this.zombies) {
         z.age += dt;
