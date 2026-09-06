@@ -6,13 +6,15 @@
     H,
     CHARACTERS: birds,
     TEAMS,
-    PLATFORMS,
+    ARENAS,
+    ArenaRotation,
     PLATFORM_DEPTH,
     Match,
     botInput,
     gamepadState,
     edges,
   } = Featherfall;
+  const arenaRotation = new ArenaRotation();
   const $ = (id) => document.getElementById(id);
   const canvas = $("arena"),
     ctx = canvas.getContext("2d");
@@ -359,7 +361,13 @@
   }
   function startRound() {
     audioUnlock();
-    match = new Match(series.seats, series.mode);
+    match = new Match(
+      series.seats,
+      series.mode,
+      Math.random,
+      arenaRotation.next(),
+    );
+    buildBackground(match.arena);
     mode = series.mode;
     particles = [];
     broadcast.reset();
@@ -456,6 +464,7 @@
         "Digit3",
         "Digit4",
         "KeyP",
+        "KeyN",
       ].includes(e.code);
     if (gameKey) e.preventDefault();
     if (e.repeat) return;
@@ -466,6 +475,16 @@
       return;
     }
     audioUnlock();
+    if (
+      e.code === "KeyN" &&
+      ["match", "countdown", "ending"].includes(screen)
+    ) {
+      pendingFlaps.clear();
+      pendingBoosts.clear();
+      tapped.clear();
+      startRound();
+      return;
+    }
     if (e.code === "KeyP" && screen === "match") {
       match.spawnPower(true);
       return;
@@ -1133,27 +1152,194 @@
   background.width = W;
   background.height = H;
   const bg = background.getContext("2d");
-  function buildBackground() {
+  function drawArenaSky(g, arena) {
+    const polygon = (points, color) => {
+      g.fillStyle = color;
+      g.beginPath();
+      points.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+      g.closePath();
+      g.fill();
+    };
+    if (arena.motif === "sun") {
+      // A banded amber sun and distant wind-carved mesas.
+      g.fillStyle = "#edbf7f35";
+      g.beginPath();
+      g.arc(960, 330, 145, 0, Math.PI * 2);
+      g.fill();
+      for (let y = 310; y < 480; y += 22) {
+        g.fillStyle = arena.sky[1] + "a0";
+        g.fillRect(800, y, 320, 9);
+      }
+      for (const x of [50, 470, 1230, 1650]) {
+        polygon(
+          [
+            [x, 920],
+            [x + 25, 640],
+            [x + 75, 640],
+            [x + 75, 590],
+            [x + 170, 590],
+            [x + 210, 920],
+          ],
+          "#593b4330",
+        );
+      }
+    } else if (arena.motif === "ice") {
+      // Angular aurora curtains above snow-capped spires.
+      for (let band = 0; band < 3; band++) {
+        for (let x = 0; x < W; x += 24) {
+          const y = 160 + band * 48 + Math.sin(x * 0.004 + band) * 55;
+          g.fillStyle = ["#71d8be16", "#83bfea18", "#b1a6ee12"][band];
+          g.fillRect(x, y, 24, 80 + Math.sin(x * 0.007) * 35);
+        }
+      }
+      for (const x of [80, 400, 1170, 1510]) {
+        polygon(
+          [
+            [x, 940],
+            [x + 160, 430],
+            [x + 330, 940],
+          ],
+          "#7da5b31c",
+        );
+        polygon(
+          [
+            [x + 119, 560],
+            [x + 160, 430],
+            [x + 207, 570],
+            [x + 161, 539],
+          ],
+          "#c4e8eb25",
+        );
+      }
+    } else if (arena.motif === "crystal") {
+      // Broken sky-temple columns, with floating amethyst shards.
+      for (const x of [130, 410, 1430, 1710]) {
+        g.fillStyle = "#a58fc21b";
+        g.fillRect(x, 470, 48, 490);
+        g.fillRect(x - 16, 450, 80, 22);
+        g.fillRect(x - 8, 690, 64, 16);
+      }
+      for (const [x, y, h] of [
+        [600, 310, 90],
+        [960, 230, 130],
+        [1320, 310, 90],
+      ]) {
+        polygon(
+          [
+            [x, y - h],
+            [x + 35, y],
+            [x, y + h],
+            [x - 35, y],
+          ],
+          "#c4a6ec25",
+        );
+        polygon(
+          [
+            [x, y - h],
+            [x + 35, y],
+            [x, y + h],
+          ],
+          "#d9c6f01c",
+        );
+      }
+      g.strokeStyle = "#b8a2d326";
+      g.lineWidth = 9;
+      g.beginPath();
+      g.arc(960, 330, 180, Math.PI, Math.PI * 2);
+      g.stroke();
+    } else if (arena.motif === "forest") {
+      // Tall, quiet conifers rise through layered green mist.
+      for (const [x, h] of [
+        [80, 460],
+        [350, 650],
+        [670, 470],
+        [1100, 470],
+        [1420, 650],
+        [1690, 460],
+      ]) {
+        g.fillStyle = "#142e3438";
+        g.fillRect(x + 70, 1010 - h, 20, h);
+        for (let tier = 0; tier < 4; tier++) {
+          const y = 1010 - h + tier * 85;
+          polygon(
+            [
+              [x + 80, y - 100],
+              [x + 180 + tier * 8, y + 120],
+              [x - 20 - tier * 8, y + 120],
+            ],
+            "#183b3930",
+          );
+        }
+      }
+      for (const y of [460, 670, 850]) {
+        g.fillStyle = "#b7c8a80a";
+        g.fillRect(0, y, W, 42);
+      }
+    } else if (arena.motif === "volcano") {
+      // A split volcanic crown and muted lava seams below the islands.
+      polygon(
+        [
+          [580, 1000],
+          [850, 485],
+          [920, 520],
+          [1000, 520],
+          [1070, 485],
+          [1340, 1000],
+        ],
+        "#211e2d60",
+      );
+      polygon(
+        [
+          [850, 485],
+          [920, 520],
+          [1000, 520],
+          [1070, 485],
+          [1020, 566],
+          [902, 556],
+        ],
+        "#ed97652e",
+      );
+      polygon(
+        [
+          [955, 545],
+          [982, 650],
+          [950, 735],
+          [1010, 840],
+          [972, 820],
+          [930, 730],
+          [963, 642],
+        ],
+        "#e8825630",
+      );
+      for (let i = 0; i < 6; i++) {
+        g.fillStyle = "#b8796610";
+        g.fillRect(850 - i * 20, 420 - i * 38, 220 + i * 40, 30);
+      }
+    }
+  }
+  function buildBackground(arena = ARENAS[0]) {
     const gradient = bg.createLinearGradient(0, 0, 0, H);
-    gradient.addColorStop(0, "#101a2d");
-    gradient.addColorStop(0.58, "#1b3548");
-    gradient.addColorStop(1, "#395455");
+    gradient.addColorStop(0, arena.sky[0]);
+    gradient.addColorStop(0.58, arena.sky[1]);
+    gradient.addColorStop(1, arena.sky[2]);
     bg.fillStyle = gradient;
     bg.fillRect(0, 0, W, H);
-    // The hollow moon sits behind the islands.
-    bg.fillStyle = "#d6bd9220";
-    bg.beginPath();
-    bg.arc(1525, 285, 115, 0, Math.PI * 2);
-    bg.fill();
-    bg.fillStyle = "#d6bd9230";
-    bg.beginPath();
-    bg.arc(1525, 285, 88, 0, Math.PI * 2);
-    bg.fill();
-    bg.fillStyle = "#192c40";
-    bg.beginPath();
-    bg.arc(1494, 262, 82, 0, Math.PI * 2);
-    bg.fill();
-    let seed = 173;
+    if (arena.motif === "moon") {
+      // The hollow moon sits behind the islands.
+      bg.fillStyle = "#d6bd9220";
+      bg.beginPath();
+      bg.arc(1525, 285, 115, 0, Math.PI * 2);
+      bg.fill();
+      bg.fillStyle = "#d6bd9230";
+      bg.beginPath();
+      bg.arc(1525, 285, 88, 0, Math.PI * 2);
+      bg.fill();
+      bg.fillStyle = "#192c40";
+      bg.beginPath();
+      bg.arc(1494, 262, 82, 0, Math.PI * 2);
+      bg.fill();
+    } else drawArenaSky(bg, arena);
+    let seed = 173 + ARENAS.indexOf(arena) * 317;
     const rand = () => {
       seed = (seed * 16807) % 2147483647;
       return seed / 2147483647;
@@ -1179,7 +1365,7 @@
     ].forEach((p) => pixelCloud(bg, ...p, "#8db9b30b"));
     // Distant mountains form a quiet silhouette below the flight space.
     for (let layer = 0; layer < 3; layer++) {
-      bg.fillStyle = ["#294650", "#243e48", "#203944"][layer];
+      bg.fillStyle = arena.mountains[layer];
       bg.beginPath();
       bg.moveTo(0, H);
       for (let x = 0; x <= W + 80; x += 80)
@@ -1190,14 +1376,14 @@
       bg.lineTo(W, H);
       bg.fill();
     }
-    for (const p of PLATFORMS) {
+    for (const p of arena.platforms) {
       const depth = p.ground ? 70 : PLATFORM_DEPTH,
         x = p.x,
         y = p.y,
         w = p.w;
       bg.fillStyle = "#121e2d";
       bg.fillRect(x - 3, y + 4, w + 6, 14);
-      bg.fillStyle = "#354247";
+      bg.fillStyle = arena.rock;
       bg.beginPath();
       bg.moveTo(x, y + 6);
       bg.lineTo(x + w, y + 6);
@@ -1208,11 +1394,11 @@
       bg.lineTo(x + 20, y + depth - 3);
       bg.closePath();
       bg.fill();
-      bg.fillStyle = "#59605a";
+      bg.fillStyle = arena.top;
       bg.fillRect(x, y, w, 9);
-      bg.fillStyle = "#92a584";
+      bg.fillStyle = arena.rim;
       bg.fillRect(x, y, w, 3);
-      bg.fillStyle = "#b5ba88";
+      bg.fillStyle = arena.id === "hollow" ? "#b5ba88" : arena.accent;
       bg.fillRect(x + 8, y, w * 0.25, 2);
       for (let j = 0; j < w / 13; j++) {
         const rx = x + rand() * w;
@@ -1228,13 +1414,14 @@
         for (let j = 0; j < 3; j++) {
           const vx = x + 25 + rand() * (w - 50),
             len = 25 + rand() * 65;
-          bg.fillStyle = "#4e6e64";
+          bg.fillStyle =
+            arena.id === "hollow" ? "#4e6e64" : arena.accent + "70";
           bg.fillRect(Math.floor(vx / 2) * 2, y + 20, 2, len);
           for (let k = 8; k < len; k += 13)
             bg.fillRect(vx + (k % 2 ? -3 : 1), y + 20 + k, 4, 2);
         }
       if (!p.ground) {
-        bg.fillStyle = "#91ae92";
+        bg.fillStyle = arena.accent;
         for (let j = 0; j < 4; j++) {
           const gx = x + 20 + rand() * (w - 40);
           bg.fillRect(gx, y - 5, 2, 5);

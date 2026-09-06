@@ -121,3 +121,11 @@ There are 100 award titles in [AWARDS.md](AWARDS.md). Each player receives one r
 Press **P** during active play to replace the waiting power-up with a random one on a random floating island. Press again to reroll. This does not stack pickups or activate one on a player. Held-key repeats, countdowns, pause and results ignore the shortcut. It is deliberately absent from the in-game controls. Normal power-up spawning resumes 25–40 seconds after the latest test spawn.
 
 Chirp’s completed commentary stays visible at reduced brightness after its 4.5-second reading time. A new call immediately replaces it at full brightness; the beak stays still between calls.
+
+## Arena rotation
+
+Six arenas rotate in shuffled order: The Hollow Sky, Amber Aerie, Frostglass Peaks, Amethyst Ruins, Mossveil Canopy, and Cinder Crown. All platforms are mirrored left to right. Each setting has its own platform arrangement, sky palette, and distant scenery, with the same flight, collision, pickup and combat rules.
+
+Every arena is used once before the next shuffle, with no immediate repeat across shuffle boundaries. The rotation continues across rematches while the game remains open.
+
+Secret testing shortcut: press **N** during play, the countdown, or the round-ending animation to advance to the next arena and restart the current round with a fresh countdown. Unfinished-round KOs, lives, powers and statistics reset; completed-round totals remain. N consumes the next arena in the same rotation. It is ignored on menus, results and pause, and holding it does not cycle repeatedly. **P** still spawns a random power-up.

@@ -50,6 +50,153 @@
     { x: 1215, y: 785, w: 270 },
     { x: 0, y: 1010, w: 1920, ground: true },
   ];
+  // Build every layout from its left half plus centered platforms.
+  function mirroredPlatforms(rows) {
+    return rows
+      .flatMap(([x, y, w]) =>
+        x + w / 2 === W / 2
+          ? [{ x, y, w }]
+          : [
+              { x, y, w },
+              { x: W - x - w, y, w },
+            ],
+      )
+      .concat({ x: 0, y: 1010, w: W, ground: true });
+  }
+  const ARENAS = [
+    {
+      id: "hollow",
+      name: "The Hollow Sky",
+      motif: "moon",
+      platforms: PLATFORMS,
+      sky: ["#101a2d", "#1b3548", "#395455"],
+      rock: "#354247",
+      top: "#59605a",
+      rim: "#92a584",
+      accent: "#91ae92",
+      mountains: ["#294650", "#243e48", "#203944"],
+    },
+    {
+      id: "ember",
+      name: "Amber Aerie",
+      motif: "sun",
+      platforms: mirroredPlatforms([
+        [180, 220, 250],
+        [690, 345, 220],
+        [65, 475, 270],
+        [760, 590, 400],
+        [380, 730, 230],
+        [810, 855, 300],
+      ]),
+      sky: ["#291c31", "#704348", "#a47759"],
+      rock: "#563b40",
+      top: "#8a6250",
+      rim: "#e4b776",
+      accent: "#f0cb8b",
+      mountains: ["#774c4d", "#593b43", "#402e3b"],
+    },
+    {
+      id: "frost",
+      name: "Frostglass Peaks",
+      motif: "ice",
+      platforms: mirroredPlatforms([
+        [800, 210, 320],
+        [430, 340, 220],
+        [70, 495, 260],
+        [780, 555, 360],
+        [440, 710, 240],
+        [70, 855, 300],
+      ]),
+      sky: ["#101e38", "#27425b", "#587581"],
+      rock: "#354f65",
+      top: "#789aa8",
+      rim: "#c4e8eb",
+      accent: "#9de8ed",
+      mountains: ["#48667a", "#344f66", "#243e56"],
+    },
+    {
+      id: "crystal",
+      name: "Amethyst Ruins",
+      motif: "crystal",
+      platforms: mirroredPlatforms([
+        [110, 230, 230],
+        [610, 230, 230],
+        [820, 420, 280],
+        [340, 515, 280],
+        [80, 730, 230],
+        [700, 805, 230],
+      ]),
+      sky: ["#20172f", "#3d3058", "#655477"],
+      rock: "#443c5b",
+      top: "#786486",
+      rim: "#c0a0e0",
+      accent: "#d0aff8",
+      mountains: ["#514466", "#403651", "#302a42"],
+    },
+    {
+      id: "forest",
+      name: "Mossveil Canopy",
+      motif: "forest",
+      platforms: mirroredPlatforms([
+        [720, 220, 480],
+        [225, 355, 280],
+        [635, 500, 210],
+        [60, 630, 240],
+        [815, 735, 290],
+        [380, 850, 250],
+      ]),
+      sky: ["#10282c", "#254744", "#536755"],
+      rock: "#354a40",
+      top: "#667755",
+      rim: "#a5c87b",
+      accent: "#b5d892",
+      mountains: ["#3e5c50", "#304d45", "#233e3b"],
+    },
+    {
+      id: "volcanic",
+      name: "Cinder Crown",
+      motif: "volcano",
+      platforms: mirroredPlatforms([
+        [90, 240, 280],
+        [790, 290, 340],
+        [445, 445, 250],
+        [90, 635, 280],
+        [820, 660, 280],
+        [480, 830, 230],
+      ]),
+      sky: ["#211c2b", "#513238", "#85503e"],
+      rock: "#41353b",
+      top: "#695049",
+      rim: "#df9566",
+      accent: "#ffb475",
+      mountains: ["#633d3f", "#492f36", "#342630"],
+    },
+  ];
+  for (const arena of ARENAS) {
+    arena.platforms.forEach(Object.freeze);
+    Object.freeze(arena.platforms);
+    Object.freeze(arena);
+  }
+  Object.freeze(ARENAS);
+  class ArenaRotation {
+    constructor(rng = Math.random) {
+      this.rng = rng;
+      this.bag = [];
+      this.last = null;
+    }
+    next() {
+      if (!this.bag.length) {
+        this.bag = [...ARENAS];
+        for (let i = this.bag.length - 1; i > 0; i--) {
+          const j = Math.min(i, Math.floor(this.rng() * (i + 1)));
+          [this.bag[i], this.bag[j]] = [this.bag[j], this.bag[i]];
+        }
+        if (this.bag[0] === this.last)
+          [this.bag[0], this.bag[1]] = [this.bag[1], this.bag[0]];
+      }
+      return (this.last = this.bag.shift());
+    }
+  }
   const PLATFORM_DEPTH = 35;
   const MAX_LIVES = 5;
   const FLAP_INTERVAL = 0.22,
@@ -69,11 +216,13 @@
     if (d < -W / 2) d += W;
     return d;
   };
-  function chooseSpawn(players, rng = Math.random) {
-    const candidates = PLATFORMS.filter((p) => !p.ground).map((p) => ({
-      x: p.x + 30 + rng() * (p.w - 60),
-      y: p.y - 12,
-    }));
+  function chooseSpawn(players, rng = Math.random, platforms = PLATFORMS) {
+    const candidates = platforms
+      .filter((p) => !p.ground)
+      .map((p) => ({
+        x: p.x + 30 + rng() * (p.w - 60),
+        y: p.y - 12,
+      }));
     const alive = players.filter((p) => p.alive);
     const score = (s) =>
       alive.length
@@ -87,14 +236,20 @@
   }
   // Sweep the rider's body against expanded platform rectangles, choosing the
   // first face struck. This prevents fast and diagonal impacts from tunneling.
-  function moveAgainstPlatforms(p, dt, events, saw = false) {
+  function moveAgainstPlatforms(
+    p,
+    dt,
+    events,
+    saw = false,
+    platforms = PLATFORMS,
+  ) {
     p.grounded = false;
     let remaining = dt;
     for (let pass = 0; pass < 4 && remaining > 0; pass++) {
       const dx = p.vx * remaining,
         dy = p.vy * remaining;
       let hit = null;
-      for (const platform of PLATFORMS) {
+      for (const platform of platforms) {
         const left = platform.ground ? -Infinity : platform.x - BODY.halfWidth;
         const right = platform.ground
           ? Infinity
@@ -150,14 +305,16 @@
     p.x = ((p.x % W) + W) % W;
     if (
       p.grounded &&
-      !PLATFORMS.some(
+      !platforms.some(
         (s) => p.y === s.y - 12 && p.x + 10 > s.x && p.x - 10 < s.x + s.w,
       )
     )
       p.grounded = false;
   }
   class Match {
-    constructor(seats, mode = "ffa", rng = Math.random) {
+    constructor(seats, mode = "ffa", rng = Math.random, arena = ARENAS[0]) {
+      this.arena = arena;
+      this.platforms = arena.platforms;
       this.rng = rng;
       this.mode = mode;
       this.time = 0;
@@ -210,7 +367,7 @@
       this.events = [];
     }
     spawn(p) {
-      Object.assign(p, chooseSpawn(this.players, this.rng), {
+      Object.assign(p, chooseSpawn(this.players, this.rng, this.platforms), {
         vx: 0,
         vy: 0,
         alive: true,
@@ -341,17 +498,17 @@
       let spot;
       if (randomLocation) {
         const platform =
-          PLATFORMS[
+          this.platforms[
             Math.min(
-              PLATFORMS.length - 2,
-              Math.floor(this.rng() * (PLATFORMS.length - 1)),
+              this.platforms.length - 2,
+              Math.floor(this.rng() * (this.platforms.length - 1)),
             )
           ];
         spot = {
           x: platform.x + 30 + this.rng() * (platform.w - 60),
           y: platform.y - 12,
         };
-      } else spot = chooseSpawn(this.players, this.rng);
+      } else spot = chooseSpawn(this.players, this.rng, this.platforms);
       const kinds = Object.keys(POWERUPS);
       this.powerPickup = {
         x: spot.x,
@@ -412,7 +569,7 @@
           move = clamp(input.move || 0, -1, 1);
         if (p.power === "sawblade") {
           p.grounded = p.diving = p.boosting = false;
-          moveAgainstPlatforms(p, dt, this.events, true);
+          moveAgainstPlatforms(p, dt, this.events, true, this.platforms);
           if (p.y < 120 || p.y > 984) {
             p.y = clamp(p.y, 120, 984);
             p.vy *= -1;
@@ -460,7 +617,7 @@
         p.wasDiving = p.diving;
         p.boosting = p.boostTime > 0;
         const oldX = p.x;
-        moveAgainstPlatforms(p, dt, this.events);
+        moveAgainstPlatforms(p, dt, this.events, false, this.platforms);
         if (p.grounded && Math.abs(p.vx) > 35) {
           p.walkDistance =
             (p.walkDistance || 0) + Math.abs(wrapDelta(p.x, oldX));
@@ -551,7 +708,7 @@
         if (this.pickup?.ttl <= 0) this.pickup = null;
       }
       if (this.time >= this.nextLife && !this.pickup) {
-        const s = chooseSpawn(this.players, this.rng);
+        const s = chooseSpawn(this.players, this.rng, this.platforms);
         this.pickup = { x: s.x, y: s.y - 14, ttl: 15 };
         this.nextLife = this.time + 24 + this.rng() * 12;
         this.events.push({ type: "pickup", x: s.x, y: s.y });
@@ -633,14 +790,16 @@
     p.botClock = (p.botClock || 0) - dt;
     if (p.botClimb && (!target || p.y < p.botClimb.untilY)) p.botClimb = null;
     if (!p.botClimb && target && target.y < p.y - 40) {
-      const roof = PLATFORMS.filter(
-        (s) =>
-          !s.ground &&
-          p.y - 21 >= s.y + PLATFORM_DEPTH &&
-          p.y - s.y < 200 &&
-          p.x > s.x - 20 &&
-          p.x < s.x + s.w + 20,
-      ).sort((a, b) => b.y - a.y)[0];
+      const roof = match.platforms
+        .filter(
+          (s) =>
+            !s.ground &&
+            p.y - 21 >= s.y + PLATFORM_DEPTH &&
+            p.y - s.y < 200 &&
+            p.x > s.x - 20 &&
+            p.x < s.x + s.w + 20,
+        )
+        .sort((a, b) => b.y - a.y)[0];
       if (roof)
         p.botClimb = {
           x: p.x < roof.x + roof.w / 2 ? roof.x - 45 : roof.x + roof.w + 45,
@@ -656,7 +815,7 @@
     }
     if (p.botExit && p.y > p.botExit.untilY) p.botExit = null;
     if (target && p.grounded && target.y > p.y + 40) {
-      const platform = PLATFORMS.find(
+      const platform = match.platforms.find(
         (s) =>
           !s.ground &&
           Math.abs(s.y - p.y - 12) < 1 &&
@@ -696,7 +855,7 @@
       !p.grounded &&
       target.y > p.y + 28 &&
       Math.abs(dx + target.vx * 0.12) < 26 &&
-      !PLATFORMS.some(
+      !match.platforms.some(
         (s) =>
           s.y > p.y && s.y < target.y && p.x > s.x - 10 && p.x < s.x + s.w + 10,
       );
@@ -756,6 +915,8 @@
     BOOST_DURATION,
     FLAP_INTERVAL,
     PLATFORMS,
+    ARENAS,
+    ArenaRotation,
     PLATFORM_DEPTH,
     Match,
     chooseSpawn,

@@ -125,3 +125,9 @@ Completed calls remain visible and fade to 55% opacity over 600ms after the exis
 ## Player panel width cap
 
 Player HUD columns now cap at 450 pixels with space distributed between panels. A two-player browser check confirmed both panels remain 450 pixels wide with no content overflow. All 84 tests and syntax checks pass.
+
+## Six arenas and shuffled rotation
+
+91 tests and syntax checks pass. New checks cover six unique layouts, mirrored platform geometry and separation, full shuffled cycles with no seam repeat, per-match spawns and pickups, rider landings and sawblade rebounds on every platform face, and bot simulation on all six arenas. Integration checks cover normal round changes, the N shortcut, current-round reset versus completed totals, pause/repeat guards and Player 3's L movement control.
+
+Inspected all six arenas in the browser: the original hollow moon, amber sun and mesas, frosty auroras, amethyst columns and shards, misty conifers, and volcanic crown. Platforms and player labels remain readable. Verified N visibly changes the arena and restarts the countdown. No browser console errors were reported.

@@ -69,7 +69,15 @@ function fixture() {
     }
   }
   const sandbox = {
-    Featherfall: { ...Engine, Match },
+    Featherfall: {
+      ...Engine,
+      Match,
+      ArenaRotation: class extends Engine.ArenaRotation {
+        constructor() {
+          super(() => 0.999);
+        }
+      },
+    },
     FeatherfallSeries: require("../match-series.js"),
     FeatherfallBroadcast: require("../broadcast.js"),
     ArcadeAudio: RecordedAudio,
@@ -714,6 +722,7 @@ test("Chirp speaks only for events, animates while speaking, and closes his beak
   assert.equal(f.element("commentary").className, "is-dimmed");
   assert.equal(f.element("announcer").className, "");
   f.press("KeyP");
+  Object.assign(f.match.powerPickup, { x: 960, y: 120 });
   f.advance();
   assert.equal(
     f.element("commentary").textContent,
@@ -739,4 +748,70 @@ test("Chirp speaks only for events, animates while speaking, and closes his beak
   assert.equal(f.element("announcer").className, "");
   assert.equal(f.element("commentary").textContent, call);
   assert.equal(f.element("commentary").className, "is-dimmed");
+});
+
+test("N advances the arena and resets only the unfinished round, consuming the rotation", () => {
+  const f = fixture();
+  f.press("KeyN");
+  assert.equal(f.match, undefined);
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  f.advance(3.2);
+  f.match.players[0].kills = 3;
+  f.match.players[1].alive = false;
+  f.match.players[1].lives = 0;
+  f.advance(1.7);
+  f.press("Enter");
+  f.advance(3.2);
+  assert.match(f.element("players-hud").innerHTML, /3 KOs/);
+  assert.match(f.element("players-hud").innerHTML, /1 WIN/);
+  const seen = new Set(["hollow", f.match.arena.id]);
+  for (let i = 0; i < 4; i++) {
+    const old = f.match;
+    old.players[0].kills = 7;
+    f.match.equip(f.match.players[0], "rocket");
+    f.press("KeyN");
+    assert.notEqual(f.match, old);
+    assert.equal(f.match.time, 0);
+    assert.equal(f.match.players[0].kills, 0);
+    assert.equal(f.match.players[0].power, null);
+    assert.equal(f.match.players[0].lives, 5);
+    assert.equal(seen.has(f.match.arena.id), false);
+    seen.add(f.match.arena.id);
+    assert.match(f.element("players-hud").innerHTML, /3 KOs/);
+    assert.match(f.element("players-hud").innerHTML, /1 WIN/);
+    assert.match(f.element("match-mode").textContent, /ROUND 2/);
+    const restarted = f.match;
+    f.key("KeyN", true);
+    assert.equal(f.match, restarted);
+    assert.equal(seen.size, i + 3);
+  }
+  assert.equal(seen.size, 6);
+  const last = f.match.arena;
+  f.press("KeyN");
+  assert.notEqual(f.match.arena, last);
+  f.advance(3.2);
+  f.press("Escape");
+  const paused = f.match;
+  f.press("KeyN");
+  assert.equal(f.match, paused);
+});
+
+test("Player 3 can still move right with L without changing the arena", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit3");
+  f.press("Enter");
+  f.advance(3.2);
+  const m = f.match,
+    p = m.players[1];
+  Object.assign(p, { x: 700, y: 900, vx: 0, vy: 0, grounded: false });
+  f.key("KeyL");
+  f.advance(0.1);
+  f.release("KeyL");
+  assert.equal(f.match, m);
+  assert.ok(p.vx > 0);
 });

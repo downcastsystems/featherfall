@@ -69,3 +69,11 @@ Complete: 49 automated tests and syntax checks pass. Browser checks cover all sc
 - Track actual speed, movement, time airborne/on platforms, flaps, boosts, dives, rebounds, clashes, pickups and KO types. Choose one unique random qualifying award per player from 100 titles, with visible evidence and participation fallbacks.
 - Sharpen the jay bill in normal and dive artwork. P spawns/replaces one random power on a floating platform during active play only; leave the shortcut out of the UI.
 - Verify round/team/draw accounting, duplicate-result protection, complete keyboard/controller progression, telemetry, award eligibility, announcer concurrency/pause and debug input. Inspect live match and four-player final results in the browser, review the diff, and push the verified game.
+
+## Six-arena rotation
+
+- Preserve The Hollow Sky and add five mirrored platform layouts with sunset, ice, crystal, forest and volcanic scenery in the existing pixel-art style.
+- Give each Match its own arena geometry, used by collisions, respawns, feathers, powers and bot path decisions. Keep the original default for isolated simulation callers.
+- Shuffle all six arenas without replacement, avoid a repeat across cycle boundaries, and retain the rotation across rematches.
+- N advances the rotation and restarts only the unfinished round. Preserve completed totals, clear current-round effects and restart the countdown. Keep all four keyboard control schemes intact.
+- Verify symmetry and spacing, per-arena collision faces and spawn placement, bot simulations, shuffled cycles, input guards and match accounting. Inspect all six settings in the browser, review the diff, and push the verified result.
