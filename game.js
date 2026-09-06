@@ -1360,10 +1360,6 @@
         ],
         "#e8825630",
       );
-      for (let i = 0; i < 6; i++) {
-        g.fillStyle = "#b8796610";
-        g.fillRect(850 - i * 20, 420 - i * 38, 220 + i * 40, 30);
-      }
     }
   }
   function buildBackground(arena = ARENAS[0]) {
