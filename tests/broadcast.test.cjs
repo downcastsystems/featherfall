@@ -11,7 +11,7 @@ test("commentary reads one full call before the next simultaneous event", () => 
 test("commentary queue is bounded, prioritized, expires stale calls and resets", () => {
   const b = new Broadcast(() => 0);
   b.say("round", { r: 1 });
-  for (let i = 0; i < 20; i++) b.say("pickup");
+  for (let i = 0; i < 20; i++) b.say("flame", { a: "EMBER" });
   b.say("out", { a: "A", v: "B" }, 2);
   assert.equal(b.queue.length, 4);
   assert.equal(b.queue[0].priority, 2);
@@ -21,7 +21,7 @@ test("commentary queue is bounded, prioritized, expires stale calls and resets",
   assert.equal(b.current, null);
   assert.equal(b.queue.length, 0);
 });
-test("announcer varies repeated calls and adds occasional idle commentary", () => {
+test("announcer varies event calls and remains silent without new events", () => {
   const b = new Broadcast(() => 0);
   b.say("ko", { a: "A", v: "B" });
   const first = b.current.text;
@@ -29,5 +29,7 @@ test("announcer varies repeated calls and adds occasional idle commentary", () =
   b.say("ko", { a: "A", v: "B" });
   assert.notEqual(b.current.text, first);
   b.reset();
-  assert.match(b.step(12), /sky|ground|flying|islands/i);
+  assert.equal(b.step(12), "");
+  assert.equal(b.step(120), "");
+  assert.equal(b.current, null);
 });

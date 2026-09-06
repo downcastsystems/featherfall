@@ -1107,3 +1107,18 @@ footer {
   padding: 8px 10px;
   font-size: 12px;
 }
+
+.announcer-beak {
+  transform-origin: 27px 21px;
+}
+#announcer.is-talking .announcer-beak {
+  animation: chirp-speaking 180ms steps(2, end) infinite alternate;
+}
+@keyframes chirp-speaking {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(22deg);
+  }
+}

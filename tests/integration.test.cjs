@@ -279,7 +279,7 @@ test("golden feather announces the cap or restored life accurately", () => {
     assert.match(f.element("commentary").textContent, /EMBER \(P1\)/);
     assert.match(
       f.element("commentary").textContent,
-      lives === 5 ? /full tank|No room/ : /life|lifeline/,
+      lives === 5 ? /full lives|No room/ : /life|lifeline/,
     );
   }
 });
@@ -697,4 +697,42 @@ test("controller Start advances rounds and final totals instead of resetting win
   }
   assert.equal(f.element("results-heading").textContent, "MATCH TOTALS");
   assert.match(f.element("scoreboard").innerHTML, /3 WINS/);
+});
+
+test("Chirp speaks only for events, animates while speaking, and closes his beak on pause", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.press("Enter");
+  f.advance(3.2);
+  assert.equal(f.element("announcer").className, "is-talking");
+  f.match.nextLife = f.match.nextPower = 999;
+  f.advance(20);
+  assert.equal(f.element("commentary").textContent, "");
+  assert.equal(f.element("announcer").className, "");
+  f.press("KeyP");
+  f.advance();
+  assert.equal(
+    f.element("commentary").textContent,
+    "",
+    "uncollected pickups do not prompt filler",
+  );
+  f.match.equip(f.match.players[0], "rocket");
+  f.advance();
+  assert.match(f.element("commentary").textContent, /EMBER \(P1\)/);
+  assert.match(f.element("commentary").textContent, /rocket|boosts|Rocket/);
+  assert.equal(f.element("announcer").className, "is-talking");
+  const call = f.element("commentary").textContent;
+  f.press("Escape");
+  f.advance();
+  assert.equal(f.element("announcer").className, "");
+  f.advance(5);
+  assert.equal(f.element("commentary").textContent, call);
+  f.press("Enter");
+  f.advance();
+  assert.equal(f.element("announcer").className, "is-talking");
+  f.advance(5);
+  assert.equal(f.element("announcer").className, "");
+  assert.equal(f.element("commentary").textContent, "");
 });

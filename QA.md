@@ -105,3 +105,7 @@ Browser checks at 1280×720 cover the jay preview, live bottom commentary beneat
 ## Full-width status bar
 
 80 tests and syntax checks pass. Visual checks at 1280×720 cover four evenly spaced team panels, names and double-digit KO totals on one line at equal font sizes, inline power/respawn timers, and the OUT state. The panels use three rows. The relocated bottom Pause and Sound buttons were clicked successfully; no browser errors were recorded.
+
+## Rocket speed and Chirp personality
+
+81 tests and syntax checks pass. Rocket movement and boosts are another 25% faster than the previous Rocket, with expiry, pickup, collision and dive checks retained. Commentary tests verify silence without events, no pickup-appearance filler, event-specific lines, and beak animation state through speaking, pause, resume and silence. RETURNING IN stays beside the hearts; the proposed boost-row move was discarded.

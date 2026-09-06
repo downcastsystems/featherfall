@@ -3,46 +3,45 @@
   "use strict";
   const LINES = {
     ko: [
-      "{a} sends {v} back to the nest!",
-      "What a hit! {a} catches {v} napping.",
-      "{a} wins that aerial argument with {v}!",
-      "{v} meets the business end of {a}!",
-      "{a} takes the high ground. {v} takes the fall.",
+      "{a} knocks out {v}. A bold attempt at being a target.",
+      "{v} falls to {a}. The landing needs work. So does the flying.",
+      "{a} sends {v} back to the nest. Do take notes this time.",
+      "{a} gets the KO on {v}. Defense was apparently optional.",
+      "{v} loses a life to {a}. An educational experience, surely.",
     ],
     out: [
-      "{v} is out! {a} closes the book on that round.",
-      "No lives left for {v}. {a} clears the airspace!",
-      "{a} grounds {v} for the rest of the round!",
+      "{a} eliminates {v}. An excellent view of the rest of the round awaits.",
+      "{v} is out, courtesy of {a}. Spectating may be the stronger event.",
+      "{a} ends {v}'s round. Five lives, and that was the plan?",
     ],
     life: [
-      "{a} finds a golden lifeline. Back in business!",
-      "One more life for {a}. This story is not over!",
-      "{a} raids the treasure chest. One life restored!",
+      "{a} gets a life back. Try keeping this one.",
+      "One more life for {a}. Even the feather felt sorry for them.",
+      "{a} collects a golden lifeline. A rare investment in survival.",
     ],
     capped: [
-      "{a} takes the gold with a full tank of lives!",
-      "No room for another life, but {a} denies the field that feather!",
+      "{a} takes the feather at full lives. Sharing was never an option.",
+      "No room for another life, but {a} takes the feather anyway. Charming.",
     ],
-    power: [
-      "{a} has a new trick. Watch this airspace!",
-      "{a} picks up something spicy. The plot thickens!",
-      "That pickup could change everything for {a}!",
+    flame: [
+      "{a} collects fireballs. Because personal space needed enforcement.",
+      "{a} has a ring of fire. Finally, a warm personality.",
+      "Fireballs for {a}. Subtlety has left the arena.",
     ],
-    pickup: [
-      "Something shiny has landed. Who wants it?",
-      "Fresh bait on the islands. This could get scrappy!",
-      "Eyes on the prize, flyers. A pickup is in play!",
+    sawblade: [
+      "{a} becomes a sawblade. A sharp improvement, frankly.",
+      "{a} is now a spinning blade. A cutting remark made flesh.",
+      "Sawblade for {a}. Steering is somebody else's problem now.",
+    ],
+    rocket: [
+      "{a} gets unlimited boosts. More speed for those excellent decisions.",
+      "{a} picks up a rocket. The same judgment, delivered faster.",
+      "Rocket for {a}. Brakes remain a theoretical concept.",
     ],
     round: [
-      "Round {r}. First to three wins. Let the feathers fly!",
-      "Round {r} is airborne. Keep your beaks up!",
-      "Welcome to round {r}. Same sky, fresh grudges!",
-    ],
-    idle: [
-      "A tense patch of sky. Somebody has to blink.",
-      "The high ground is open for business.",
-      "That is competitive flying. No seat belts, no apologies.",
-      "The islands are solid. The tactics are questionable.",
+      "Round {r} begins. A fresh chance to learn what the ground does.",
+      "Round {r}. Five lives each. Budget them better this time.",
+      "Round {r} is underway. Confidence remains wildly ahead of ability.",
     ],
   };
   class Broadcast {
@@ -54,7 +53,6 @@
       this.current = null;
       this.queue = [];
       this.last = "";
-      this.idle = 0;
     }
     say(kind, names = {}, priority = 0) {
       const options = LINES[kind] || [kind];
@@ -75,7 +73,6 @@
         this.queue.sort((a, b) => b.priority - a.priority);
         this.queue = this.queue.slice(0, 4);
       }
-      this.idle = 0;
     }
     step(dt) {
       this.queue.forEach((e) => (e.age += dt));
@@ -84,13 +81,8 @@
         this.current.remaining -= dt;
         if (this.current.remaining <= 0)
           this.current = this.queue.shift() || null;
-      } else {
-        this.idle += dt;
-        if (this.idle >= 12) this.say("idle");
       }
-      return (
-        this.current?.text || "The sky is live. We are watching every wingbeat."
-      );
+      return this.current?.text || "";
     }
   }
   if (typeof module !== "undefined" && module.exports)

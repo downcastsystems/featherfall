@@ -98,7 +98,7 @@ One random power-up appears every 25–40 seconds, with equal chances for each t
 
 - Flame: six lethal fireballs orbit for five seconds, then launch outward at 1,200 pixels/second and leave the arena. Launched balls pass through platforms.
 - Sawblade: become a spinning blade for three seconds, moving at 900 pixels/second horizontally and 560 vertically. Ricochet off platforms and arena edges. Movement inputs resume when it expires.
-- Rocket: unlimited boost charges and 25% faster horizontal movement for ten seconds. Top movement speed is 412.5 pixels/second; boosts reach 812.5 pixels/second. Release and press boost for each burst; flap and dive physics stay the same. Rear exhaust follows the mount, with a longer plume during boosts.
+- Rocket: unlimited boost charges and 56.25% faster horizontal movement for ten seconds. Top movement speed is 515.625 pixels/second; boosts reach 1015.625 pixels/second. Release and press boost for each burst; flap and dive physics stay the same. Rear exhaust follows the mount, with a longer plume during boosts.
 
 A pickup activates on contact. A new power replaces the current one, and death clears it. Fired projectiles finish their flight. Powers respect team immunity and spawn protection. Timers stop while paused. Power-ups have soft glows with no name labels. The HUD shows remaining seconds beside the hearts.
 
@@ -112,7 +112,7 @@ Each round starts with five lives and a full boost meter. The first player to wi
 
 The four player panels share the full top width. Cumulative KOs and wins are right-aligned beside each name at the same font size. Hearts, power timers and respawn messages share the next row, above the boost meter. Round information and sound/pause controls sit at the right of the bottom announcer strip. At each round's end, the round results show that round's KOs and remaining lives alongside accumulated wins. Choose Next round to continue. After the deciding round, choose Match totals to see every player's cumulative KOs, wins and a performance award. Play again starts a new match with zero totals. Enter or controller A selects the highlighted option; controller Start advances from results too. Returning to the lobby abandons the current match.
 
-Chirp's sports commentary is text-only and sits beneath the playable ground. Calls pause with gameplay. The central display is reserved for the countdown. Mint's jay now has a slim, pointed bill in both flying and diving poses.
+Chirp's sports commentary is text-only and sits beneath the playable ground. He reacts to round starts, KOs, eliminations and collected pickups with a smug, profanity-free remark. He stays silent between events, with no idle filler or pickup-appearance calls. His beak moves while a call is displayed and closes when quiet or paused. Calls pause with gameplay. The central display is reserved for the countdown. Mint's jay now has a slim, pointed bill in both flying and diving poses.
 
 There are 100 award titles in [AWARDS.md](AWARDS.md). Each player receives one randomly selected title from categories where their measured performance leads or ties the field. Awards show the supporting stat. No two players receive the same title. Completed-round awards provide a truthful fallback for players without another leading stat. Movement and action stats exclude dead time and pause time.
 

@@ -363,8 +363,7 @@
     mode = series.mode;
     particles = [];
     broadcast.reset();
-    $("commentary").textContent =
-      `Getting ready for round ${series.rounds.length + 1}. Fresh wings, fresh chances.`;
+    $("commentary").textContent = "";
     countdown = 3;
     endingTime = 0;
     resultsMode = "round";
@@ -816,15 +815,13 @@
       }
       if (event.type === "power") {
         burst(event.x, event.y, powerColor[event.kind], 28);
-        broadcast.say("power", { a: playerName(match.players[event.id]) });
+        broadcast.say(event.kind, { a: playerName(match.players[event.id]) });
         tone(420, 0.35, "triangle", 0.06, 1300);
       }
       if (event.type === "power-appeared") {
-        broadcast.say("pickup");
         tone(600, 0.25, "triangle", 0.04, 1000);
       }
       if (event.type === "pickup") {
-        broadcast.say("pickup");
         tone(700, 0.3, "sine", 0.04, 1050);
       }
     }
@@ -1486,6 +1483,10 @@
       if ($("commentary").textContent !== call)
         $("commentary").textContent = call;
     }
+    $("announcer").className =
+      ["match", "ending"].includes(screen) && broadcast.current
+        ? "is-talking"
+        : "";
     render(dt);
     requestAnimationFrame(frame);
   }
