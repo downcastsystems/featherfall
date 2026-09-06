@@ -41,7 +41,7 @@ function zombie(m, props = {}) {
 const tick = (m, n = 1, inputs = []) => {
   for (let i = 0; i < n; i++) m.step(1 / 120, inputs);
 };
-test("graves only exist on the ruins and emit balanced mirrored pairs with a cap", () => {
+test("graves only exist on the ruins and emit two zombies per wave with a cap", () => {
   for (const a of ARENAS) {
     const m = new Match(
       [{ character: 0 }, { character: 1 }],
@@ -53,8 +53,6 @@ test("graves only exist on the ruins and emit balanced mirrored pairs with a cap
     m.spawnZombies();
     assert.equal(m.zombies.length, a === arena ? 2 : 0);
     if (a !== arena) continue;
-    assert.equal(m.zombies[0].x + m.zombies[1].x, 1920);
-    assert.equal(m.zombies[0].vx, -m.zombies[1].vx);
     for (let i = 0; i < 20; i++) m.spawnZombies();
     assert.equal(m.zombies.length, 12);
   }
@@ -204,6 +202,8 @@ test("simultaneous final zombie deaths produce a draw and a new round has no old
 
 test("naturally spawned zombies survive a first ledge and eventually splat after a larger drop", () => {
   const m = make();
+  const rolls = [0, 0.9, 0.3, 0.1];
+  m.rng = () => rolls.shift() ?? 0.5;
   m.spawnZombies();
   let shortLanding = false;
   for (let i = 0; i < 2400; i++) {
@@ -218,16 +218,19 @@ test("naturally spawned zombies survive a first ledge and eventually splat after
   );
 });
 
-
-test("each zombie wave randomly chooses inward or outward movement while staying mirrored", () => {
+test("zombies independently choose any grave and either direction without mirrored pairing", () => {
   const m = make();
-  for (const roll of [0.1, 0.9]) {
-    m.rng = () => roll;
-    m.zombies = [];
-    m.spawnZombies();
-    const [left, right] = m.zombies;
-    assert.equal(left.vx, roll < 0.5 ? -72 : 72);
-    assert.equal(right.vx, -left.vx);
-    assert.equal(left.x + right.x, 1920);
-  }
+  const rolls = [0.1, 0.1, 0.1, 0.1, 0.6, 0.9, 0.9, 0.1];
+  m.rng = () => rolls.shift();
+  m.spawnZombies();
+  assert.equal(m.zombies[0].x, m.graves[0].x);
+  assert.equal(m.zombies[1].x, m.graves[0].x);
+  assert.equal(m.zombies[0].vx, -72);
+  assert.equal(m.zombies[1].vx, -72);
+  m.spawnZombies();
+  assert.equal(m.zombies[2].x, m.graves[2].x);
+  assert.equal(m.zombies[2].vx, 72);
+  assert.equal(m.zombies[3].x, m.graves[3].x);
+  assert.equal(m.zombies[3].vx, -72);
+  assert.equal(rolls.length, 0);
 });

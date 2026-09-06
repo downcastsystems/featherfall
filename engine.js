@@ -330,7 +330,6 @@
       this.zombies = [];
       this.nextZombie = 5;
       this.nextZombieId = 0;
-      this.zombieWave = 0;
       this.rng = rng;
       this.mode = mode;
       this.time = 0;
@@ -435,15 +434,20 @@
     }
     spawnZombies() {
       if (!this.graves.length || this.zombies.length > 10) return;
-      // Each wave is a mirrored pair, so neither side gets extra hazards.
-      const pair = this.zombieWave++ % (this.graves.length / 2);
-      const direction = this.rng() < 0.5 ? -1 : 1;
-      for (const grave of this.graves.slice(pair * 2, pair * 2 + 2)) {
+      // Each zombie independently picks a grave and direction.
+      for (let i = 0; i < 2; i++) {
+        const grave =
+          this.graves[
+            Math.min(
+              this.graves.length - 1,
+              Math.floor(this.rng() * this.graves.length),
+            )
+          ];
         this.zombies.push({
           id: this.nextZombieId++,
           x: grave.x,
           y: grave.y,
-          vx: (grave.x < W / 2 ? 72 : -72) * direction,
+          vx: this.rng() < 0.5 ? -72 : 72,
           vy: 0,
           grounded: true,
           fallFrom: grave.y,
