@@ -1082,14 +1082,27 @@ footer {
   white-space: nowrap;
 }
 .hud-vitals {
-  margin: 5px 0 6px;
+  margin: 5px 0 0;
   min-height: 20px;
 }
 .hud-vitals .lives,
 .hud-vitals .meta {
   margin-top: 0;
 }
+.hud-flight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.hud-vitals .lives {
+  flex: none;
+}
 .hud-player .boost-meter {
+  width: 150px;
+  flex: none;
   margin: 0;
 }
 #announcer .match-info {

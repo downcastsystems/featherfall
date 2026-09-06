@@ -109,3 +109,7 @@ Browser checks at 1280×720 cover the jay preview, live bottom commentary beneat
 ## Rocket speed and Chirp personality
 
 81 tests and syntax checks pass. Rocket movement and boosts are another 25% faster than the previous Rocket, with expiry, pickup, collision and dive checks retained. Commentary tests verify silence without events, no pickup-appearance filler, event-specific lines, and beak animation state through speaking, pause, resume and silence. RETURNING IN stays beside the hearts; the proposed boost-row move was discarded.
+
+## Two-row player HUD
+
+Moved the boost meter into the hearts row and shortened it to 150 pixels. Respawn countdowns replace the meter; active power timers sit beside it. All 81 tests and syntax checks pass. A four-player browser check showed ready, recharging and respawning states with no panel overflow, and each panel is now 57 pixels tall.
