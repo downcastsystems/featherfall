@@ -1289,11 +1289,6 @@
           "#d9c6f01c",
         );
       }
-      g.strokeStyle = "#b8a2d326";
-      g.lineWidth = 9;
-      g.beginPath();
-      g.arc(960, 330, 180, Math.PI, Math.PI * 2);
-      g.stroke();
     } else if (arena.motif === "forest") {
       // Tall, quiet conifers rise through layered green mist.
       for (const [x, h] of [
