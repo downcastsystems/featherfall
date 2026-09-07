@@ -481,7 +481,7 @@ test("one controller adds a bot, locks in, chooses teams, launches and pauses", 
   f.button(p, 0);
   assert.equal(f.element("mode-screen").hidden, false);
   assert.equal(f.element("fly").disabled, true);
-  f.button(p, 13);
+  f.button(p, 15);
   f.button(p, 0);
   assert.equal(f.element("fly").disabled, false);
   assert.equal(f.element("fly").attributes["data-pad-focus"], "SELECT");
@@ -988,7 +988,7 @@ test("bots rebalance around human team changes and odd lineups keep both teams p
   f.button(p, 0);
   f.button(q, 0);
   f.button(p, 0);
-  f.button(p, 13);
+  f.button(p, 15);
   f.button(p, 0);
   f.button(p, 15);
   f.button(q, 15);
@@ -1095,7 +1095,7 @@ test("two bots balance four humans and bots as 2v2 after a human moves", () => {
   f.button(p, 0);
   f.button(q, 0);
   f.button(p, 0);
-  f.button(p, 13);
+  f.button(p, 15);
   f.button(p, 0);
   f.button(q, 14);
   f.button(p, 9);
@@ -1127,7 +1127,7 @@ test("Player 2 arrow flap confirms without also moving the mode cursor", () => {
   f.press("KeyW");
   f.press("ArrowUp");
   f.press("Enter");
-  f.press("ArrowDown");
+  f.press("ArrowRight");
   assert.equal(f.element("mode-teams").attributes["data-pad-focus"], "SELECT");
   f.press("ArrowUp");
   assert.equal(f.element("mode-teams").attributes["aria-pressed"], true);
@@ -1194,4 +1194,59 @@ test("snow hazards pause with play and are cleared by a new round", () => {
   f.press("KeyN");
   assert.equal(f.match.yetis.length, 0);
   assert.equal(f.match.snowballs.length, 0);
+});
+
+test("controller mode choice uses left/right and B backs out exactly one step", () => {
+  for (const teams of [false, true]) {
+    const f = fixture(),
+      p = f.pad(0);
+    f.button(p, 9);
+    f.button(p, 2);
+    f.button(p, 0);
+    f.button(p, 0);
+    f.button(p, 13);
+    assert.equal(f.element("mode-ffa").attributes["data-pad-focus"], "SELECT");
+    f.button(p, 15);
+    assert.equal(
+      f.element("mode-teams").attributes["data-pad-focus"],
+      "SELECT",
+    );
+    if (!teams) f.button(p, 14);
+    f.button(p, 0);
+    assert.equal(f.element("fly").disabled, false);
+    f.button(p, 1);
+    assert.equal(f.element("mode-screen").hidden, false);
+    assert.equal(f.element("fly").disabled, true);
+    assert.equal(f.element("team-assign").hidden, true);
+    f.button(p, 1);
+    assert.equal(f.element("lobby").hidden, false);
+    assert.equal(f.element("launch").disabled, false);
+    f.button(p, 1);
+    assert.equal(f.element("lobby").hidden, false);
+    assert.equal(f.element("launch").disabled, true);
+    f.button(p, 1);
+    assert.equal(f.element("menu").hidden, false);
+    assert.equal(f.match, undefined);
+  }
+});
+
+test("keyboard left/right chooses the mode and boost backs out in steps", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("KeyW");
+  f.press("Equal");
+  f.press("KeyW");
+  f.press("Enter");
+  f.press("KeyD");
+  f.press("KeyW");
+  assert.equal(f.element("team-assign").hidden, false);
+  f.press("KeyE");
+  assert.equal(f.element("team-assign").hidden, true);
+  assert.equal(f.element("mode-screen").hidden, false);
+  f.press("KeyE");
+  assert.equal(f.element("lobby").hidden, false);
+  f.press("KeyE");
+  assert.equal(f.element("launch").disabled, true);
+  f.press("KeyE");
+  assert.equal(f.element("menu").hidden, false);
 });

@@ -309,6 +309,30 @@
     show("mode-screen");
     renderMode();
   }
+  function backMode() {
+    if (selectedMode !== null) {
+      modeCursor = selectedMode === "teams" ? 1 : 0;
+      selectedMode = null;
+      renderMode();
+    } else show("lobby");
+  }
+  function backLobby(slot) {
+    if (seats[slot]?.ready) {
+      seats[slot].ready = false;
+      renderSeats();
+    } else if (slot === 0) show("menu");
+    else if (seats[slot]) {
+      seats[slot] = null;
+      renderSeats();
+    }
+  }
+  function moveMode(slot, direction) {
+    if (selectedMode === "teams") moveTeam(slot, direction);
+    else if (selectedMode === null) {
+      modeCursor = direction < 0 ? 0 : 1;
+      renderMode();
+    }
+  }
   function chooseMode(value) {
     selectedMode = mode = value;
     if (value === "teams") balanceBots();
@@ -341,14 +365,16 @@
         ? "LEFT / RIGHT TO CHANGE YOUR TEAM · B BACK"
         : selectedMode
           ? "READY FOR TAKEOFF"
-          : "CHOOSE YOUR MATCH";
+          : "LEFT / RIGHT TO CHOOSE · A SELECT · B BACK";
     const keyboardSeat = seats.find((s) => s?.kind === "keyboard");
     if (keyboardSeat) {
       const k = keys[keyboardSeat.source];
       $("mode-message").textContent =
         selectedMode === "teams"
           ? `${keyName(k.left)}/${keyName(k.right)} TEAM · ENTER TO FLY · ESC BACK`
-          : `${keyName(k.dive)} NEXT OPTION · ${keyName(k.flap)} / ENTER SELECT · ESC BACK`;
+          : selectedMode === "ffa"
+            ? "ENTER TO FLY · ESC BACK"
+            : `${keyName(k.left)}/${keyName(k.right)} CHOOSE · ${keyName(k.flap)} / ENTER SELECT · ESC BACK`;
       $("mode-back").textContent = "ESC · BACK";
     } else $("mode-back").textContent = "B · BACK";
     ["mode-ffa", "mode-teams", "fly"].forEach((id, i) =>
@@ -998,7 +1024,7 @@
   $("fly").onclick = () => {
     if (canStart()) startMatch();
   };
-  $("mode-back").onclick = () => show("lobby");
+  $("mode-back").onclick = backMode;
   function startMatch() {
     if (!canStart()) return;
     series = new MatchSeries(
@@ -1156,7 +1182,7 @@
       if (["match", "countdown", "ending"].includes(screen)) pause();
       else if (screen === "pause") resume();
       else if (screen === "lobby") show("menu");
-      else if (screen === "mode-screen") show("lobby");
+      else if (screen === "mode-screen") backMode();
       else if (screen === "results") show("lobby");
     } else if (screen === "lobby") {
       if (["Equal", "NumpadAdd"].includes(e.code)) {
@@ -1195,33 +1221,32 @@
             if (allReady()) openMode();
             else if (!s.ready) ready(i);
           }
-          if (e.code === keys[s.source].boost) {
-            s.ready = false;
-            renderSeats();
-          }
+          if (e.code === keys[s.source].boost) backLobby(i);
         }
       });
     } else if (screen === "mode-screen") {
-      const playerAction = seats.some(
+      const keyboardSeat = seats.findIndex(
         (s) =>
           s?.kind === "keyboard" &&
-          [keys[s.source].flap, keys[s.source].dive].includes(e.code),
+          [
+            keys[s.source].left,
+            keys[s.source].right,
+            keys[s.source].flap,
+            keys[s.source].boost,
+          ].includes(e.code),
       );
-      if (!playerAction && (e.code === "ArrowUp" || e.code === "ArrowDown")) {
-        modeCursor = (modeCursor + (e.code === "ArrowUp" ? 2 : 1)) % 3;
-        renderMode();
+      if (keyboardSeat >= 0) {
+        const k = keys[seats[keyboardSeat].source];
+        if (e.code === k.boost) backMode();
+        else if (e.code === k.left) moveMode(keyboardSeat, -1);
+        else if (e.code === k.right) moveMode(keyboardSeat, 1);
+        else if (e.code === k.flap) selectMode();
+      } else if (
+        ["ArrowLeft", "ArrowRight"].includes(e.code) &&
+        selectedMode === null
+      ) {
+        moveMode(-1, e.code === "ArrowLeft" ? -1 : 1);
       }
-      seats.forEach((s, i) => {
-        if (s?.kind !== "keyboard") return;
-        if (e.code === keys[s.source].boost) show("lobby");
-        else if (e.code === keys[s.source].left) moveTeam(i, -1);
-        else if (e.code === keys[s.source].right) moveTeam(i, 1);
-        else if (e.code === keys[s.source].flap) selectMode();
-        else if (e.code === keys[s.source].dive) {
-          modeCursor = (modeCursor + 1) % 3;
-          renderMode();
-        }
-      });
     }
   });
   addEventListener("keyup", (e) => pressed.delete(e.code));
@@ -1289,9 +1314,7 @@
           continue;
         }
         if (edge.back) {
-          if (seats[slot].ready) seats[slot].ready = false;
-          else seats[slot] = null;
-          renderSeats();
+          backLobby(slot);
           continue;
         }
         if (moveEdge) rotate(slot, dir);
@@ -1304,14 +1327,10 @@
         );
         if (slot < 0) continue;
         if (edge.back) {
-          show("lobby");
+          backMode();
           continue;
         }
-        if (edge.up || edge.down) {
-          modeCursor = (modeCursor + (edge.up ? 2 : 1)) % 3;
-          renderMode();
-        }
-        if (moveEdge) moveTeam(slot, dir);
+        if (moveEdge) moveMode(slot, dir);
         if (edge.start && canStart()) startMatch();
         else if (edge.flap) selectMode();
       } else if (["match", "countdown", "ending"].includes(screen)) {

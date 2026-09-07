@@ -35,7 +35,7 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 - Returning from the lobby to the main menu clears every player and bot slot. Reopening character selection starts with an empty lineup.
 - In the lobby, movement or flap joins your keyboard control set; 1–4 also work. The joining press does not ready you. Left/right cycles through all eight characters; dive switches rows. Human players can choose the same character; bots choose unused mounts. Names include player numbers, such as SOL (P1).
 - Your flap key readies your selected character. Click Ready again or press your boost key to unready. Ready choices stay locked until canceled. Enter opens match setup once everyone is ready. Up/down and Enter navigate the title, pause, and results menus. At least two participants are required; bots count.
-- In match setup, your dive key cycles options, flap or Enter selects, and left/right changes your team. Enter launches once the setup is valid. Escape returns to character selection.
+- In match setup, your left/right keys choose an option, flap or Enter selects, and left/right changes your team. Enter launches once the setup is valid. Escape first cancels the chosen mode, then returns to character selection.
 - Escape pauses/resumes. Losing focus automatically pauses the match.
 - M or the Sound button toggles synthesized arcade sound, including during a match. Sound starts on after the first click or keypress. If a controller-only start is blocked by browser audio policy, click **Click for sound** once.
 - Fullscreen is available on the title, lobby, and pause screens. The playfield stays 16:9 on other aspect ratios.
@@ -47,12 +47,12 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 2. Check that Windows recognizes every controller.
 3. Run the localhost server, open the game in Chrome or Edge, and focus the game.
 4. Press **Start** on each controller to reveal it to the browser and join. Powering it on alone may not expose it to the page.
-5. Move the stick or D-pad through the 2×4 creature grid. Numbered circles show each player's focus. **A** locks in; **B** unlocks a ready choice or leaves an unready slot. The large tiles show unique pixel-art portraits of each creature’s head; the lineup above keeps the normal rider sprites.
+5. Move the stick or D-pad through the 2×4 creature grid. Numbered circles show each player's focus. **A** locks in; **B** unlocks a ready choice; unready Player 1 returns to the main menu, while other unready players leave their slot. The large tiles show unique pixel-art portraits of each creature’s head; the lineup above keeps the normal rider sprites.
 6. **X** adds one bot. **Y** removes the last bot added. Bots randomly pick unused mounts and adjust if a human selects theirs. Duplicate human choices are allowed.
 7. Once at least two participants are all ready, **LET'S GO!** highlights. A separate **A** or **Start** opens match setup.
-8. Choose **FREE FOR ALL** or **TEAMS** using up/down and A. In teams, left/right changes your own side; bots balance around the humans. Both teams must have a participant. When valid, **LET'S FLY!** highlights; **A** or **Start** begins.
+8. Choose **FREE FOR ALL** or **TEAMS** using left/right and A. In teams, left/right changes your own side; bots balance around the humans. Both teams must have a participant. When valid, **LET'S FLY!** highlights; **A** or **Start** begins.
 
-During play, left/right moves, **A** taps or holds to flap, **down** dives straight down, **X** boosts in the direction you face, and **Start** pauses/resumes. On the title, pause, and results screens, use **up/down** and **A** to select options. **B** returns or resumes. In the lobby, **B** unreadies a ready rider, or leaves if already unready. Disconnecting a participating controller pauses the game; reconnect it and press Start to resume. New participants join between matches.
+During play, left/right moves, **A** taps or holds to flap, **down** dives straight down, **X** boosts in the direction you face, and **Start** pauses/resumes. On the title, pause, and results screens, use **up/down** and **A** to select options. **B** returns or resumes. **B** first cancels the selected mode, then returns to character selection, then unreadies your rider. Press it again as unready Player 1 to return to the main menu; other unready players leave their slot. Disconnecting a participating controller pauses the game; reconnect it and press Start to resume. New participants join between matches.
 
 The game uses the browser's [standard gamepad mapping](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad/mapping). Browser detection depends on OS drivers, and some browsers expose a controller only after a button press. See [MDN's Gamepad API guide](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API). Physical Xbox 360 receiver/controller testing on Windows has **not** been performed here. Keyboard play and the standard four-gamepad input paths have been verified on the Mac development setup, with gamepads simulated in automated tests.
 
@@ -162,7 +162,7 @@ Snapwater Marsh joins the shuffle rotation. Its platforms and two small banks ar
 
 ## Testing with a keyboard
 
-Join with 1–4. Each player's left/right keys navigate a row, the dive key switches rows, flap locks in, and boost cancels readiness. Enter opens match setup once everyone is ready. On setup, up/down selects a mode, flap or Enter confirms, and each player's left/right keys assign their team. The first confirmation chooses the mode; the next launches. Controller instructions take priority in the interface.
+Join with 1–4. Each player's left/right keys navigate a row, the dive key switches rows, flap locks in, and boost cancels readiness. Enter opens match setup once everyone is ready. On setup, left/right selects a mode, flap or Enter confirms, and each player's left/right keys assign their team. The first confirmation chooses the mode; the next launches. Controller instructions take priority in the interface.
 
 Chirp's larger, heavy-browed pixel portrait follows the supplied sketch. His beak and brows animate during event commentary, and exact player-name mentions use the selected mount's color. The game is named One Big Sky; its existing GitHub repository and checkout directory remain featherfall.
 
