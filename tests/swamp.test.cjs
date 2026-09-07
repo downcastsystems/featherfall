@@ -145,3 +145,20 @@ test("bot water escape uses held-flap cadence instead of flapping on every simul
   tick(m, 15, [input]);
   assert.equal(m.events.filter((e) => e.type === "flap").length, 1);
 });
+
+test("water arenas exclude sawblades from both normal and debug power spawns", () => {
+  for (const debug of [false, true]) {
+    const water = make();
+    const dry = new Match([{ character: 0 }, { character: 1 }]);
+    const wetKinds = new Set(), dryKinds = new Set();
+    for (let i = 0; i < 100; i++) {
+      water.rng = dry.rng = () => i / 100;
+      water.spawnPower(debug);
+      dry.spawnPower(debug);
+      wetKinds.add(water.powerPickup.kind);
+      dryKinds.add(dry.powerPickup.kind);
+    }
+    assert.deepEqual([...wetKinds].sort(), ["flame", "rocket"]);
+    assert.deepEqual([...dryKinds].sort(), ["flame", "rocket", "sawblade"]);
+  }
+});

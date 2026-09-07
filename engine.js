@@ -1015,7 +1015,9 @@
           y: platform.y - 12,
         };
       } else spot = chooseSpawn(this.players, this.rng, this.platforms);
-      const kinds = Object.keys(POWERUPS);
+      const kinds = Object.keys(POWERUPS).filter(
+        (kind) => kind !== "sawblade" || this.arena.waterY === undefined,
+      );
       this.powerPickup = {
         x: spot.x,
         y: spot.y - 14,
