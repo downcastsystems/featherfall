@@ -2602,7 +2602,20 @@
         ctx.fillRect(saw.x - 4, saw.y - 4, 8, 8);
       }
       for (const y of match.yetis) {
-        const rise = Math.min(1, y.age / 0.14, (2.3 - y.age) / 0.65);
+        const emerging = y.age < 0.35;
+        const burrowing = y.age > 1.65;
+        const digging = emerging || burrowing;
+        const digTime = emerging ? y.age : y.age - 1.65;
+        const scoop = Math.floor(digTime * 24) % 4;
+        const rise = emerging
+          ? Math.min(1, 0.25 + (y.age / 0.35) * 0.75)
+          : burrowing
+            ? Math.max(0, 1 - (y.age - 1.65) / 0.65)
+            : 1;
+        // Open a little hollow; scooped snow piles up around its rim.
+        ctx.fillStyle = "#668a9e";
+        ctx.fillRect(y.x - 12, y.y - 2, 24, 3);
+
         ctx.save();
         ctx.beginPath();
         ctx.rect(y.x - 65, y.y - 65, 130, 65);
@@ -2610,12 +2623,14 @@
         ctx.translate(
           Math.round(y.x),
           Math.round(
-            y.y +
-              (1 - rise) * 34 -
-              (y.age < 0.35 ? Math.sin((y.age / 0.35) * Math.PI) * 7 : 0),
+            y.y + (1 - rise) * 34 - (digging ? [0, 2, 0, -1][scoop] : 0),
           ),
         );
         ctx.scale(y.direction, 1);
+        if (burrowing) {
+          ctx.rotate(0.18);
+          ctx.scale(1, 0.88);
+        }
         // Small shaggy head, narrow body and skinny arms for the shove.
         ctx.fillStyle = "#b4d5e4";
         ctx.fillRect(-8, -22, 16, 19);
@@ -2626,7 +2641,7 @@
         ctx.fillRect(-6, -18, 13, 14);
         ctx.fillRect(-9, -4, 7, 4);
         ctx.fillRect(4, -4, 7, 4);
-        ctx.fillRect(-12, -19, 4, 11);
+        if (!digging) ctx.fillRect(-12, -19, 4, 11);
         ctx.fillStyle = "#6b9eb9";
         ctx.fillRect(-3, -27, 13, 9);
         ctx.fillStyle = "#152e49";
@@ -2634,10 +2649,46 @@
         ctx.fillRect(6, -25, 2, 3);
         ctx.fillRect(2, -20, 5, 2);
         ctx.fillStyle = "#edfaff";
-        ctx.fillRect(6, -16, y.pushed ? 15 : 8, 4);
+        if (digging) {
+          // Alternating hands: reach into the snow, scoop, then fling it outward.
+          for (const side of [-1, 1]) {
+            const phase = (scoop + (side < 0 ? 2 : 0)) % 4;
+            const handX = [12, 10, 18, 21][phase] * side;
+            const handY = [-5, -12, -22, -15][phase];
+            ctx.fillStyle = "#b4d5e4";
+            ctx.fillRect(side < 0 ? handX : 7, -17, Math.abs(handX) - 5, 4);
+            ctx.fillRect(
+              handX,
+              Math.min(-15, handY),
+              3,
+              Math.abs(handY + 15) + 3,
+            );
+            ctx.fillStyle = "#edfaff";
+            ctx.fillRect(handX - 2, handY - 1, 6, 4);
+          }
+        } else ctx.fillRect(6, -16, y.pushed ? 15 : 8, 4);
         ctx.restore();
+        if (digging) {
+          for (let i = 0; i < 8; i++) {
+            const flight = (((digTime * 3 + i / 8) % 1) + 1) % 1;
+            const side = i % 2 ? 1 : -1;
+            ctx.fillStyle = i % 3 ? "#e4f8ff" : "#a7cedf";
+            ctx.globalAlpha = 1 - flight;
+            ctx.fillRect(
+              Math.round(y.x + side * (10 + flight * (22 + i))),
+              Math.round(y.y - 3 - Math.sin(flight * Math.PI) * (10 + i * 2)),
+              (i % 3) + 2,
+              3,
+            );
+          }
+          ctx.globalAlpha = 1;
+        }
         ctx.fillStyle = "#e4f8ff";
-        ctx.fillRect(y.x - 15, y.y - 2, 30, 2);
+        ctx.fillRect(y.x - 19, y.y - 3, 10, 3);
+        ctx.fillRect(y.x + 9, y.y - 3, 10, 3);
+        ctx.fillRect(y.x - 15, y.y - 5, 5, 2);
+        ctx.fillRect(y.x + 11, y.y - 5, 5, 2);
+        if (y.age > 2.2) ctx.fillRect(y.x - 12, y.y - 2, 24, 2);
       }
       for (const b of match.snowballs) {
         for (const offset of [
