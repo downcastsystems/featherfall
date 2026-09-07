@@ -169,3 +169,5 @@ Chirp's larger, heavy-browed pixel portrait follows the supplied sketch. His bea
 ### Frostglass Peaks yetis
 
 A stationary yeti occasionally rises from a clear snowy platform, pauses, pushes a large snowball left or right, then sinks back into the snow. Snowballs roll, fall onto lower platforms, wrap at the sides, and kill on contact without awarding KOs. Respawn protection still applies. They break into snow on the arena floor. A player near the release cancels the snowball. Hazards pause and reset with the round.
+
+Piranha ripples warn for 0.2 seconds before a fast vertical leap. Their jump speed is 50% faster, with the same peak height.

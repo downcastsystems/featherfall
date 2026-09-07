@@ -2059,7 +2059,7 @@
             ctx.ellipse(
               f.x,
               y - 2,
-              12 + (0.65 - f.warning) * 24,
+              12 + Math.max(0, 1 - f.warning / 0.2) * 16,
               3,
               0,
               0,

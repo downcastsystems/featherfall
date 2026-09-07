@@ -710,8 +710,8 @@
           this.piranhas.push({
             x: p.x,
             y: water,
-            vy: -570,
-            warning: 0.65,
+            vy: -855,
+            warning: 0.2,
             alive: true,
           });
           this.nextPiranha = this.time + 2.2 + this.rng() * 1.8;
@@ -725,7 +725,8 @@
           continue;
         }
         const oldY = f.y;
-        f.vy += 800 * dt;
+        // Faster leap with the same peak height.
+        f.vy += 1800 * dt;
         f.y += f.vy * dt;
         // Sweep relative motion so dives and boosts cannot tunnel through a jumping fish.
         for (const p of this.players) {
