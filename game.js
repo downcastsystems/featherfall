@@ -2138,9 +2138,6 @@
           ctx.fillText(playerName(p), x, p.y - nameOffset);
           if (mode === "teams") {
             ctx.fillStyle = TEAMS[p.team].color;
-            ctx.fillRect(x - 23, p.y + 19, 46, 5);
-            ctx.fillRect(x - 26, p.y + 16, 4, 10);
-            ctx.fillRect(x + 22, p.y + 16, 4, 10);
             ctx.font = "12px Silkscreen";
             ctx.fillText(TEAMS[p.team].name, x, p.y - nameOffset - 16);
           }

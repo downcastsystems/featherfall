@@ -68,7 +68,7 @@ The game uses the browser's [standard gamepad mapping](https://developer.mozilla
 - Respawns have two seconds of sparkling protection. Protected riders cannot kill or be killed.
 - A golden feather appears on an island after 18–26 seconds and periodically afterward. It restores one life, up to a maximum of five. Riders already at five lives can still collect it; the announcer calls out their full life count, and they stay at five. It disappears after 15 seconds if unclaimed. It flashes before expiring.
 - Free for all ends when one rider has lives remaining, including riders awaiting respawn. After the final knockout, the arena stays visible for 1.6 seconds so the feather burst can finish before the winner screen appears.
-- Teams use bright orange Sun and cyan Moon sides, with team panels in the lobby, HUD accents, and in-arena labels/brackets, with no friendly fire. Each side needs at least one participant; 2v2 and uneven teams are supported. The last team with lives remaining wins.
+- Teams use bright orange Sun and cyan Moon sides, with team panels in the lobby, HUD accents, and in-arena team names, with no friendly fire. Each side needs at least one participant; 2v2 and uneven teams are supported. The last team with lives remaining wins.
 - Bots use the same physics and life rules. They are practice opponents, not a tuned difficulty system.
 
 ## Development
