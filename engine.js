@@ -480,6 +480,7 @@
         clash: 0,
         flapCooldown: 0,
         boostTime: 0,
+        boostReadyGlow: 0,
         boosting: false,
         diving: false,
         walkDistance: 0,
@@ -1199,6 +1200,7 @@
             p.power = null;
           }
         }
+        p.boostReadyGlow = Math.max(0, p.boostReadyGlow - dt);
         p.invincible = Math.max(0, p.invincible - dt);
         p.flapTimer = Math.max(0, p.flapTimer - dt);
         p.clash = Math.max(0, p.clash - dt);
@@ -1223,8 +1225,11 @@
         if (p.power === "rocket") p.boostCharge = 1;
         p.flapCooldown = Math.max(0, p.flapCooldown - dt);
         p.boostTime = Math.max(0, p.boostTime - dt);
-        if (!p.boostTime)
+        if (!p.boostTime) {
+          const chargeBefore = p.boostCharge;
           p.boostCharge = Math.min(1, p.boostCharge + dt / BOOST_RECHARGE);
+          if (chargeBefore < 1 && p.boostCharge === 1) p.boostReadyGlow = 0.5;
+        }
         p.diving = !!input.dive && !p.grounded;
         if (p.diving) {
           if (!p.wasDiving)

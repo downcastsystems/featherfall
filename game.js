@@ -2778,6 +2778,35 @@
           ...(p.x < 85 ? [W] : p.x > W - 85 ? [-W] : []),
         ]) {
           const x = p.x + offset;
+          if (p.boostReadyGlow > 0) {
+            const progress = 1 - p.boostReadyGlow / 0.5;
+            const pulse = Math.sin(progress * Math.PI);
+            ctx.save();
+            ctx.globalAlpha = pulse * 0.75;
+            const glow = ctx.createRadialGradient(
+              x,
+              p.y - 8,
+              5,
+              x,
+              p.y - 8,
+              48,
+            );
+            glow.addColorStop(0, "#fff9df");
+            glow.addColorStop(0.35, b.color);
+            glow.addColorStop(1, b.color + "00");
+            ctx.fillStyle = glow;
+            ctx.fillRect(x - 48, p.y - 56, 96, 96);
+            for (let i = 0; i < 4; i++) {
+              const angle = (i * Math.PI) / 2 + Math.PI / 4;
+              sparkle(
+                x + Math.cos(angle) * (25 + progress * 15),
+                p.y - 8 + Math.sin(angle) * (25 + progress * 15),
+                2,
+                "#fff9df",
+              );
+            }
+            ctx.restore();
+          }
           if (p.power === "rocket") drawRocketExhaust(p, x);
           if (p.power === "sawblade") drawSaw(x, p.y, match.time * 32);
           else
