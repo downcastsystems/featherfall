@@ -47,7 +47,7 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 2. Check that Windows recognizes every controller.
 3. Run the localhost server, open the game in Chrome or Edge, and focus the game.
 4. Press **Start** on each controller to reveal it to the browser and join. Powering it on alone may not expose it to the page.
-5. Move the stick or D-pad through the 2×4 creature grid. Numbered circles show each player's focus. **A** locks in; **B** unlocks a ready choice or leaves an unready slot. The large tiles show mounts; the lineup above shows riders.
+5. Move the stick or D-pad through the 2×4 creature grid. Numbered circles show each player's focus. **A** locks in; **B** unlocks a ready choice or leaves an unready slot. The large tiles show unique pixel-art portraits of each creature’s head; the lineup above keeps the normal rider sprites.
 6. **X** adds one bot. **Y** removes the last bot added. Bots randomly pick unused mounts and adjust if a human selects theirs. Duplicate human choices are allowed.
 7. Once at least two participants are all ready, **LET'S GO!** highlights. A separate **A** or **Start** opens match setup.
 8. Choose **FREE FOR ALL** or **TEAMS** using up/down and A. In teams, left/right changes your own side; bots balance around the humans. Both teams must have a participant. When valid, **LET'S FLY!** highlights; **A** or **Start** begins.
