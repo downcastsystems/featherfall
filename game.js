@@ -1978,12 +1978,19 @@
       }
     } else {
       for (const y of match.yetis) {
-        const rise = Math.min(1, y.age / 0.65, (2.3 - y.age) / 0.65);
+        const rise = Math.min(1, y.age / 0.14, (2.3 - y.age) / 0.65);
         ctx.save();
         ctx.beginPath();
         ctx.rect(y.x - 65, y.y - 65, 130, 65);
         ctx.clip();
-        ctx.translate(Math.round(y.x), Math.round(y.y + (1 - rise) * 34));
+        ctx.translate(
+          Math.round(y.x),
+          Math.round(
+            y.y +
+              (1 - rise) * 34 -
+              (y.age < 0.35 ? Math.sin((y.age / 0.35) * Math.PI) * 7 : 0),
+          ),
+        );
         ctx.scale(y.direction, 1);
         // Small shaggy head, narrow body and skinny arms for the shove.
         ctx.fillStyle = "#b4d5e4";
@@ -2062,7 +2069,7 @@
             ctx.ellipse(
               f.x,
               y - 2,
-              12 + Math.max(0, 1 - f.warning / 0.2) * 16,
+              12 + Math.max(0, 1 - f.warning / 0.3) * 16,
               3,
               0,
               0,

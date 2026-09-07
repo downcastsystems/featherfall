@@ -26,12 +26,13 @@ test("only snow arena spawns one stationary yeti, warns, pushes, and retreats", 
   snow(m);
   assert.equal(m.yetis.length, 1);
   const x = m.yetis[0].x;
-  for (let i = 0; i < 100; i++) snow(m);
+  for (let i = 0; i < 20; i++) snow(m);
   assert.equal(m.snowballs.length, 0);
   assert.equal(m.yetis[0].x, x);
-  for (let i = 0; i < 50; i++) snow(m);
+  for (let i = 0; i < 40; i++) snow(m);
   assert.equal(m.snowballs.length, 1);
-  for (let i = 0; i < 150; i++) snow(m);
+  assert.equal(Math.abs(m.snowballs[0].vx), 190);
+  for (let i = 0; i < 230; i++) snow(m);
   assert.equal(m.yetis.length, 0);
   const other = make("hollow");
   other.nextYeti = 0;

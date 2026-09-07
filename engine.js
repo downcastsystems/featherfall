@@ -610,14 +610,14 @@
       }
       for (const y of this.yetis) {
         y.age += dt;
-        if (!y.pushed && y.age >= 1.2) {
+        if (!y.pushed && y.age >= 0.45) {
           y.pushed = true;
           // Cancel an occupied release instead of materializing a lethal ball on a rider.
           if (clear(y.x, y.y)) {
             this.snowballs.push({
               x: y.x + y.direction * 43,
               y: y.y - 25,
-              vx: y.direction * 155,
+              vx: y.direction * 190,
               vy: 0,
               angle: 0,
             });
@@ -710,8 +710,8 @@
           this.piranhas.push({
             x: p.x,
             y: water,
-            vy: -855,
-            warning: 0.2,
+            vy: -740,
+            warning: 0.3,
             alive: true,
           });
           this.nextPiranha = this.time + 2.2 + this.rng() * 1.8;
@@ -726,7 +726,7 @@
         }
         const oldY = f.y;
         // Faster leap with the same peak height.
-        f.vy += 1800 * dt;
+        f.vy += 1350 * dt;
         f.y += f.vy * dt;
         // Sweep relative motion so dives and boosts cannot tunnel through a jumping fish.
         for (const p of this.players) {

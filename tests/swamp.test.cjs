@@ -84,9 +84,12 @@ test("piranhas require a nearby rider over water, warn first, jump vertically an
   assert.ok(f.warning > 0);
   tick(m, 12);
   assert.equal(f.y, 960, "ripple briefly warns before takeoff");
-  tick(m, 24);
+  tick(m, 36);
   assert.equal(f.warning, 0);
-  assert.ok(f.y < 885, "fish reaches a nearby rider within 0.3 seconds");
+  assert.ok(
+    f.y < 910 && f.y > 880,
+    "fish reaches a nearby rider in about 0.4 seconds",
+  );
   assert.equal(f.x, x);
   assert.ok(f.y < 960);
   assert.ok(f.vy < 0);
@@ -150,7 +153,8 @@ test("water arenas exclude sawblades from both normal and debug power spawns", (
   for (const debug of [false, true]) {
     const water = make();
     const dry = new Match([{ character: 0 }, { character: 1 }]);
-    const wetKinds = new Set(), dryKinds = new Set();
+    const wetKinds = new Set(),
+      dryKinds = new Set();
     for (let i = 0; i < 100; i++) {
       water.rng = dry.rng = () => i / 100;
       water.spawnPower(debug);

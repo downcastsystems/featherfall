@@ -158,7 +158,7 @@ Every player-attributed zombie kill grants another 10% horizontal movement and b
 
 Ripple is a blue flying fish with a forked tail, pale belly and broad pectoral fins, including a dedicated dive pose and flap sound. Mount physics remain identical.
 
-Snapwater Marsh joins the shuffle rotation. Its platforms and two small banks are mirrored; the center river kills on contact, including during sawblade mode. Piranhas target riders within 220 pixels of the water, announce their launch with a 0.65-second ripple, then jump straight up and fall back in. Spawn protection applies. Hazards pause and reset with the round. Bots prioritize climbing away from the water.
+Snapwater Marsh joins the shuffle rotation. Its platforms and two small banks are mirrored; the center river kills on contact, including during sawblade mode. Piranhas target riders within 220 pixels of the water, announce their launch with a 0.3-second ripple, then jump straight up and fall back in. Spawn protection applies. Hazards pause and reset with the round. Bots prioritize climbing away from the water.
 
 ## Testing with a keyboard
 
@@ -168,6 +168,6 @@ Chirp's larger, heavy-browed pixel portrait follows the supplied sketch. His bea
 
 ### Frostglass Peaks yetis
 
-A stationary yeti occasionally rises from a clear snowy platform, pauses, pushes a large snowball left or right, then sinks back into the snow. Snowballs roll, fall onto lower platforms, wrap at the sides, and kill on contact without awarding KOs. Respawn protection still applies. They break into snow on the arena floor. A player near the release cancels the snowball. Hazards pause and reset with the round.
+A stationary yeti occasionally pops out of a clear snowy platform in 0.14 seconds, gives a little hop, then pushes a large snowball left or right, then sinks back into the snow. Snowballs roll at 190 pixels/second, fall onto lower platforms, wrap at the sides, and kill on contact without awarding KOs. Respawn protection still applies. They break into snow on the arena floor. A player near the release cancels the snowball. Hazards pause and reset with the round.
 
-Piranha ripples warn for 0.2 seconds before a fast vertical leap. Their jump speed is 50% faster, with the same peak height.
+Piranha ripples warn for 0.3 seconds before a vertical leap at 740 pixels/second, keeping approximately the original jump height.
