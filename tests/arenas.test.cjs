@@ -7,10 +7,10 @@ const seats = Array.from({ length: 4 }, (_, character) => ({
   team: character % 2,
 }));
 const make = (arena) => new Match(seats, "ffa", () => 0.5, arena);
-test("seven distinct arenas have mirrored, separated, playable platform layouts", () => {
-  assert.equal(ARENAS.length, 7);
-  assert.equal(new Set(ARENAS.map((a) => JSON.stringify(a.platforms))).size, 7);
-  assert.equal(new Set(ARENAS.map((a) => a.motif)).size, 7);
+test("eight distinct arenas have mirrored, separated, playable platform layouts", () => {
+  assert.equal(ARENAS.length, 8);
+  assert.equal(new Set(ARENAS.map((a) => JSON.stringify(a.platforms))).size, 8);
+  assert.equal(new Set(ARENAS.map((a) => a.motif)).size, 8);
   for (const arena of ARENAS) {
     const platforms = arena.platforms;
     assert.equal(
@@ -42,10 +42,10 @@ test("rotation exhausts every arena before repeating and never repeats at the cy
     const rotation = new ArenaRotation(rng);
     let last;
     for (let cycle = 0; cycle < 8; cycle++) {
-      const batch = Array.from({ length: 7 }, () => rotation.next());
-      assert.equal(new Set(batch).size, 7);
+      const batch = Array.from({ length: 8 }, () => rotation.next());
+      assert.equal(new Set(batch).size, 8);
       assert.notEqual(batch[0], last);
-      last = batch[6];
+      last = batch[7];
     }
   }
 });

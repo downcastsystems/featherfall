@@ -1518,6 +1518,10 @@
         event.id !== undefined
           ? birds[match.players[event.id].character].color
           : "#ffe9b4";
+      if (event.type === "saw-clang") {
+        burst(event.x, event.y, "#ffe4a0", 10, 0.35);
+        tone(180, 0.08, "square", 0.035, 60);
+      }
       if (event.type === "piranha-pop") {
         burst(event.x, event.y, "#ffad62", 14, 0.6);
         burst(event.x, event.y, "#9be1d3", 8, 0.4);
@@ -1565,17 +1569,19 @@
           );
         else
           broadcast.say(
-            event.cause === "snowball"
-              ? `${playerName(victim)} lost a snowball fight. Against the entire snowball.`
-              : event.cause === "zombie"
-                ? `${playerName(victim)} ${event.eliminated ? "is out. Outplayed by the dearly departed." : "loses a life to a zombie. Brains were clearly on the menu."}`
-                : event.cause === "water"
-                  ? `${playerName(victim)} went swimming. Bold choice. Terrible result.`
-                  : event.cause === "piranha"
-                    ? `${playerName(victim)} is on the lunch menu. Finally, some recognition.`
-                    : event.cause === "volcano"
-                      ? `${playerName(victim)} caught a fireball. With their face.`
-                      : `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
+            event.cause === "factory"
+              ? `${playerName(victim)} ignored the safety briefing. There was a saw.`
+              : event.cause === "snowball"
+                ? `${playerName(victim)} lost a snowball fight. Against the entire snowball.`
+                : event.cause === "zombie"
+                  ? `${playerName(victim)} ${event.eliminated ? "is out. Outplayed by the dearly departed." : "loses a life to a zombie. Brains were clearly on the menu."}`
+                  : event.cause === "water"
+                    ? `${playerName(victim)} went swimming. Bold choice. Terrible result.`
+                    : event.cause === "piranha"
+                      ? `${playerName(victim)} is on the lunch menu. Finally, some recognition.`
+                      : event.cause === "volcano"
+                        ? `${playerName(victim)} caught a fireball. With their face.`
+                        : `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
             {},
             1,
           );
@@ -2206,7 +2212,25 @@
       g.closePath();
       g.fill();
     };
-    if (arena.motif === "sun") {
+    if (arena.motif === "factory") {
+      for (const x of [80, 380, 680, 980, 1280, 1580, 1880]) {
+        g.fillStyle = "#91a1a112";
+        g.fillRect(x, 130, 12, 880);
+        g.fillStyle = "#101c2633";
+        g.fillRect(x - 65, 240, 140, 170);
+        for (let row = 0; row < 3; row++)
+          for (let col = 0; col < 3; col++) {
+            g.fillStyle = "#e4b96112";
+            g.fillRect(x - 55 + col * 43, 250 + row * 52, 34, 42);
+          }
+      }
+      for (const y of [440, 670, 920]) {
+        g.fillStyle = "#a7b3a615";
+        g.fillRect(0, y, W, 12);
+        g.fillStyle = "#15252c44";
+        g.fillRect(0, y + 12, W, 5);
+      }
+    } else if (arena.motif === "sun") {
       // An amber sun and distant wind-carved mesas.
       g.fillStyle = "#edbf7f35";
       g.beginPath();
@@ -2402,7 +2426,8 @@
       [910, 920, 1.8],
       [1690, 380, 1.8],
     ].forEach((p) => {
-      if (arena.motif !== "ice") pixelCloud(bg, ...p, "#8db9b30b");
+      if (!["ice", "factory"].includes(arena.motif))
+        pixelCloud(bg, ...p, "#8db9b30b");
     });
     // Distant mountains form a quiet silhouette below the flight space.
     for (let layer = 0; layer < 3; layer++) {
@@ -2451,7 +2476,7 @@
           4,
         );
       }
-      if (!p.ground)
+      if (!p.ground && arena.motif !== "factory")
         for (let j = 0; j < 3; j++) {
           const vx = x + 25 + rand() * (w - 50),
             len = 25 + rand() * 65;
@@ -2461,12 +2486,26 @@
           for (let k = 8; k < len; k += 13)
             bg.fillRect(vx + (k % 2 ? -3 : 1), y + 20 + k, 4, 2);
         }
-      if (!p.ground) {
+      if (!p.ground && arena.motif !== "factory") {
         bg.fillStyle = arena.accent;
         for (let j = 0; j < 4; j++) {
           const gx = x + 20 + rand() * (w - 40);
           bg.fillRect(gx, y - 5, 2, 5);
           bg.fillRect(gx - 3, y - 3, 8, 2);
+        }
+      }
+    }
+    if (arena.motif === "factory") {
+      for (const p of arena.platforms) {
+        bg.fillStyle = "#26353e";
+        bg.fillRect(p.x, p.y + 3, p.w, 32);
+        bg.fillStyle = "#7c8b8b";
+        bg.fillRect(p.x, p.y, p.w, 5);
+        for (let x = p.x + 6; x < p.x + p.w - 10; x += 24) {
+          bg.fillStyle = "#e3b955";
+          bg.fillRect(x, p.y + 6, 12, 8);
+          bg.fillStyle = "#98a5a5";
+          bg.fillRect(x + 3, p.y + 24, 3, 3);
         }
       }
     }
@@ -2529,6 +2568,15 @@
         ctx.fillRect(0, 100, W, H - 180);
       }
     } else {
+      for (const saw of match.arena.saws || []) {
+        ctx.fillStyle = "#29343e";
+        ctx.fillRect(saw.x - 10, 100, 20, saw.y - 100);
+        ctx.fillStyle = "#9daaaa";
+        ctx.fillRect(saw.x - 3, 104, 6, saw.y - 104);
+        drawSaw(saw.x, saw.y, match.time * 7, saw.radius);
+        ctx.fillStyle = "#e3b955";
+        ctx.fillRect(saw.x - 4, saw.y - 4, 8, 8);
+      }
       for (const y of match.yetis) {
         const rise = Math.min(1, y.age / 0.14, (2.3 - y.age) / 0.65);
         ctx.save();

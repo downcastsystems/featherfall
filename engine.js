@@ -228,6 +228,29 @@
       accent: "#b8e1a1",
       mountains: ["#52796c", "#365f58", "#244a46"],
     },
+    {
+      id: "factory",
+      name: "Ironwing Works",
+      motif: "factory",
+      saws: Object.freeze(
+        [180, 440, 700, 960, 1220, 1480, 1740].map((x) =>
+          Object.freeze({ x, y: 160, radius: 38 }),
+        ),
+      ),
+      platforms: mirroredPlatforms([
+        [130, 315, 300],
+        [810, 405, 300],
+        [450, 560, 240],
+        [80, 725, 280],
+        [800, 815, 320],
+      ]),
+      sky: ["#171f29", "#35444b", "#625a49"],
+      rock: "#34434a",
+      top: "#687a80",
+      rim: "#e3b955",
+      accent: "#b3c3c2",
+      mountains: ["#3b494b", "#303d41", "#263137"],
+    },
   ];
   for (const arena of ARENAS) {
     arena.graves = Object.freeze(
@@ -578,6 +601,57 @@
       if (wave?.dropped === 18 && !this.volcanoFireballs.length) {
         this.eruption = null;
         this.nextEruption = this.time + 8 + this.rng() * 6;
+      }
+    }
+    stepFactory(before) {
+      for (const saw of this.arena.saws || []) {
+        for (const p of this.players) {
+          const prev = before[p.id];
+          if (!p.alive || !prev.alive) continue;
+          const dx = wrapDelta(p.x, prev.x),
+            dy = p.y - prev.y;
+          const rx = wrapDelta(prev.x, saw.x),
+            ry = prev.y - 4 - saw.y;
+          const radius = saw.radius + (p.power === "sawblade" ? 28 : 15);
+          const distance = rx * rx + ry * ry - radius * radius;
+          const speed = dx * dx + dy * dy;
+          const dot = rx * dx + ry * dy;
+          const discriminant = dot * dot - speed * distance;
+          const t =
+            distance <= 0
+              ? 0
+              : speed && discriminant >= 0
+                ? (-dot - Math.sqrt(discriminant)) / speed
+                : -1;
+          if (t < 0 || t > 1) continue;
+          if (p.power !== "sawblade") {
+            this.kill(p, null, "factory");
+            continue;
+          }
+          const nx0 = rx + dx * t,
+            ny0 = ry + dy * t;
+          const length = Math.hypot(nx0, ny0);
+          let nx = length ? nx0 / length : 0,
+            ny = length ? ny0 / length : 1;
+          // The ceiling leaves no escape above a mounted saw. Deflect into open air.
+          if (saw.y + 4 + ny * (radius + 1) < 120) {
+            nx = 0;
+            ny = 1;
+          }
+          p.x = (((saw.x + nx * (radius + 1)) % W) + W) % W;
+          p.y = saw.y + 4 + ny * (radius + 1);
+          const inward = p.vx * nx + p.vy * ny;
+          if (inward < 0) {
+            p.vx -= 2 * inward * nx;
+            p.vy -= 2 * inward * ny;
+          }
+          p.grounded = false;
+          this.events.push({
+            type: "saw-clang",
+            x: saw.x + nx * saw.radius,
+            y: saw.y + ny * saw.radius,
+          });
+        }
       }
     }
     stepSnow(dt, before) {
@@ -1220,6 +1294,7 @@
       this.stepVolcano(dt, before);
       this.stepSwamp(dt, before);
       this.stepSnow(dt, before);
+      this.stepFactory(before);
       this.projectiles = this.projectiles.filter(
         (f) => f.ttl > 0 && f.x >= -20 && f.x <= W + 20 && f.y >= 0 && f.y <= H,
       );
