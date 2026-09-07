@@ -646,6 +646,7 @@
           b.y = landing.y - 25;
           b.vy = 0;
         }
+        const contacts = [];
         for (const p of this.players) {
           const prev = before[p.id];
           if (!p.alive || !prev.alive || p.invincible > 0) continue;
@@ -665,10 +666,25 @@
             tx &&
             ty &&
             Math.max(0, tx[0], ty[0]) <= Math.min(1, tx[1], ty[1])
-          )
-            this.kill(p, null, "snowball");
+          ) {
+            const t = Math.max(0, tx[0], ty[0]);
+            const above =
+              prev.y - 4 + (p.y - prev.y) * t < oldY + (b.y - oldY) * t;
+            contacts.push({
+              p,
+              t,
+              smash: p.diving && above && (p.vy > 0 || p.y > prev.y),
+            });
+          }
         }
-        if (landing?.ground || b.y > H + 30) {
+        for (const { p, smash } of contacts.sort((a, b) => a.t - b.t)) {
+          if (smash) {
+            b.dead = true;
+            break;
+          }
+          this.kill(p, null, "snowball");
+        }
+        if (b.dead || landing?.ground || b.y > H + 30) {
           b.dead = true;
           this.events.push({ type: "snow-pop", x: b.x, y: b.y });
         }

@@ -80,3 +80,61 @@ test("snowballs wrap horizontally and fresh matches clear hazards", () => {
   assert.ok(m.snowballs[0].x < 2);
   assert.equal(make().snowballs.length, 0);
 });
+
+test("only an active dive from above breaks a snowball", () => {
+  for (const kind of [
+    "dive",
+    "fall",
+    "boost",
+    "flame",
+    "rocket",
+    "sawblade",
+    "side-dive",
+  ]) {
+    const m = make();
+    m.nextYeti = 999;
+    const p = m.players[0];
+    Object.assign(p, {
+      x: 500,
+      y: kind === "side-dive" ? 510 : 475,
+      vy: 600,
+      invincible: 0,
+      diving: kind === "dive" || kind === "side-dive",
+      boosting: kind === "boost",
+      power: ["flame", "rocket", "sawblade"].includes(kind) ? kind : null,
+    });
+    m.snowballs.push({ x: 500, y: 500, vx: 190, vy: 0, angle: 0 });
+    snow(m);
+    assert.equal(p.alive, kind === "dive", kind);
+    assert.equal(m.snowballs.length, kind === "dive" ? 0 : 1, kind);
+    assert.equal(
+      m.events.filter((e) => e.type === "snow-pop").length,
+      kind === "dive" ? 1 : 0,
+      kind,
+    );
+    assert.equal(p.kills, 0);
+  }
+});
+
+test("a swept dive destroys the ball before a later contact regardless of player order", () => {
+  const m = make();
+  m.nextYeti = 999;
+  const [later, diver] = m.players;
+  Object.assign(later, { x: 500, y: 600, invincible: 0 });
+  Object.assign(diver, {
+    x: 500,
+    y: 600,
+    vy: 800,
+    diving: true,
+    invincible: 0,
+  });
+  const before = m.players.map((p) => ({ ...p }));
+  before[later.id].y = 200;
+  before[diver.id].y = 440;
+  m.snowballs.push({ x: 500, y: 500, vx: 0, vy: 0, angle: 0 });
+  m.stepSnow(1 / 120, before);
+  assert.equal(diver.alive, true);
+  assert.equal(later.alive, true);
+  assert.equal(m.snowballs.length, 0);
+  assert.equal(m.events.filter((e) => e.type === "snow-pop").length, 1);
+});
