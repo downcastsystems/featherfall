@@ -1983,29 +1983,30 @@
         ctx.beginPath();
         ctx.rect(y.x - 65, y.y - 65, 130, 65);
         ctx.clip();
-        ctx.translate(Math.round(y.x), Math.round(y.y + (1 - rise) * 48));
+        ctx.translate(Math.round(y.x), Math.round(y.y + (1 - rise) * 34));
         ctx.scale(y.direction, 1);
-        // Shaggy shoulders, blue face, two stubby horns and an enthusiastic shove.
+        // Small shaggy head, narrow body and skinny arms for the shove.
         ctx.fillStyle = "#b4d5e4";
-        ctx.fillRect(-19, -34, 38, 34);
+        ctx.fillRect(-8, -22, 16, 19);
         ctx.fillStyle = "#edfaff";
-        ctx.fillRect(-16, -42, 30, 38);
-        ctx.fillRect(-22, -31, 41, 22);
-        ctx.fillRect(-12, -48, 6, 9);
-        ctx.fillRect(6, -48, 6, 9);
-        ctx.fillRect(-19, -8, 10, 8);
-        ctx.fillRect(8, -8, 10, 8);
+        ctx.fillRect(-10, -30, 20, 15);
+        ctx.fillRect(-7, -33, 3, 5);
+        ctx.fillRect(5, -33, 3, 5);
+        ctx.fillRect(-6, -18, 13, 14);
+        ctx.fillRect(-9, -4, 7, 4);
+        ctx.fillRect(4, -4, 7, 4);
+        ctx.fillRect(-12, -19, 4, 11);
         ctx.fillStyle = "#6b9eb9";
-        ctx.fillRect(-5, -36, 21, 14);
+        ctx.fillRect(-3, -27, 13, 9);
         ctx.fillStyle = "#152e49";
-        ctx.fillRect(0, -33, 4, 4);
-        ctx.fillRect(10, -33, 4, 4);
-        ctx.fillRect(5, -25, 9, 3);
+        ctx.fillRect(-1, -25, 2, 3);
+        ctx.fillRect(6, -25, 2, 3);
+        ctx.fillRect(2, -20, 5, 2);
         ctx.fillStyle = "#edfaff";
-        ctx.fillRect(12, -22, y.pushed ? 25 : 14, 8);
+        ctx.fillRect(6, -16, y.pushed ? 15 : 8, 4);
         ctx.restore();
         ctx.fillStyle = "#e4f8ff";
-        ctx.fillRect(y.x - 25, y.y - 3, 50, 3);
+        ctx.fillRect(y.x - 15, y.y - 2, 30, 2);
       }
       for (const b of match.snowballs) {
         for (const offset of [
@@ -2014,21 +2015,23 @@
         ]) {
           ctx.save();
           ctx.translate(Math.round(b.x + offset), Math.round(b.y));
-          ctx.fillStyle = "#9bbfd5";
-          ctx.beginPath();
-          ctx.moveTo(-15, -25);
-          ctx.lineTo(15, -25);
-          ctx.lineTo(25, -15);
-          ctx.lineTo(25, 15);
-          ctx.lineTo(15, 25);
-          ctx.lineTo(-15, 25);
-          ctx.lineTo(-25, 15);
-          ctx.lineTo(-25, -15);
-          ctx.closePath();
-          ctx.fill();
-          ctx.fillStyle = "#edfaff";
-          ctx.fillRect(-17, -20, 31, 35);
-          ctx.fillRect(-21, -12, 41, 22);
+          // Two-pixel rows trace a circle instead of broad octagonal corners.
+          for (let row = -25; row < 25; row += 2) {
+            const half = Math.round(Math.sqrt(625 - (row + 1) ** 2));
+            ctx.fillStyle = "#9bbfd5";
+            ctx.fillRect(-half, row, half * 2, 2);
+            const innerY = row + 4;
+            if (Math.abs(innerY) < 21) {
+              const light = Math.round(Math.sqrt(441 - innerY ** 2));
+              ctx.fillStyle = "#edfaff";
+              ctx.fillRect(
+                Math.max(-half, -light - 3),
+                row,
+                Math.min(light * 2, half * 2 - 3),
+                2,
+              );
+            }
+          }
           ctx.rotate(b.angle);
           ctx.fillStyle = "#c0dfed";
           ctx.fillRect(-11, -15, 8, 5);
