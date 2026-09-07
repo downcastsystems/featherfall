@@ -177,3 +177,7 @@ First warning now starts at ten seconds. Completed waves wait for the last fireb
 ## Luna lower-wing removal
 
 Removed the lower wing pair and its unused drawing branch, preserving the upper wing geometry, colors and flap positions. Three small jointed legs now show beneath the abdomen, with walking offsets and a slight airborne dangle. Browser inspection verified rest, upstroke and downstroke. All 126 tests and syntax checks pass. Artwork-only diff reviewed; no physics changes or unresolved findings.
+
+## Denser volcano rain
+
+Each wave now drops 18 fireballs at half-second intervals, evenly distributed between the same left and right bounds. Updated tests verify all 18 columns in both directions, half-second spacing and overlap protection through the final impact. Syntax checks and all 126 tests pass. Reviewed the diff: falling velocity, warning time and cooldown are unchanged.

@@ -128,3 +128,9 @@ Completed timing and overlap protection. Diff reviewed; all 126 tests and syntax
 Remove only the lower wing lobes, preserve the upper pattern and animation, and replace the exposed underside with small jointed insect legs. Check rest and both flap poses, run syntax and existing tests, and review the artwork-only diff.
 
 Completed lower-wing removal and jointed legs. Browser pose review and all 126 tests plus syntax checks pass.
+
+## Denser volcano rain
+
+Double each wave to 18 fireballs with 0.5-second drop spacing. Distribute the columns evenly over the same arena width in either direction. Preserve the warning, cooldown and all-fireballs-cleared overlap guard. Update cadence and full-wave regression checks, run the suite and review the diff.
+
+Completed and reviewed. All 126 tests and syntax checks pass.

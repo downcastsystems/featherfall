@@ -479,11 +479,15 @@
       const wave = this.eruption;
       if (
         wave &&
-        wave.dropped < 9 &&
-        this.time >= wave.start + 1.2 + wave.dropped
+        wave.dropped < 18 &&
+        this.time >= wave.start + 1.2 + wave.dropped * 0.5
       ) {
-        const column = wave.direction > 0 ? wave.dropped : 8 - wave.dropped;
-        this.volcanoFireballs.push({ x: 100 + column * 215, y: -20, vy: 360 });
+        const column = wave.direction > 0 ? wave.dropped : 17 - wave.dropped;
+        this.volcanoFireballs.push({
+          x: 100 + column * ((W - 200) / 17),
+          y: -20,
+          vy: 360,
+        });
         wave.dropped++;
       }
       for (const f of this.volcanoFireballs) {
@@ -533,7 +537,7 @@
         (f) => !f.dead && f.y < H + 30,
       );
       // A wave includes its last falling fireball, not just its last drop.
-      if (wave?.dropped === 9 && !this.volcanoFireballs.length) {
+      if (wave?.dropped === 18 && !this.volcanoFireballs.length) {
         this.eruption = null;
         this.nextEruption = this.time + 8 + this.rng() * 6;
       }

@@ -17,7 +17,7 @@ function make(id = "volcanic") {
 const tick = (m, n = 1) => {
   for (let i = 0; i < n; i++) m.step(1 / 120);
 };
-test("eruption warns before nine drops spaced a second apart, sweeping either direction", () => {
+test("eruption warns before eighteen drops spaced half a second apart, sweeping either direction", () => {
   for (const roll of [0, 0.9]) {
     const m = make();
     m.rng = () => roll;
@@ -29,21 +29,24 @@ test("eruption warns before nine drops spaced a second apart, sweeping either di
     );
     assert.equal(m.volcanoFireballs.length, 0);
     const xs = [];
-    for (let column = 0; column < 9; column++) {
-      m.time = m.eruption.start + 1.2 + column;
+    for (let column = 0; column < 18; column++) {
+      m.time = m.eruption.start + 1.2 + column * 0.5;
       tick(m);
       xs.push(m.volcanoFireballs.at(-1).x);
       const count = m.eruption?.dropped;
-      if (column < 8) {
-        tick(m, 60);
+      if (column < 17) {
+        tick(m, 30);
         assert.equal(m.eruption.dropped, count);
       }
     }
     assert.deepEqual(
       xs,
-      Array.from({ length: 9 }, (_, i) => 100 + 215 * (roll === 0 ? i : 8 - i)),
+      Array.from(
+        { length: 18 },
+        (_, i) => 100 + (1720 / 17) * (roll === 0 ? i : 17 - i),
+      ),
     );
-    assert.equal(m.eruption.dropped, 9);
+    assert.equal(m.eruption.dropped, 18);
     while (m.volcanoFireballs.length) tick(m);
     assert.equal(m.eruption, null);
     assert.ok(Math.abs(m.nextEruption - m.time - (8 + roll * 6)) < 0.001);
@@ -98,7 +101,7 @@ test("first blast begins at ten seconds and waves cannot overlap even with an ov
   assert.ok(m.eruption);
   const wave = m.eruption;
   m.nextEruption = 0;
-  while (wave.dropped < 9) tick(m);
+  while (wave.dropped < 18) tick(m);
   assert.equal(m.eruption, wave);
   assert.ok(m.volcanoFireballs.length);
   while (m.volcanoFireballs.length) {
