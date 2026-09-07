@@ -89,5 +89,5 @@
   }
   if (typeof module !== "undefined" && module.exports)
     module.exports = { Broadcast };
-  else root.FeatherfallBroadcast = { Broadcast };
+  else root.OneBigSkyBroadcast = { Broadcast };
 })(typeof globalThis !== "undefined" ? globalThis : this);

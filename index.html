@@ -4,11 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#111b2c" />
-    <title>Featherfall · Downcast Systems</title>
+    <title>One Big Sky · Downcast Systems</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main id="stage" aria-label="Featherfall local multiplayer game">
+    <main id="stage" aria-label="One Big Sky local multiplayer game">
       <canvas
         id="arena"
         width="1920"
@@ -20,9 +20,9 @@
           class="wordmark"
           href="#"
           id="home-link"
-          aria-label="Featherfall home"
+          aria-label="One Big Sky home"
           ><span class="brand-icon">*</span> DOWNCAST SYSTEMS
-          <span class="divider">/</span> FEATHERFALL</a
+          <span class="divider">/</span> ONE BIG SKY</a
         >
         <div class="utilities">
           <span id="controller-status">LOCAL MULTIPLAYER</span
@@ -36,7 +36,7 @@
         <div class="eyebrow">
           <span></span> A DOWNCAST SYSTEMS GAME <span></span>
         </div>
-        <h1>FEATHER<span>FALL</span><i>*</i></h1>
+        <h1 aria-label="One Big Sky">ONE <span>BIG SKY</span></h1>
         <p class="tagline">Small riders. Big grudges.</p>
         <p class="intro">
           Take to the skies. Claim the high ground.<br />Be the last rider
@@ -47,44 +47,45 @@
           PRESS ENTER <span>OR</span> CONTROLLER A / START
         </div>
         <div class="menu-specs">
-          <span>2–4 PLAYERS</span><b>*</b><span>FIRST TO 3 WINS</span><b>*</b
-          ><span>ONE BIG SKY</span>
+          <span>2–4 PLAYERS</span><b>*</b><span>FIRST TO 3 WINS</span>
         </div>
       </section>
       <section id="lobby" class="screen lobby" hidden>
         <div class="lobby-heading">
           <div>
-            <div class="eyebrow">ASSEMBLE YOUR FLOCK</div>
+            <div class="eyebrow">PICK YOUR PARTNER IN CRIME</div>
             <h2>Who's flying?</h2>
           </div>
-          <div class="mode-control">
-            <span>MATCH TYPE <small>Y ON CONTROLLER</small></span
-            ><button id="mode">FREE FOR ALL <span>&lt;&gt;</span></button>
-          </div>
+          <button id="back" class="text-button">BACK</button>
         </div>
-        <p class="lobby-intro">
-          Pick any mount, even the same one. Equal hitboxes. Equal flight.
-        </p>
-        <div id="seats" class="seats"></div>
+        <div id="seats" class="rider-lineup"></div>
+        <div id="roster" class="roster-grid"></div>
         <div class="lobby-bottom">
           <div>
-            <button id="add-bot" class="secondary">+ ADD PRACTICE BOT</button
-            ><button id="remove-bot" class="secondary">
-              REMOVE LAST BOT · RB</button
-            ><button id="back" class="text-button">BACK</button>
+            <button id="add-bot" class="secondary">X · ADD BOT</button
+            ><button id="remove-bot" class="secondary">Y · REMOVE BOT</button>
           </div>
           <div class="launch-area">
             <p id="lobby-message" role="status"></p>
-            <button id="launch" class="primary">
-              TAKE FLIGHT <span>&gt;</span>
-            </button>
+            <button id="launch" class="primary">LET'S GO! &gt;</button>
           </div>
         </div>
-        <div class="control-guide">
-          <span><b>MOVE</b> LEFT/RIGHT · STICK OR D-PAD</span
-          ><span><b>FLAP</b> TAP OR HOLD A</span
-          ><span><b>DIVE / BOOST</b> DOWN / X</span
-          ><span><b>LEAVE</b> B UNREADY / LEAVE</span>
+      </section>
+      <section id="mode-screen" class="screen mode-screen" hidden>
+        <div class="eyebrow">THE LINEUP IS SET</div>
+        <h2>How do we settle this?</h2>
+        <div class="mode-choices">
+          <button id="mode-ffa">
+            FREE FOR ALL<small>Every rider for themselves</small></button
+          ><button id="mode-teams">
+            TEAMS<small>Pick a side. Share the glory.</small>
+          </button>
+        </div>
+        <div id="team-assign" hidden></div>
+        <p id="mode-message" role="status"></p>
+        <div class="mode-bottom">
+          <button id="mode-back" class="text-button">B · BACK</button
+          ><button id="fly" class="primary" disabled>LET'S FLY! &gt;</button>
         </div>
       </section>
       <section id="hud" hidden aria-label="Match status">
@@ -92,43 +93,47 @@
         <div id="announcer" aria-label="Skybox commentary">
           <svg
             class="announcer-avatar"
-            viewBox="0 0 48 48"
+            viewBox="0 0 64 64"
             aria-hidden="true"
             shape-rendering="crispEdges"
           >
-            <path fill="#25384d" d="M8 43v-6h7v-4h19v4h6v6z" />
-            <path fill="#edf8d2" d="M20 35h10l-5 8z" />
-            <path fill="#bd9cf7" d="M18 36l7 2 7-2v6l-7-2-7 2z" />
             <g class="chirp-head">
-              <path fill="#329c8e" d="M10 16h24v19H14v-4h-4z" />
-              <path fill="#77e8ba" d="M13 12h22v6h3v13h-5v5H19v-3h-6z" />
-              <path fill="#77e8ba" d="M14 14V7h-3V3h5v3h5V2h4v5h6v6z" />
-              <path fill="#b9f5cc" d="M16 7h4v7h-4zM25 8h5v5h-5z" />
-              <path fill="#c9f4c2" d="M24 24h13v8h-5v3h-8z" />
+              <path
+                fill="#398b85"
+                d="M8 23h4v-8h6v-5h10V6h5v4h9v4h7v8h5v25h-7v8h-8v5h-8v-4h-6v5h-5v-6h-6v-8h-5z"
+              />
+              <path
+                fill="#79d5b1"
+                d="M14 23h4v-9h12v-4h5v5h10v9h5v24h-8v8H29v-4h-7v3h-5V43h-5z"
+              />
+              <path
+                fill="#b7e8bf"
+                d="M19 15h7v3h-7zM14 26h4v8h-4zM24 49h5v7h-5z"
+              />
               <g class="chirp-eye">
-                <path fill="#fff3d4" d="M25 18h10v7H25z" />
-                <path fill="#122034" d="M31 19h3v5h-3z" />
-                <path fill="#49b89c" d="M25 18h10v3H25z" />
+                <path
+                  fill="#fff1d3"
+                  d="M25 22h5v-4h8v5h3v16h-4v5h-9v-4h-4zM43 18h8v4h3v12H43z"
+                />
+                <path fill="#243441" d="M33 29h5v8h-5zM48 25h4v6h-4z" />
+                <path fill="#fff" d="M33 29h2v2h-2zM48 25h1v2h-1z" />
               </g>
               <path
                 class="chirp-brow"
-                fill="#174c50"
-                d="M24 16v-3h4v1h7v3h-7v-1z"
+                fill="#253c40"
+                d="M22 20v-4h5v-3h7v-2h5v5h-7v2h-6v2zM42 12h8v3h5v4h-6v-2h-7z"
               />
-              <path fill="#f8d66d" d="M35 24h10v3h-3v3h-7z" />
-              <path fill="#fff0a3" d="M36 24h8v2h-8z" />
+              <path
+                fill="#efa951"
+                d="M40 32h12v3h5v5h4v9h-8v-3h-9v-2h-7v-8h3z"
+              />
+              <path fill="#ffe1a0" d="M42 32h9v3h5v4H42z" />
               <path
                 class="announcer-beak"
-                fill="#dda34c"
-                d="M35 29h7v2h-3v2h-4z"
+                fill="#ce8a49"
+                d="M37 44h8v3h9v3h-5v5H38v-4h-3v-5z"
               />
-              <path fill="#25384d" d="M7 17v-7h5V8h21v3H13v6z" />
-              <path fill="#bd9cf7" d="M6 17h8v14H6z" />
-              <path fill="#705b9c" d="M6 19h3v10H6z" />
-              <path fill="#e0d3ff" d="M9 18h3v4H9z" />
-              <path fill="#8396b0" d="M11 30h3v5h15v-3h3v6H11z" />
-              <path fill="#25384d" d="M27 31h8v5h-8z" />
-              <path fill="#bd9cf7" d="M28 31h4v2h-4z" />
+              <path fill="#f6d1a1" d="M39 48h5v2h7v2h-4v3h-7z" />
             </g>
           </svg>
           <span class="announcer-name"
@@ -169,12 +174,7 @@
           <p class="small-hint">UP/DOWN CHOOSE · A SELECT · B LOBBY</p>
         </div>
       </section>
-      <footer id="footer">
-        <span
-          ><i class="status-dot"></i> MAC + WINDOWS · KEYBOARD + GAMEPAD</span
-        ><span>VOL. 01 <b> / </b> THE HOLLOW SKY</span
-        ><span>PROTOTYPE 0.2</span>
-      </footer>
+      <footer id="footer">Copyright © 2026 Downcast Systems LLC</footer>
     </main>
     <script src="engine.js"></script>
     <script src="audio.js"></script>

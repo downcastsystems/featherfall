@@ -7,13 +7,16 @@ const seats = Array.from({ length: 4 }, (_, character) => ({
   team: character % 2,
 }));
 const make = (arena) => new Match(seats, "ffa", () => 0.5, arena);
-test("six distinct arenas have mirrored, separated, playable platform layouts", () => {
-  assert.equal(ARENAS.length, 6);
-  assert.equal(new Set(ARENAS.map((a) => JSON.stringify(a.platforms))).size, 6);
-  assert.equal(new Set(ARENAS.map((a) => a.motif)).size, 6);
+test("seven distinct arenas have mirrored, separated, playable platform layouts", () => {
+  assert.equal(ARENAS.length, 7);
+  assert.equal(new Set(ARENAS.map((a) => JSON.stringify(a.platforms))).size, 7);
+  assert.equal(new Set(ARENAS.map((a) => a.motif)).size, 7);
   for (const arena of ARENAS) {
     const platforms = arena.platforms;
-    assert.equal(platforms.filter((p) => p.ground).length, 1);
+    assert.equal(
+      platforms.filter((p) => p.ground).length,
+      arena.waterY === undefined ? 1 : 0,
+    );
     for (const p of platforms) {
       assert.ok(p.x >= 0 && p.x + p.w <= W && p.w >= 180, arena.name);
       assert.ok(
@@ -39,10 +42,10 @@ test("rotation exhausts every arena before repeating and never repeats at the cy
     const rotation = new ArenaRotation(rng);
     let last;
     for (let cycle = 0; cycle < 8; cycle++) {
-      const batch = Array.from({ length: 6 }, () => rotation.next());
-      assert.equal(new Set(batch).size, 6);
+      const batch = Array.from({ length: 7 }, () => rotation.next());
+      assert.equal(new Set(batch).size, 7);
       assert.notEqual(batch[0], last);
-      last = batch[5];
+      last = batch[6];
     }
   }
 });
@@ -74,7 +77,7 @@ test("spawns, feathers and powers use each match arena independently", () => {
 });
 test("saws bounce on every face of each arena platform and riders land on each platform", () => {
   for (const arena of ARENAS) {
-    for (const s of arena.platforms.filter((s) => !s.ground)) {
+    for (const s of arena.platforms.filter((s) => !s.ground && !s.bank)) {
       for (const [x, y, vx, vy, axis] of [
         [s.x + s.w / 2, s.y - 13, 0, 560, "vy"],
         [s.x + s.w / 2, s.y + 57, 0, -560, "vy"],

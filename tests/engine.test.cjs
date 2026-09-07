@@ -419,7 +419,7 @@ test("mount appearances share exactly the same movement and collision rules", ()
   results.forEach((r) => assert.deepEqual(r, results[0]));
   assert.equal(
     new Set(require("../engine.js").CHARACTERS.map((c) => c.mount)).size,
-    7,
+    8,
   );
 });
 

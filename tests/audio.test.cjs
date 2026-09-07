@@ -220,7 +220,7 @@ test("zombie splats have a short layered sound, throttle simultaneous pops, and 
 
 test("new mounts have distinct flap sounds that obey mute", () => {
   const pitches = [];
-  for (const character of [4, 5, 6]) {
+  for (const character of [4, 5, 6, 7]) {
     const { audio, nodes } = fixture();
     audio.unlock();
     audio.play("flap", character);
@@ -232,5 +232,16 @@ test("new mounts have distinct flap sounds that obey mute", () => {
     audio.play("flap", character);
     assert.equal(nodes.length, count);
   }
-  assert.equal(new Set(pitches.map((p) => Math.round(p / 20))).size, 3);
+  assert.equal(new Set(pitches.map((p) => Math.round(p / 20))).size, 4);
+});
+
+test("water splash combines noise and a short tone and respects mute", () => {
+  const { audio, nodes } = fixture();
+  audio.unlock();
+  audio.play("splash");
+  assert.ok(nodes.some((n) => n.kind === "tone"));
+  const count = nodes.length;
+  audio.toggle();
+  audio.play("splash");
+  assert.equal(nodes.length, count);
 });

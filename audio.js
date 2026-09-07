@@ -67,6 +67,15 @@
       air: 0.024,
       cutoff: 1800,
     },
+    {
+      pitch: 280,
+      end: 440,
+      duration: 0.12,
+      wave: "sine",
+      volume: 0.025,
+      air: 0.018,
+      cutoff: 1300,
+    },
   ];
   class ArcadeAudio {
     constructor(Context, onChange = () => {}) {
@@ -188,7 +197,7 @@
       if (!this.enabled || this.context?.state !== "running") return;
       const now = this.context.currentTime;
       const gap =
-        kind === "zombie-pop"
+        kind === "zombie-pop" || kind === "splash"
           ? 0.04
           : kind === "step"
             ? 0.045
@@ -211,6 +220,9 @@
           true,
         );
         this.hiss(flap.duration, flap.air, flap.cutoff, true);
+      } else if (kind === "splash") {
+        this.hiss(0.18, 0.08, 1900, true);
+        this.tone(320, 0.12, "sine", 0.04, 110);
       } else if (kind === "step") {
         this.tone(variant % 2 ? 145 : 185, 0.04, "square", 0.07, 65);
       } else if (kind === "spawn") {

@@ -274,63 +274,6 @@ h2 {
   letter-spacing: -2px;
   margin: 15px 0;
 }
-.mode-control {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-.mode-control > span {
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: #9aa9b5;
-}
-.mode-control small {
-  display: block;
-  font-size: 9px;
-  letter-spacing: 1px;
-  margin-top: 7px;
-}
-.mode-control button {
-  background: #283645;
-  border: 1px solid #50616e;
-  padding: 18px 22px;
-  min-width: 220px;
-  font-size: 13px;
-  letter-spacing: 2px;
-}
-.mode-control button span {
-  margin-left: 25px;
-  color: #f5ae88;
-}
-.lobby-intro {
-  font-size: 18px;
-  color: #a9b6bc;
-  margin: 6px 0 30px;
-}
-.seats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-}
-.seat {
-  height: 380px;
-  border: 1px solid #ffffff20;
-  background: #162334ef;
-  position: relative;
-  padding: 22px;
-  text-align: center;
-}
-.seat.joined {
-  border-top: 3px solid var(--bird);
-}
-.seat.empty {
-  border-style: dashed;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  background: #111d2ba8;
-}
 .seat-label {
   display: flex;
   justify-content: space-between;
@@ -342,84 +285,16 @@ h2 {
   color: var(--bird);
   font-weight: 600;
 }
-.seat canvas {
-  image-rendering: pixelated;
-  width: 168px;
-  height: 100px;
-  margin-top: 15px;
-}
-.character-picker {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.character-picker button {
-  background: transparent;
-  font-size: 25px;
-  padding: 10px;
-  color: #97aaba;
-}
-.character-picker h3 {
-  font-size: 26px;
-  letter-spacing: 4px;
-  color: var(--bird);
-  margin: 4px 0;
-}
 .bird-type {
   font-size: 12px;
   color: #8fa1b0;
   letter-spacing: 1px;
-}
-.seat-controls {
-  font-size: 12px;
-  color: #bfc9cb;
-  letter-spacing: 1px;
-  margin: 20px 0 12px;
-}
-.seat-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-.seat-actions button {
-  padding: 8px 10px;
-  background: #2c3b4a;
-  font-size: 10px;
-  letter-spacing: 1px;
-}
-.seat-actions .remove {
-  background: none;
-  color: #8b9ba7;
 }
 .ready {
   font-size: 10px;
   letter-spacing: 2px;
   margin-top: 12px;
   color: #81cdb2;
-}
-.seat.empty .plus {
-  font-size: 45px;
-  font-weight: 200;
-  color: #637887;
-  margin-bottom: 20px;
-}
-.seat.empty h3 {
-  font-size: 13px;
-  letter-spacing: 2px;
-  font-weight: 500;
-  color: #9eafbc;
-}
-.seat.empty button {
-  background: #283746;
-  border: 1px solid #4a5b67;
-  padding: 13px 19px;
-  font-size: 12px;
-  letter-spacing: 1px;
-}
-.seat.empty p {
-  color: #7c909f;
-  font-size: 11px;
-  margin: 17px 0;
 }
 .lobby-bottom {
   display: flex;
@@ -455,21 +330,6 @@ h2 {
 }
 .launch-area .primary {
   min-width: 285px;
-}
-.control-guide {
-  border-top: 1px solid #ffffff19;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 36px;
-  padding-top: 24px;
-  color: #8f9daa;
-  font-size: 10px;
-  letter-spacing: 1px;
-}
-.control-guide b {
-  color: #c7ccc8;
-  margin-right: 12px;
-  font-weight: 500;
 }
 #hud {
   position: absolute;
@@ -700,72 +560,17 @@ h2 {
   right: 90px;
   top: 140px;
 }
-.lobby-intro {
-  font-size: 18px;
-}
-.seat {
-  height: 440px;
-  padding: 20px;
-}
 .seat-label {
   font-size: 13px;
   letter-spacing: 0;
-}
-.character-picker h3 {
-  font-size: 26px;
-  letter-spacing: -1px;
-}
-.character-picker h3 small {
-  font-size: 16px;
-  display: block;
-  margin-top: 5px;
 }
 .bird-type {
   font-size: 15px;
   letter-spacing: 0;
 }
-.seat canvas {
-  margin-top: 5px;
-}
-.seat-controls {
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: 1.5;
-  min-height: 44px;
-  margin: 15px 0 10px;
-}
-.seat-actions {
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.seat-actions button {
-  font-size: 14px;
-  letter-spacing: 0;
-}
 .ready {
   font-size: 12px;
   letter-spacing: 0;
-}
-.team-seat {
-  background: linear-gradient(var(--team-dark), #172636 72%);
-  border: 3px solid var(--team) !important;
-  padding-top: 42px;
-}
-.team-banner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  color: #0e1927;
-  background: var(--team);
-  padding: 6px;
-  font-size: 18px;
-  font-weight: 700;
-}
-.team-button {
-  background: var(--team) !important;
-  color: #0e1927;
-  font-weight: 700;
 }
 [data-selected="true"],
 [data-pad-focus]:not([data-pad-focus=""]) {
@@ -798,27 +603,6 @@ h2 {
 .secondary,
 .text-button {
   font-size: 16px;
-  letter-spacing: 0;
-}
-.control-guide {
-  font-size: 14px;
-  letter-spacing: 0;
-  margin-top: 32px;
-}
-.control-guide b {
-  display: block;
-  margin-bottom: 8px;
-}
-.mode-control button {
-  font-size: 16px;
-  letter-spacing: 0;
-}
-.mode-control > span {
-  font-size: 14px;
-  letter-spacing: 0;
-}
-.mode-control small {
-  font-size: 12px;
   letter-spacing: 0;
 }
 #players-hud {
@@ -955,9 +739,6 @@ footer {
 .seat.is-ready {
   border-color: var(--bird);
   box-shadow: inset 0 0 0 2px var(--bird);
-}
-.seat.is-ready .ready {
-  color: #d5ffb3;
 }
 .hud-player {
   position: relative;
@@ -1127,13 +908,13 @@ footer {
 }
 
 .announcer-beak {
-  transform-origin: 35px 29px;
+  transform-origin: 37px 44px;
 }
 .chirp-head {
-  transform-origin: 24px 35px;
+  transform-origin: 32px 49px;
 }
 .chirp-eye {
-  transform-origin: 30px 22px;
+  transform-origin: 39px 31px;
   animation: chirp-blink 6.7s steps(1, end) infinite;
 }
 #announcer.is-talking .announcer-beak {
@@ -1189,14 +970,245 @@ footer {
     animation: none;
   }
 }
-
-.bot-ready {
-  padding: 8px;
-  color: var(--bird);
-  font-size: 12px;
-}
 .final-rank {
   display: inline-block;
   min-width: 42px;
   color: #fff1ba;
+}
+
+/* Shared roster and separate mode setup, scaled with the 1920×1080 stage. */
+.menu h1 {
+  font-size: 116px;
+  line-height: 1.02;
+}
+#footer {
+  justify-content: center;
+}
+.lobby {
+  top: 110px;
+  left: 110px;
+  right: 110px;
+  bottom: 50px;
+  padding: 0;
+}
+.lobby-heading {
+  margin-bottom: 12px;
+}
+.lobby-heading h2 {
+  font-size: 40px;
+  margin: 6px 0;
+}
+.rider-lineup {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  height: 190px;
+  margin-bottom: 18px;
+}
+.rider-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--bird);
+  position: relative;
+  background: #101c2ebd;
+  border-bottom: 3px solid #415268;
+  padding: 8px;
+}
+.rider-preview.is-ready {
+  border-color: var(--bird);
+}
+.rider-preview canvas {
+  width: 210px;
+  height: 98px;
+  image-rendering: pixelated;
+}
+.rider-preview button {
+  font-size: 12px;
+  padding: 7px 14px;
+  margin: 5px;
+  color: var(--bird, #b6c8d3);
+}
+.rider-preview.empty {
+  justify-content: center;
+  gap: 16px;
+  color: #9eacb9;
+}
+.rider-preview.empty button {
+  line-height: 1.8;
+}
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 228px);
+  gap: 14px;
+}
+.roster-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background: #152338ed;
+  border: 2px solid #44566b;
+  padding: 0 12px 12px;
+  color: var(--bird);
+}
+.roster-tile:hover {
+  border-color: var(--bird);
+  background: #20374a;
+}
+.roster-tile:has(.roster-markers span) {
+  border-color: var(--bird);
+  box-shadow: inset 0 0 35px #8ad3ee12;
+}
+.roster-tile canvas {
+  width: 320px;
+  height: 168px;
+  image-rendering: pixelated;
+}
+.roster-tile strong {
+  font-size: 19px;
+  letter-spacing: 3px;
+}
+.roster-tile small {
+  font-size: 11px;
+  color: #b3c4cf;
+  margin-top: 8px;
+}
+.roster-markers {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  gap: 6px;
+  z-index: 1;
+}
+.roster-markers span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #111b2c;
+  border: 3px solid var(--marker);
+  color: var(--marker);
+  font-size: 14px;
+}
+.roster-markers .locked {
+  background: var(--marker);
+  color: #152034;
+}
+.lobby-bottom {
+  margin-top: 20px;
+  align-items: center;
+}
+#lobby-message {
+  font-size: 12px;
+}
+#launch {
+  font-size: 21px;
+  min-width: 270px;
+}
+#add-bot,
+#remove-bot {
+  font-size: 14px;
+  margin-right: 12px;
+}
+.mode-screen {
+  position: absolute;
+  top: 170px;
+  left: 360px;
+  right: 360px;
+  text-align: center;
+}
+.mode-screen h2 {
+  font-size: 45px;
+  margin: 20px 0 36px;
+}
+.mode-choices {
+  display: flex;
+  gap: 24px;
+}
+.mode-choices button {
+  flex: 1;
+  padding: 30px 20px;
+  font-size: 24px;
+  background: #152338ef;
+}
+.mode-choices small {
+  display: block;
+  margin-top: 18px;
+  font-size: 13px;
+  color: #aebfcd;
+}
+.mode-choices [aria-pressed="true"] {
+  border-color: #77e8ba;
+  background: #294842;
+}
+#team-assign {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 30px;
+}
+#team-assign[hidden] {
+  display: none;
+}
+.team-column {
+  background: #101c2ee8;
+  border-top: 4px solid var(--team);
+  padding: 20px;
+  min-height: 220px;
+}
+.team-column h3 {
+  color: var(--team);
+  font-size: 20px;
+  margin: 0 0 20px;
+}
+.team-column button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 15px;
+  padding: 15px;
+  color: var(--bird);
+  margin-top: 10px;
+}
+.team-column button span {
+  float: right;
+}
+#mode-message {
+  min-height: 25px;
+  font-size: 14px;
+  margin: 30px 0;
+}
+.mode-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#fly {
+  min-width: 330px;
+}
+.announcer-avatar {
+  width: 54px;
+  height: 54px;
+}
+
+.rider-preview button,
+.team-column button {
+  background: #203246;
+  border: 1px solid #55687b;
+}
+.rider-preview.is-ready button {
+  background: #27443f;
+}
+.team-column button:hover {
+  border-color: var(--bird);
+  background: #2a4054;
+}
+
+.rider-preview.is-ready button:disabled {
+  opacity: 1;
 }

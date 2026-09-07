@@ -181,3 +181,15 @@ Removed the lower wing pair and its unused drawing branch, preserving the upper 
 ## Denser volcano rain
 
 Each wave now drops 18 fireballs at half-second intervals, evenly distributed between the same left and right bounds. Updated tests verify all 18 columns in both directions, half-second spacing and overlap protection through the final impact. Syntax checks and all 126 tests pass. Reviewed the diff: falling velocity, warning time and cooldown are unchanged.
+
+## One Big Sky roster, setup and swamp update
+
+139 automated tests and syntax checks pass. Updated tests use the new separate readiness and mode confirmations rather than the removed auto-launch behavior. Coverage includes four gamepads, roster navigation and row wrapping, duplicate human choices, bot character avoidance and insertion-order removal, keyboard boost cancellation, Player 2 arrow-key conflicts, two valid teams, 2v2 and odd-player bot balancing, setup disconnects, pause/rematch and seven-arena rotation.
+
+Swamp tests verify mirrored banks, safe floating-platform spawns, walking/diving/sawblade water deaths, protection recovery, piranha proximity and ripple warning, vertical flight, collision sweeps, return to water, hazard pause/reset and normal held-flap cadence for bot escape. Ripple shares all character physics and has dedicated artwork and flap audio. Commentary checks verify exact colored references with duplicate mounts; text is escaped before markup insertion.
+
+Browser inspections verified title branding and copyright, four-player shared roster and markers, ready confirmation, team columns and launch highlighting, Chirp's sketch-based portrait, fish flight/dive poses, and swamp water, banks, piranhas and ripples. No console errors in the checked game page. The waterline was raised to 960 to remain visible above the announcer. Temporary browser fixtures are excluded from the repository.
+
+Review fixes: Player 2 flap no longer also navigates the mode menu; sawblades can reach and die in water; protected riders recover above the surface; bots escape using ordinary flap cadence; old seat-card styling was removed. Physical controller hardware was not available for this run; controller paths were exercised with simulated standard gamepads.
+
+Saved locally. GitHub main push remains pending authorization after automatic approval review blocked the previous push.

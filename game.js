@@ -1,4 +1,4 @@
-/* Featherfall presentation and local input. */
+/* OneBigSky presentation and local input. */
 (() => {
   "use strict";
   const {
@@ -13,7 +13,7 @@
     botInput,
     gamepadState,
     edges,
-  } = Featherfall;
+  } = OneBigSky;
   const arenaRotation = new ArenaRotation();
   const $ = (id) => document.getElementById(id);
   const canvas = $("arena"),
@@ -56,8 +56,8 @@
     seats = [null, null, null, null],
     mode = "ffa",
     match = null;
-  const { MatchSeries, rankPlayers } = FeatherfallSeries;
-  const broadcast = new FeatherfallBroadcast.Broadcast();
+  const { MatchSeries, rankPlayers } = OneBigSkySeries;
+  const broadcast = new OneBigSkyBroadcast.Broadcast();
   let series = null,
     resultsMode = "round";
   const powerColor = {
@@ -129,7 +129,7 @@
     if (next === "menu") seats = [null, null, null, null];
     screen = next;
     menuIndex = 0;
-    for (const id of ["menu", "lobby", "pause", "results"])
+    for (const id of ["menu", "lobby", "mode-screen", "pause", "results"])
       $(id).hidden = next !== id;
     const inArena = [
       "match",
@@ -198,45 +198,55 @@
     const id = menuOptions()[menuIndex];
     if (id) $(id).click();
   }
-  function lobbyRows() {
-    return [
-      "character",
-      ...(mode === "teams" ? ["team"] : []),
-      "ready",
-      "mode",
-      "add-bot",
-      "remove-bot",
-      "launch",
-      "sound",
-      "fullscreen",
-      "back",
-    ];
+  let selectedMode = null,
+    modeCursor = 0,
+    botSerial = 0,
+    mouseSlot = 0;
+  const allReady = () =>
+    seats.filter(Boolean).length >= 2 &&
+    seats.filter(Boolean).every((s) => s.ready);
+  function balanceBots() {
+    const counts = [0, 0];
+    seats.forEach((s) => {
+      if (s && s.kind !== "bot") counts[s.team]++;
+    });
+    seats.forEach((s) => {
+      if (s?.kind === "bot") {
+        s.team = counts[0] <= counts[1] ? 0 : 1;
+        counts[s.team]++;
+      }
+    });
+  }
+  function randomBotCharacters() {
+    const used = new Set(
+      seats.filter((s) => s && s.kind !== "bot").map((s) => s.character),
+    );
+    seats.forEach((s) => {
+      if (s?.kind !== "bot") return;
+      if (used.has(s.character)) {
+        const choices = birds.map((_, i) => i).filter((i) => !used.has(i));
+        s.character = choices[Math.floor(Math.random() * choices.length)];
+      }
+      used.add(s.character);
+    });
   }
   function removeBot() {
-    const slot = seats.findLastIndex((s) => s?.kind === "bot");
-    if (slot < 0) return;
-    seats[slot] = null;
+    const bots = seats.filter((s) => s?.kind === "bot");
+    const last = bots.sort((a, b) => b.added - a.added)[0];
+    if (last) seats[seats.indexOf(last)] = null;
     renderSeats();
   }
   function ready(slot) {
+    if (!seats[slot] || seats[slot].kind === "bot") return;
     seats[slot].ready = !seats[slot].ready;
     renderSeats();
-    if (canStart() && seats.filter(Boolean).every((s) => s.ready)) startMatch();
   }
   function lobbySelect(slot) {
-    const s = seats[slot],
-      row = s.cursor || "character";
-    if (row === "character") {
-      if (!s.ready) ready(slot);
-    } else if (row === "team") {
-      s.team ^= 1;
-      s.ready = false;
-      renderSeats();
-    } else if (row === "ready") ready(slot);
-    else if (row === "back") {
-      seats[slot] = null;
-      show("menu");
-    } else $(row).click();
+    if (allReady()) {
+      openMode();
+      return;
+    }
+    if (seats[slot] && !seats[slot].ready) ready(slot);
   }
   function join(kind, source, slot = seats.findIndex((s) => !s)) {
     if (
@@ -247,120 +257,177 @@
       )
     )
       return;
+    const used = new Set(seats.filter(Boolean).map((s) => s.character));
+    const choices = birds.map((_, i) => i).filter((i) => !used.has(i));
     seats[slot] = {
       kind,
       source,
-      character: slot % birds.length,
-      cursor: "character",
+      character:
+        kind === "bot"
+          ? choices[Math.floor(Math.random() * choices.length)]
+          : slot % birds.length,
       team: slot % 2,
       ready: kind === "bot",
+      added: ++botSerial,
     };
+    randomBotCharacters();
     tone(460, 0.1, "triangle", 0.05, 700);
     renderSeats();
   }
   function rotate(slot, direction) {
-    if (!seats[slot]) return;
-    seats[slot].character =
-      (seats[slot].character + direction + birds.length) % birds.length;
-    if (seats[slot].kind !== "bot") seats[slot].ready = false;
-    renderSeats();
-  }
-  function changeMode() {
-    mode = mode === "ffa" ? "teams" : "ffa";
-    seats.forEach((s) => {
-      if (s?.cursor === "team" && mode !== "teams") s.cursor = "character";
-    });
+    const s = seats[slot];
+    if (!s || s.ready) return;
+    const row = Math.floor(s.character / 4),
+      col = s.character % 4;
+    s.character =
+      Math.abs(direction) === 4
+        ? (1 - row) * 4 + col
+        : row * 4 + ((col + direction + 4) % 4);
+    randomBotCharacters();
     renderSeats();
   }
   function canStart() {
-    const active = seats.filter(Boolean);
     return (
-      active.length >= 2 &&
-      (mode !== "teams" || new Set(active.map((s) => s.team)).size === 2)
+      allReady() &&
+      selectedMode !== null &&
+      (mode !== "teams" ||
+        new Set(seats.filter(Boolean).map((s) => s.team)).size === 2)
+    );
+  }
+  function openMode() {
+    if (!allReady()) return;
+    selectedMode = null;
+    modeCursor = 0;
+    show("mode-screen");
+    renderMode();
+  }
+  function chooseMode(value) {
+    selectedMode = mode = value;
+    if (value === "teams") balanceBots();
+    modeCursor = canStart() ? 2 : 1;
+    renderMode();
+  }
+  function moveTeam(slot, direction) {
+    if (mode !== "teams" || selectedMode !== "teams" || !seats[slot]) return;
+    seats[slot].team = direction < 0 ? 0 : 1;
+    balanceBots();
+    modeCursor = canStart() ? 2 : 1;
+    renderMode();
+  }
+  function selectMode() {
+    if (modeCursor === 2) {
+      if (canStart()) startMatch();
+    } else chooseMode(modeCursor === 0 ? "ffa" : "teams");
+  }
+  function renderMode() {
+    $("mode-ffa").setAttribute("aria-pressed", selectedMode === "ffa");
+    $("mode-teams").setAttribute("aria-pressed", selectedMode === "teams");
+    $("team-assign").hidden = selectedMode !== "teams";
+    $("team-assign").innerHTML = TEAMS.map(
+      (t, team) =>
+        `<div class="team-column" style="--team:${t.color}"><h3>${t.name} TEAM</h3>${seats.map((s, i) => (s && s.team === team ? `<button data-team-slot="${i}" style="--bird:${birds[s.character].color}"><b>P${i + 1}</b> ${birds[s.character].name} ${s.kind === "bot" ? "· BOT" : ""}<span>↔</span></button>` : "")).join("")}</div>`,
+    ).join("");
+    $("fly").disabled = !canStart();
+    $("mode-message").textContent =
+      selectedMode === "teams"
+        ? "LEFT / RIGHT TO CHANGE YOUR TEAM · B BACK"
+        : selectedMode
+          ? "READY FOR TAKEOFF"
+          : "CHOOSE YOUR MATCH";
+    ["mode-ffa", "mode-teams", "fly"].forEach((id, i) =>
+      $(id).setAttribute("data-pad-focus", modeCursor === i ? "SELECT" : ""),
     );
   }
   function renderSeats() {
-    $("mode").innerHTML =
-      `${mode === "ffa" ? "FREE FOR ALL" : "TWO TEAMS"} <span>&lt;&gt;</span>`;
     $("seats").innerHTML = seats
-      .map((s, i) => {
-        if (!s) {
-          const free = keys
-            .map((_, k) => k)
-            .filter(
-              (k) =>
-                !seats.some((s) => s?.kind === "keyboard" && s.source === k),
-            );
-          const source = free.includes(i) ? i : free[0];
-          return `<article class="seat empty"><div class="seat-label">PLAYER 0${i + 1}</div><div class="plus">+</div><h3>ROOM FOR ONE MORE</h3><button data-action="join" data-seat="${i}" data-source="${source}">PRESS ${source + 1} TO JOIN</button><p>OR PRESS START ON A CONTROLLER</p></article>`;
-        }
-        const b = birds[s.character],
-          source =
-            s.kind === "bot"
-              ? "PRACTICE BOT"
-              : s.kind === "pad"
-                ? `CONTROLLER ${s.source + 1}`
-                : `KEYBOARD ${s.source + 1}`;
-        const team = TEAMS[s.team],
-          cursor = s.kind === "pad" ? s.cursor : "";
-        const selected = (row) =>
-          cursor === row ? ' data-selected="true"' : "";
-        return `<article class="seat joined ${s.ready ? "is-ready" : ""} ${mode === "teams" ? "team-seat" : ""}" style="--bird:${b.color};--team:${team.color};--team-dark:${team.dark}">${mode === "teams" ? `<div class="team-banner">${team.name} TEAM</div>` : ""}<div class="seat-label"><b>PLAYER 0${i + 1}</b><span>${source}</span></div><canvas id="preview-${i}" width="168" height="100" aria-label="${b.name} (P${i + 1}) ${b.bird}"></canvas><div class="character-picker"${selected("character")}><button data-action="prev" data-seat="${i}" aria-label="Previous character for player ${i + 1}">&lt;</button><div><h3>${b.name} <small>(P${i + 1})</small></h3><span class="bird-type">${b.bird}</span></div><button data-action="next" data-seat="${i}" aria-label="Next character for player ${i + 1}">&gt;</button></div><div class="seat-controls">${s.kind === "keyboard" ? keys[s.source].label : s.kind === "pad" ? "A TAP/HOLD FLAP · DOWN DIVE · X BOOST" : "AUTOPILOT · SAME RULES AS YOU"}</div><div class="seat-actions">${mode === "teams" ? `<button class="team-button"${selected("team")} data-action="team" data-seat="${i}">${s.team === 0 ? "SUN TEAM" : "MOON TEAM"} &lt;&gt;</button>` : ""}${s.kind === "bot" ? '<span class="bot-ready">✓ READY</span>' : `<button aria-pressed="${s.ready}"${selected("ready")} data-action="ready" data-seat="${i}">${s.ready ? "✓ READY" : "READY"}</button>`}<button class="remove" data-action="remove" data-seat="${i}">${s.kind === "bot" ? "REMOVE BOT" : "LEAVE x"}</button></div><div class="ready">${s.kind === "bot" ? "AUTOPILOT READY" : s.ready ? "✓ READY TO FLY · B UNREADY" : "FLAP / A TO READY"}</div></article>`;
-      })
+      .map((s, i) =>
+        s
+          ? `<article class="rider-preview ${s.ready ? "is-ready" : ""}" style="--bird:${birds[s.character].color}"><div>P${i + 1} ${s.kind === "bot" ? "· BOT" : ""}</div><canvas id="preview-${i}" width="240" height="112"></canvas><b>${birds[s.character].name}</b><button data-action="ready" data-seat="${i}" ${s.kind === "bot" ? "disabled" : ""}>${s.ready ? "✓ READY" : "A · READY"}</button></article>`
+          : `<article class="rider-preview empty"><div>P${i + 1}</div><button data-action="join" data-seat="${i}" data-source="${i}">A / START<br>TO JOIN</button></article>`,
+      )
+      .join("");
+    $("roster").innerHTML = birds
+      .map(
+        (b, character) =>
+          `<button class="roster-tile" data-character="${character}" style="--bird:${b.color}" aria-label="${b.name}, ${b.bird}"><div class="roster-markers">${seats.map((s, i) => (s?.character === character ? `<span class="${s.ready ? "locked" : ""}" style="--marker:${["#ff9064", "#77e8ba", "#b9a1ff", "#f8d66d"][i]}">${i + 1}${s.ready ? "✓" : ""}</span>` : "")).join("")}</div><canvas id="mount-${character}" width="320" height="168"></canvas><strong>${b.name}</strong><small>${b.bird}</small></button>`,
+      )
       .join("");
     seats.forEach((s, i) => {
-      if (s) {
-        const c = $(`preview-${i}`).getContext("2d");
-        drawBird(c, 84, 55, s.character, 1, false, true, 3.4, clock);
-      }
+      if (s)
+        drawBird(
+          $("preview-" + i).getContext("2d"),
+          120,
+          70,
+          s.character,
+          1,
+          false,
+          true,
+          2.8,
+          clock,
+        );
     });
-    for (const id of [
-      "mode",
-      "add-bot",
-      "remove-bot",
-      "launch",
-      "sound",
-      "fullscreen",
-      "back",
-    ]) {
-      const cursors = seats
-        .map((s, i) =>
-          s?.kind === "pad" && s.cursor === id ? `P${i + 1}` : "",
-        )
-        .filter(Boolean);
-      $(id).setAttribute("data-pad-focus", cursors.join("/"));
-    }
+    birds.forEach((b, i) =>
+      drawBird(
+        $("mount-" + i).getContext("2d"),
+        170,
+        98,
+        i,
+        1,
+        true,
+        false,
+        3.1,
+        clock,
+        false,
+        false,
+      ),
+    );
     $("add-bot").disabled = seats.every(Boolean);
     $("remove-bot").disabled = !seats.some((s) => s?.kind === "bot");
-    $("launch").disabled = !canStart();
-    const count = seats.filter(Boolean).length;
-    $("lobby-message").textContent =
-      count < 2
-        ? "Join a second player or add a practice bot."
-        : !canStart()
-          ? "Put at least one rider on each team."
-          : "FLAP / A TO READY · B UNREADY · ENTER TO LAUNCH";
+    $("launch").disabled = !allReady();
+    $("launch").setAttribute("data-pad-focus", allReady() ? "SELECT" : "");
+    $("lobby-message").textContent = allReady()
+      ? "EVERYONE'S READY · A / START TO CONTINUE"
+      : "A LOCK IN · B UNREADY · X ADD BOT · Y REMOVE BOT";
+    if (allReady()) $("launch").focus();
   }
   $("seats").addEventListener("click", (e) => {
-    const button = e.target.closest("button");
-    if (!button) return;
-    audioUnlock();
-    const i = Number(button.dataset.seat),
-      action = button.dataset.action;
-    if (action === "join") join("keyboard", Number(button.dataset.source), i);
-    if (action === "prev" || action === "next")
-      rotate(i, action === "next" ? 1 : -1);
-    if (action === "remove") {
-      seats[i] = null;
-      renderSeats();
-    }
-    if (action === "ready" && seats[i]) ready(i);
-    if (action === "team" && seats[i]) {
-      seats[i].team ^= 1;
-      if (seats[i].kind !== "bot") seats[i].ready = false;
-      renderSeats();
+    const b = e.target.closest("button");
+    if (!b) return;
+    const i = Number(b.dataset.seat);
+    if (b.dataset.action === "join")
+      join("keyboard", Number(b.dataset.source), i);
+    if (b.dataset.action === "ready") {
+      mouseSlot = i;
+      ready(i);
     }
   });
+  $("roster").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    let slot =
+      seats[mouseSlot]?.kind !== "bot" &&
+      seats[mouseSlot] &&
+      !seats[mouseSlot].ready
+        ? mouseSlot
+        : seats.findIndex((s) => s && s.kind !== "bot" && !s.ready);
+    if (slot < 0) return;
+    seats[slot].character = Number(b.dataset.character);
+    randomBotCharacters();
+    renderSeats();
+  });
+  $("team-assign").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const i = Number(b.dataset.teamSlot);
+    if (seats[i]?.kind === "bot") return;
+    moveTeam(i, seats[i].team === 0 ? 1 : -1);
+  });
+  $("mode-ffa").onclick = () => chooseMode("ffa");
+  $("mode-teams").onclick = () => chooseMode("teams");
+  $("fly").onclick = () => {
+    if (canStart()) startMatch();
+  };
+  $("mode-back").onclick = () => show("lobby");
   function startMatch() {
     if (!canStart()) return;
     series = new MatchSeries(
@@ -432,10 +499,9 @@
     show("lobby");
   };
   $("back").onclick = () => show("menu");
-  $("mode").onclick = changeMode;
   $("add-bot").onclick = () => join("bot", Date.now());
   $("remove-bot").onclick = removeBot;
-  $("launch").onclick = startMatch;
+  $("launch").onclick = openMode;
   $("pause-button").onclick = () => pause();
   $("resume").onclick = resume;
   $("quit").onclick = $("change-players").onclick = () => show("lobby");
@@ -508,12 +574,14 @@
       return;
     }
     if (e.code === "Enter") {
-      if (screen === "lobby") startMatch();
+      if (screen === "lobby") openMode();
+      else if (screen === "mode-screen") selectMode();
       else selectMenu();
     } else if (e.code === "Escape") {
       if (["match", "countdown", "ending"].includes(screen)) pause();
       else if (screen === "pause") resume();
       else if (screen === "lobby") show("menu");
+      else if (screen === "mode-screen") show("lobby");
       else if (screen === "results") show("lobby");
     } else if (screen === "lobby") {
       if (/^Digit[1-4]$/.test(e.code)) {
@@ -525,11 +593,36 @@
         if (s?.kind === "keyboard") {
           if (e.code === keys[s.source].left) rotate(i, -1);
           if (e.code === keys[s.source].right) rotate(i, 1);
-          if (e.code === keys[s.source].flap && !s.ready) ready(i);
-          if (e.code === "KeyB") {
+          if (e.code === keys[s.source].dive) rotate(i, 4);
+          if (e.code === keys[s.source].flap) {
+            if (allReady()) openMode();
+            else if (!s.ready) ready(i);
+          }
+          if (e.code === keys[s.source].boost) {
             s.ready = false;
             renderSeats();
           }
+        }
+      });
+    } else if (screen === "mode-screen") {
+      const playerAction = seats.some(
+        (s) =>
+          s?.kind === "keyboard" &&
+          [keys[s.source].flap, keys[s.source].dive].includes(e.code),
+      );
+      if (!playerAction && (e.code === "ArrowUp" || e.code === "ArrowDown")) {
+        modeCursor = (modeCursor + (e.code === "ArrowUp" ? 2 : 1)) % 3;
+        renderMode();
+      }
+      seats.forEach((s, i) => {
+        if (s?.kind !== "keyboard") return;
+        if (e.code === keys[s.source].boost) show("lobby");
+        else if (e.code === keys[s.source].left) moveTeam(i, -1);
+        else if (e.code === keys[s.source].right) moveTeam(i, 1);
+        else if (e.code === keys[s.source].flap) selectMode();
+        else if (e.code === keys[s.source].dive) {
+          modeCursor = (modeCursor + 1) % 3;
+          renderMode();
         }
       });
     }
@@ -582,49 +675,48 @@
         continue;
       }
       if (screen === "lobby") {
-        if (edge.removeBot) {
-          removeBot();
-          continue;
-        }
         const slot = seats.findIndex(
           (s) => s?.kind === "pad" && s.source === pad.index,
         );
+        if (edge.team) {
+          join("bot", Date.now());
+          continue;
+        }
+        if (edge.mode || edge.removeBot) {
+          removeBot();
+          continue;
+        }
         if (slot < 0) {
           if (edge.start || edge.flap) join("pad", pad.index);
           else if (edge.back) show("menu");
           continue;
         }
         if (edge.back) {
-          if (seats[slot].ready) {
-            seats[slot].ready = false;
-            seats[slot].cursor = "character";
-          } else seats[slot] = null;
+          if (seats[slot].ready) seats[slot].ready = false;
+          else seats[slot] = null;
           renderSeats();
           continue;
         }
-        if (edge.up || edge.down) {
-          const rows = lobbyRows(),
-            index = Math.max(0, rows.indexOf(seats[slot].cursor));
-          seats[slot].cursor =
-            rows[(index + (edge.up ? -1 : 1) + rows.length) % rows.length];
-          renderSeats();
-        }
-        if (moveEdge) {
-          if (seats[slot].cursor === "team" && mode === "teams") {
-            seats[slot].team ^= 1;
-            seats[slot].ready = false;
-            renderSeats();
-          } else if (seats[slot].cursor === "mode") changeMode();
-          else if (seats[slot].cursor === "character") rotate(slot, dir);
-        }
-        if (edge.team && mode === "teams") {
-          seats[slot].team ^= 1;
-          seats[slot].ready = false;
-          renderSeats();
-        }
-        if (edge.mode) changeMode();
-        if (edge.start) ready(slot);
+        if (moveEdge) rotate(slot, dir);
+        if (edge.up || edge.down) rotate(slot, 4);
+        if (edge.start) openMode();
         else if (edge.flap) lobbySelect(slot);
+      } else if (screen === "mode-screen") {
+        const slot = seats.findIndex(
+          (s) => s?.kind === "pad" && s.source === pad.index,
+        );
+        if (slot < 0) continue;
+        if (edge.back) {
+          show("lobby");
+          continue;
+        }
+        if (edge.up || edge.down) {
+          modeCursor = (modeCursor + (edge.up ? 2 : 1)) % 3;
+          renderMode();
+        }
+        if (moveEdge) moveTeam(slot, dir);
+        if (edge.start && canStart()) startMatch();
+        else if (edge.flap) selectMode();
       } else if (["match", "countdown", "ending"].includes(screen)) {
         const participant = match.players.some(
           (p) => p.kind === "pad" && p.source === pad.index,
@@ -651,7 +743,7 @@
         "A controller disconnected. Reconnect it to continue, or return to the lobby.",
         true,
       );
-    if (screen === "lobby") {
+    if (screen === "lobby" || screen === "mode-screen") {
       let changed = false;
       seats.forEach((s, i) => {
         if (s?.kind === "pad" && !pads.some((p) => p.index === s.source)) {
@@ -659,7 +751,10 @@
           changed = true;
         }
       });
-      if (changed) renderSeats();
+      if (changed) {
+        if (screen === "mode-screen") show("lobby");
+        else renderSeats();
+      }
     }
     if (
       screen === "pause" &&
@@ -790,12 +885,46 @@
     ctx.restore();
   }
   const koLabel = (count) => `${count} ${count === 1 ? "KO" : "KOs"}`;
+  function commentaryMarkup(text) {
+    const escape = (value) =>
+      value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    const names = (match?.players || []).map((p) => ({
+      name: playerName(p),
+      color: birds[p.character].color,
+    }));
+    let result = "",
+      offset = 0;
+    while (offset < text.length) {
+      const hits = names
+        .map((n) => ({ ...n, index: text.indexOf(n.name, offset) }))
+        .filter((n) => n.index >= 0)
+        .sort((a, b) => a.index - b.index);
+      if (!hits.length) {
+        result += escape(text.slice(offset));
+        break;
+      }
+      const hit = hits[0];
+      result +=
+        escape(text.slice(offset, hit.index)) +
+        `<span style="color:${hit.color}">${escape(hit.name)}</span>`;
+      offset = hit.index + hit.name.length;
+    }
+    return result;
+  }
   function processEvents() {
     for (const event of match.events) {
       const color =
         event.id !== undefined
           ? birds[match.players[event.id].character].color
           : "#ffe9b4";
+      if (event.type === "splash") {
+        burst(event.x, event.y, "#9be1d3", 12, 0.4);
+        sound.play("splash");
+      }
       if (event.type === "eruption-warning") {
         broadcast.say(
           "The volcano has entered the match. Lovely. More hotheads.",
@@ -832,9 +961,13 @@
           broadcast.say(
             event.cause === "zombie"
               ? `${playerName(victim)} ${event.eliminated ? "is out. Outplayed by the dearly departed." : "loses a life to a zombie. Brains were clearly on the menu."}`
-              : event.cause === "volcano"
-                ? `${playerName(victim)} caught a fireball. With their face.`
-                : `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
+              : event.cause === "water"
+                ? `${playerName(victim)} went swimming. Bold choice. Terrible result.`
+                : event.cause === "piranha"
+                  ? `${playerName(victim)} is on the lunch menu. Finally, some recognition.`
+                  : event.cause === "volcano"
+                    ? `${playerName(victim)} caught a fireball. With their face.`
+                    : `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
             {},
             1,
           );
@@ -1053,6 +1186,7 @@
     scale = 1,
     time = 0,
     diving = false,
+    rider = true,
   ) {
     const b = birds[character];
     c.save();
@@ -1136,6 +1270,16 @@
         r(2, 11, 2, 2, b.dark);
         r(-4, 15, 2, 7, b.dark);
         r(5, 15, 2, 7, b.dark);
+      } else if (b.mount === "fish") {
+        r(-7, -26, 5, 7, b.color);
+        r(3, -26, 5, 7, b.color);
+        r(-9, -14, 5, 18, b.dark);
+        r(6, -14, 5, 18, b.light);
+        r(-4, 1, 10, 14, b.color);
+        r(-2, 10, 7, 8, b.light);
+        r(2, 7, 3, 4, "#162c48");
+        r(3, 7, 1, 1, "#fff");
+        r(-2, 17, 5, 2, b.dark);
       } else if (b.mount === "moth") {
         // Fold the patterned lobes upward for the dive.
         for (const side of [-1, 1]) {
@@ -1168,16 +1312,18 @@
         r(-7, -24, 4, 8, b.color);
         r(-10 + tuck, -16, 2, 10, b.light);
       }
-      // Rider leans flat against the mount, scarf streaming above the helmet.
-      r(-9, -15, 5, 11, "#273447");
-      r(-10, -4, 6, 6, "#eddbc2");
-      r(-11, -5, 8, 3, b.color);
-      r(-11, -2, 3, 4, b.dark);
-      r(-5, 0, 2, 2, "#121e2a");
-      r(-8, -13, 4, 8, b.light);
-      r(-5, -7, 4, 3, "#273447");
-      r(-12, -13, 3, 8, b.color);
-      r(-13 + frame, -20, 2, 8, b.dark);
+      if (rider) {
+        // Rider leans flat against the mount, scarf streaming above the helmet.
+        r(-9, -15, 5, 11, "#273447");
+        r(-10, -4, 6, 6, "#eddbc2");
+        r(-11, -5, 8, 3, b.color);
+        r(-11, -2, 3, 4, b.dark);
+        r(-5, 0, 2, 2, "#121e2a");
+        r(-8, -13, 4, 8, b.light);
+        r(-5, -7, 4, 3, "#273447");
+        r(-12, -13, 3, 8, b.color);
+        r(-13 + frame, -20, 2, 8, b.dark);
+      }
       c.restore();
       return;
     }
@@ -1308,6 +1454,25 @@
         r(lx, 8, 2, 4 + walk, b.dark);
         r(lx, 11 + walk, 5, 2, b.dark);
       }
+    } else if (b.mount === "fish") {
+      // Forked tail, silver belly and long translucent pectoral fins.
+      r(-23, -10, 5, 8, b.color);
+      r(-23, 5, 5, 8, b.color);
+      r(-20, -6, 5, 15, b.dark);
+      r(-16, -4, 28, 12, b.dark);
+      r(-12, -7, 27, 15, b.color);
+      r(-10, 4, 24, 5, b.light);
+      r(10, -5, 10, 10, b.color);
+      r(18, 0, 3, 3, b.light);
+      r(12, -4, 4, 4, "#172c48");
+      r(13, -4, 1, 1, "#fff");
+      r(7, -2, 1, 7, b.dark);
+      r(-4, -12, 9, 5, b.dark);
+      r(-1, -14, 4, 3, b.color);
+      r(-16, flap ? -17 : 1, 13, flap ? 14 : 7, "#a9dfed");
+      r(-20, flap ? -20 : 6, 10, 5, "#d8f3ff");
+      r(-14, flap ? -13 : 5, 13, 2, "#5ca5cc");
+      r(1, 7, 8, 3, b.dark);
     } else if (b.mount === "moth") {
       // The upper wing pair keeps its broad patterned silhouette.
       const lift = grounded ? -2 : flap ? -11 : 3;
@@ -1395,15 +1560,17 @@
       r(-7, 12 + walk, 5, 2, "#edbe78");
       r(4, 12 - walk, 5, 2, "#edbe78");
     }
-    r(-5, -15, 8, 9, "#273447");
-    r(-4, -19, 7, 6, "#eddbc2");
-    r(-6, -21, 10, 4, b.color);
-    r(-6, -18, 3, 4, b.dark);
-    r(1, -18, 2, 2, "#121e2a");
-    r(-4, -12, 6, 5, b.light);
-    r(-2, -7, 7, 3, "#263447");
-    r(-10, -14, 6, 3, b.color);
-    r(-14, -13, 5, 3, b.dark);
+    if (rider) {
+      r(-5, -15, 8, 9, "#273447");
+      r(-4, -19, 7, 6, "#eddbc2");
+      r(-6, -21, 10, 4, b.color);
+      r(-6, -18, 3, 4, b.dark);
+      r(1, -18, 2, 2, "#121e2a");
+      r(-4, -12, 6, 5, b.light);
+      r(-2, -7, 7, 3, "#263447");
+      r(-10, -14, 6, 3, b.color);
+      r(-14, -13, 5, 3, b.dark);
+    }
     c.restore();
   }
   function pixelCloud(c, x, y, scale, color) {
@@ -1537,6 +1704,20 @@
         g.fillStyle = "#b7c8a80a";
         g.fillRect(0, y, W, 42);
       }
+    } else if (arena.motif === "swamp") {
+      for (const x of [70, 350, 1470, 1750]) {
+        g.fillStyle = "#193e3f88";
+        g.fillRect(x, 390, 32, 620);
+        for (let j = 0; j < 5; j++) {
+          g.fillStyle = j % 2 ? "#3a625b80" : "#234b4680";
+          g.fillRect(x - 95 + j * 19, 370 + j * 28, 190 - j * 18, 45);
+          g.fillStyle = "#73937955";
+          g.fillRect(x - 65 + j * 35, 450 + j * 13, 5, 130 + j * 16);
+        }
+      }
+      g.fillStyle = "#adc6a820";
+      g.fillRect(0, 885, W, 30);
+      g.fillRect(0, 950, W, 18);
     } else if (arena.motif === "volcano") {
       // A split volcanic crown and muted lava seams below the islands.
       polygon(
@@ -1746,6 +1927,59 @@
         ctx.fillRect(0, 100, W, H - 180);
       }
     } else {
+      if (match.arena.waterY !== undefined) {
+        const y = match.arena.waterY;
+        ctx.fillStyle = "#245d65";
+        ctx.fillRect(210, y, W - 420, H - y);
+        ctx.fillStyle = "#8dc9b5";
+        ctx.fillRect(210, y, W - 420, 3);
+        for (let i = 0; i < 20; i++) {
+          ctx.fillStyle = "#6faea277";
+          ctx.fillRect(
+            230 + i * 75 + Math.sin(match.time * 2 + i) * 8,
+            y + 10 + (i % 3) * 12,
+            30,
+            2,
+          );
+        }
+        for (const f of match.piranhas) {
+          if (f.warning > 0) {
+            ctx.strokeStyle = "#dfedb0";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(
+              f.x,
+              y - 2,
+              12 + (0.65 - f.warning) * 24,
+              3,
+              0,
+              0,
+              Math.PI * 2,
+            );
+            ctx.stroke();
+            continue;
+          }
+          ctx.save();
+          ctx.translate(Math.round(f.x), Math.round(f.y));
+          if (f.vy > 0) ctx.rotate(Math.PI);
+          ctx.fillStyle = "#315248";
+          ctx.fillRect(-9, -11, 18, 22);
+          ctx.fillStyle = "#9cc071";
+          ctx.fillRect(-7, -13, 14, 18);
+          ctx.fillStyle = "#d37c59";
+          ctx.fillRect(-5, -14, 10, 6);
+          ctx.fillStyle = "#fff1c9";
+          ctx.fillRect(-5, -15, 3, 4);
+          ctx.fillRect(2, -15, 3, 4);
+          ctx.fillStyle = "#132f35";
+          ctx.fillRect(-5, -5, 3, 3);
+          ctx.fillRect(3, -5, 3, 3);
+          ctx.fillStyle = "#769857";
+          ctx.fillRect(-7, 10, 5, 7);
+          ctx.fillRect(2, 10, 5, 7);
+          ctx.restore();
+        }
+      }
       if (match.eruption) {
         const warningAge = match.time - match.eruption.start;
         if (warningAge < 1.2) {
@@ -1958,7 +2192,7 @@
     if (["match", "ending"].includes(screen)) {
       const call = broadcast.step(dt);
       if ($("commentary").textContent !== call)
-        $("commentary").textContent = call;
+        $("commentary").innerHTML = commentaryMarkup(call);
     }
     $("commentary").className = broadcast.current ? "" : "is-dimmed";
     $("announcer").className =

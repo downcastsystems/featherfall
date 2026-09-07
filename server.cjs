@@ -38,5 +38,5 @@ const server = http.createServer((req, res) => {
   });
 });
 server.listen(Number(process.env.PORT) || 4173, "127.0.0.1", () =>
-  console.log("Featherfall ready at http://localhost:" + server.address().port),
+  console.log("One Big Sky ready at http://localhost:" + server.address().port),
 );

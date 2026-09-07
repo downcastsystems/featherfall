@@ -1,4 +1,4 @@
-# Featherfall
+# One Big Sky
 
 A local 2–4 player flying-mount arcade game by Downcast Systems. Fly above a rival to knock them out. Five lives each. Last rider, or last team, wins.
 
@@ -19,8 +19,8 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 
 1. Press Enter to open the lobby.
 2. Press **1** to join the first keyboard seat.
-3. Click **Add practice bot** one to three times.
-4. Press Enter to launch.
+3. Click **Add bot** one to three times.
+4. Press W to ready, then Enter to continue. Press Enter to select Free for all, then Enter again to launch.
 5. Use **A / D** to move and tap or hold **W** to flap.
 
 ### Keyboard
@@ -33,8 +33,8 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 | 4    | 4    | F / H              | T                  | G          | Y           |
 
 - Returning from the lobby to the main menu clears every player and bot slot. Reopening character selection starts with an empty lineup.
-- In the lobby, left/right changes your character. Any number of players can choose the same character; changing yours never changes anyone else. Names include player numbers, such as SOL (P1).
-- Your flap key readies your selected character. Click Ready again to unready, or press B to unready keyboard seats. Changing a character clears that rider's readiness. Enter starts the match from the lobby. Up/down and Enter navigate the title, pause, and results menus. At least two participants are required; bots count.
+- In the lobby, left/right changes your character. Human players can choose the same character; bots choose unused mounts. Names include player numbers, such as SOL (P1).
+- Your flap key readies your selected character. Click Ready again or press your boost key to unready. Ready choices stay locked until canceled. Enter opens match setup once everyone is ready. Up/down and Enter navigate the title, pause, and results menus. At least two participants are required; bots count.
 - Escape pauses/resumes. Losing focus automatically pauses the match.
 - M or the Sound button toggles synthesized arcade sound, including during a match. Sound starts on after the first click or keypress. If a controller-only start is blocked by browser audio policy, click **Click for sound** once.
 - Fullscreen is available on the title, lobby, and pause screens. The playfield stays 16:9 on other aspect ratios.
@@ -46,9 +46,10 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 2. Check that Windows recognizes every controller.
 3. Run the localhost server, open the game in Chrome or Edge, and focus the game.
 4. Press **Start** on each controller to reveal it to the browser and join. Powering it on alone may not expose it to the page.
-5. Left/right chooses a character. Up/down moves your highlighted selection through character, team, ready, and the lobby options. **A** selects. **Y** is a shortcut to change game mode; **X** changes your team in team mode.
-6. Press **RB** to remove the last bot, or use up/down to highlight **Remove last bot** and press **A**. This works with a single controller. Mouse users can remove a specific bot from its card.
-7. Press **A** on your chosen character to ready immediately. A checkmark confirms it. **B** unreadies first; pressing B again leaves. The Ready button toggles readiness, and Start remains a shortcut. The match starts when all joined participants are ready. The controller-accessible Take flight option or keyboard Enter can also launch.
+5. Move the stick or D-pad through the 2×4 creature grid. Numbered circles show each player's focus. **A** locks in; **B** unlocks a ready choice or leaves an unready slot. The large tiles show mounts; the lineup above shows riders.
+6. **X** adds one bot. **Y** removes the last bot added. Bots randomly pick unused mounts and adjust if a human selects theirs. Duplicate human choices are allowed.
+7. Once at least two participants are all ready, **LET'S GO!** highlights. A separate **A** or **Start** opens match setup.
+8. Choose **FREE FOR ALL** or **TEAMS** using up/down and A. In teams, left/right changes your own side; bots balance around the humans. Both teams must have a participant. When valid, **LET'S FLY!** highlights; **A** or **Start** begins.
 
 During play, left/right moves, **A** taps or holds to flap, **down** dives straight down, **X** boosts in the direction you face, and **Start** pauses/resumes. On the title, pause, and results screens, use **up/down** and **A** to select options. **B** returns or resumes. In the lobby, **B** unreadies a ready rider, or leaves if already unready. Disconnecting a participating controller pauses the game; reconnect it and press Start to resume. New participants join between matches.
 
@@ -56,11 +57,11 @@ The game uses the browser's [standard gamepad mapping](https://developer.mozilla
 
 ## Rules
 
-- Four mounts: Ember's dragon, Mint's jay, Iris's pegasus, and Sol's pterodactyl. Their pixel artwork differs; collision bounds, movement, and abilities are identical.
+- Eight mounts: Ember's dragon, Mint's jay, Iris's pegasus, Sol's pterodactyl, Acorn's flying squirrel, Buzz's bee, Luna's moth and Ripple's blue flying fish. Their pixel artwork differs; collision bounds, movement, and abilities are identical.
 - Tap to flap immediately or hold for a flap every 0.22 seconds. Holding down while airborne overrides flapping and boosts, cancels horizontal movement, and dives at 580–850 pixels/second. Platforms still stop dives.
 - Boost starts fully charged and sends you horizontally at 650 pixels/second for 0.32 seconds. The HUD meter refills over 3.5 seconds after the burst. Release and press boost again to use another charge. Recharge pauses while dead or paused; respawning does not grant a free refill.
 - Walk on ground and islands. Platforms are solid: land on top, bump down when hitting underneath, or rebound sideways at 110% of your incoming horizontal speed. Underside bumps are deliberately small. The solid body is 35 pixels thick; hanging vines and rock tips are decorative.
-- Flying through one side of the screen brings you out on the other. The ground is safe.
+- Flying through one side of the screen brings you out on the other. Ground is safe except the open water in Snapwater Marsh.
 - When birds touch, the higher rider wins. Nearly equal heights bounce apart.
 - Each death costs one life and releases a burst of feathers. Riders with lives left respawn after 2.6 seconds on a floating platform chosen to maximize distance from living riders, including distance across the screen seam.
 - Respawns have two seconds of sparkling protection. Protected riders cannot kill or be killed.
@@ -142,7 +143,7 @@ Zombies pause with the round and disappear when it restarts or changes arenas. T
 
 ## Character choices and final ranks
 
-The original four mounts are joined by Acorn, a brown flying squirrel; Buzz, a yellow-and-black bee; and Luna, a pale gray-and-ivory moth. All seven have the same flight and collision rules, with individual standing, flying and diving artwork and flap sounds. Cycle left/right through the roster; any player or bot can use any mount.
+The original four mounts are joined by Acorn, a brown flying squirrel; Buzz, a yellow-and-black bee; and Luna, a pale gray-and-ivory moth. All eight have the same flight and collision rules, with individual standing, flying and diving artwork and flap sounds. Cycle left/right through the roster; any player or bot can use any mount.
 
 Match Totals displays a rank beside each player, ordered by round wins, then KOs. Equal wins and KOs share a rank, with occupied places skipped: 1, 2, 2, 4. Round result screens keep their existing layout. Bot cards show automatic readiness and a Remove Bot button instead of human ready/unready instructions.
 
@@ -151,3 +152,16 @@ Match Totals displays a rank beside each player, ordered by round wins, then KOs
 Cinder Crown flashes before an eruption. After a 1.2-second warning, eighteen fireballs fall in a row, half a second apart, sweeping from a randomly chosen side. Fireballs explode against the first platform or vulnerable player they hit. Platforms provide cover; impact particles have no splash damage. The first warning is 10 seconds into the round, with 8–14 seconds of quiet after the last fireball from each wave disappears. A new eruption cannot start while a previous wave or its fireballs remain. Rain pauses and resets with the round.
 
 Every player-attributed zombie kill grants another 10% horizontal movement and boost speed, including kills using powers. Stacks add: 10%, 20%, 30%, and so on. Each kill refreshes the timer to five seconds; expiry or death removes the entire chain. This multiplies rocket speed and applies to horizontal sawblade movement too. The boost meter displays the bonus and remaining seconds. Zombie kills still grant no KOs or wins.
+
+
+## Snapwater Marsh and Ripple
+
+Ripple is a blue flying fish with a forked tail, pale belly and broad pectoral fins, including a dedicated dive pose and flap sound. Mount physics remain identical.
+
+Snapwater Marsh joins the shuffle rotation. Its platforms and two small banks are mirrored; the center river kills on contact, including during sawblade mode. Piranhas target riders within 220 pixels of the water, announce their launch with a 0.65-second ripple, then jump straight up and fall back in. Spawn protection applies. Hazards pause and reset with the round. Bots prioritize climbing away from the water.
+
+## Testing with a keyboard
+
+Join with 1–4. Each player's left/right keys navigate a row, the dive key switches rows, flap locks in, and boost cancels readiness. Enter opens match setup once everyone is ready. On setup, up/down selects a mode, flap or Enter confirms, and each player's left/right keys assign their team. The first confirmation chooses the mode; the next launches. Controller instructions take priority in the interface.
+
+Chirp's larger, heavy-browed pixel portrait follows the supplied sketch. His beak and brows animate during event commentary, and exact player-name mentions use the selected mount's color. The game is named One Big Sky; its existing GitHub repository and checkout directory remain featherfall.

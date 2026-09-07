@@ -60,6 +60,14 @@
       dark: "#858b9c",
       light: "#f7f3e8",
     },
+    {
+      name: "RIPPLE",
+      bird: "Blue flying fish",
+      mount: "fish",
+      color: "#69c7ff",
+      dark: "#326aab",
+      light: "#d8f3ff",
+    },
   ];
   const PLATFORMS = [
     { x: 140, y: 255, w: 240 },
@@ -195,6 +203,31 @@
       accent: "#ffb475",
       mountains: ["#633d3f", "#492f36", "#342630"],
     },
+    {
+      id: "swamp",
+      name: "Snapwater Marsh",
+      motif: "swamp",
+      waterY: 960,
+      platforms: mirroredPlatforms([
+        [120, 250, 260],
+        [760, 330, 400],
+        [410, 475, 230],
+        [90, 650, 240],
+        [800, 710, 320],
+        [450, 850, 200],
+      ])
+        .filter((p) => !p.ground)
+        .concat([
+          { x: 0, y: 960, w: 210, bank: true },
+          { x: 1710, y: 960, w: 210, bank: true },
+        ]),
+      sky: ["#102d34", "#315855", "#79937a"],
+      rock: "#3b5044",
+      top: "#6d7950",
+      rim: "#b4ca7d",
+      accent: "#b8e1a1",
+      mountains: ["#52796c", "#365f58", "#244a46"],
+    },
   ];
   for (const arena of ARENAS) {
     arena.graves = Object.freeze(
@@ -253,7 +286,7 @@
   };
   function chooseSpawn(players, rng = Math.random, platforms = PLATFORMS) {
     const candidates = platforms
-      .filter((p) => !p.ground)
+      .filter((p) => !p.ground && !p.bank)
       .map((p) => ({
         x: p.x + 30 + rng() * (p.w - 60),
         y: p.y - 12,
@@ -357,6 +390,8 @@
       this.volcanoFireballs = [];
       this.eruption = null;
       this.nextEruption = 10;
+      this.piranhas = [];
+      this.nextPiranha = 3;
       this.rng = rng;
       this.mode = mode;
       this.time = 0;
@@ -541,6 +576,84 @@
         this.eruption = null;
         this.nextEruption = this.time + 8 + this.rng() * 6;
       }
+    }
+    overWater(x) {
+      return (
+        this.arena.waterY !== undefined &&
+        !this.platforms.some((s) => s.bank && x >= s.x && x <= s.x + s.w)
+      );
+    }
+    stepSwamp(dt, before) {
+      const water = this.arena.waterY;
+      if (water === undefined) return;
+      for (const p of this.players) {
+        if (!p.alive) continue;
+        if (p.y + BODY.feet >= water && this.overWater(p.x)) {
+          this.kill(p, null, "water");
+          if (p.alive) {
+            p.y = water - BODY.feet - 1;
+            p.vy = -260;
+            p.grounded = false;
+          }
+        }
+      }
+      if (this.time >= this.nextPiranha && this.piranhas.length < 4) {
+        const targets = this.players.filter(
+          (p) => p.alive && p.y > water - 220 && this.overWater(p.x),
+        );
+        if (targets.length) {
+          const p =
+            targets[
+              Math.min(
+                targets.length - 1,
+                Math.floor(this.rng() * targets.length),
+              )
+            ];
+          this.piranhas.push({
+            x: p.x,
+            y: water,
+            vy: -570,
+            warning: 0.65,
+            alive: true,
+          });
+          this.nextPiranha = this.time + 2.2 + this.rng() * 1.8;
+        }
+      }
+      for (const f of this.piranhas) {
+        if (f.warning > 0) {
+          f.warning = Math.max(0, f.warning - dt);
+          if (!f.warning)
+            this.events.push({ type: "splash", x: f.x, y: water });
+          continue;
+        }
+        const oldY = f.y;
+        f.vy += 800 * dt;
+        f.y += f.vy * dt;
+        // Sweep relative motion so dives and boosts cannot tunnel through a jumping fish.
+        for (const p of this.players) {
+          const prev = before[p.id];
+          if (!p.alive || !prev.alive || p.invincible > 0) continue;
+          const slab = (v, d, r) =>
+            d === 0
+              ? Math.abs(v) <= r
+                ? [-Infinity, Infinity]
+                : null
+              : [(-r - v) / d, (r - v) / d].sort((a, b) => a - b);
+          const tx = slab(wrapDelta(prev.x, f.x), wrapDelta(p.x, prev.x), 21);
+          const ty = slab(prev.y - 4 - oldY, p.y - prev.y - (f.y - oldY), 25);
+          if (
+            tx &&
+            ty &&
+            Math.max(0, tx[0], ty[0]) <= Math.min(1, tx[1], ty[1])
+          )
+            this.kill(p, null, "piranha");
+        }
+        if (f.vy > 0 && f.y >= water) {
+          f.alive = false;
+          this.events.push({ type: "splash", x: f.x, y: water });
+        }
+      }
+      this.piranhas = this.piranhas.filter((f) => f.alive);
     }
     graveOccupied(grave) {
       return this.players.some(
@@ -871,8 +984,12 @@
         if (p.power === "sawblade") {
           p.grounded = p.diving = p.boosting = false;
           moveAgainstPlatforms(p, dt, this.events, true, this.platforms);
-          if (p.y < 120 || p.y > 984) {
-            p.y = clamp(p.y, 120, 984);
+          if (p.y < 120 || (this.arena.waterY === undefined && p.y > 984)) {
+            p.y = clamp(
+              p.y,
+              120,
+              this.arena.waterY === undefined ? 984 : Infinity,
+            );
             p.vy *= -1;
           }
           continue;
@@ -952,6 +1069,7 @@
       this.powerHits();
       this.stepZombies(dt, before);
       this.stepVolcano(dt, before);
+      this.stepSwamp(dt, before);
       this.projectiles = this.projectiles.filter(
         (f) => f.ttl > 0 && f.x >= -20 && f.x <= W + 20 && f.y >= 0 && f.y <= H,
       );
@@ -1174,8 +1292,9 @@
       Math.abs(target.y - p.y) < 100;
     return {
       move: Math.abs(steering) < 12 ? 0 : Math.sign(steering),
-      flap,
-      dive,
+      flap: match.arena.waterY && p.y > 790 ? false : flap,
+      flapHeld: !!match.arena.waterY && p.y > 790,
+      dive: match.arena.waterY && p.y > 750 ? false : dive,
       boost,
     };
   }
@@ -1232,5 +1351,5 @@
     edges,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
-  else root.Featherfall = api;
+  else root.OneBigSky = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

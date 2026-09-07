@@ -363,5 +363,5 @@
     rankPlayers,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
-  else root.FeatherfallSeries = api;
+  else root.OneBigSkySeries = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
