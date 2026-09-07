@@ -168,7 +168,7 @@ test("spawn protection blocks hazards, emerging zombies are harmless, sawblades 
   assert.equal(target.alive, false);
   assert.equal(q.kills, 0);
 });
-test("bursts have no area damage and old zombies are removed", () => {
+test("bursts have no area damage and grounded zombies do not expire", () => {
   const m = make(),
     p = m.players[0];
   Object.assign(p, { x: 730, invincible: 0 });
@@ -183,9 +183,19 @@ test("bursts have no area damage and old zombies are removed", () => {
   tick(m);
   assert.equal(m.zombies.length, 0);
   assert.equal(p.alive, true);
-  zombie(m, { age: 41 });
-  tick(m);
-  assert.equal(m.zombies.length, 0);
+  zombie(m, {
+    age: 39.99,
+    x: 100,
+    y: 1010,
+    fallFrom: 1010,
+    grounded: true,
+    vx: 24,
+  });
+  m.nextZombie = 999;
+  for (let i = 0; i < 600; i++) tick(m);
+  assert.equal(m.zombies.length, 1);
+  assert.ok(m.zombies[0].age > 40);
+  assert.ok(m.zombies[0].x > 100);
 });
 test("simultaneous final zombie deaths produce a draw and a new round has no old hazards", () => {
   const m = make();

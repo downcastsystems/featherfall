@@ -925,10 +925,6 @@
       }
       for (const z of this.zombies) {
         z.age += dt;
-        if (z.age > 40) {
-          z.alive = false;
-          continue;
-        }
         if (z.emerge > 0) {
           // Cancel an emergence if a rider arrives before the zombie is active.
           if (this.graveOccupied(z)) {
