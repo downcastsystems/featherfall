@@ -1430,6 +1430,24 @@
       item && (!enemy || distance(item) * item.priority < distance(enemy) + 220)
         ? item
         : enemy;
+    const sawFloor = match.arena.saws?.length
+      ? Math.max(...match.arena.saws.map((s) => s.y + s.radius)) + 40
+      : 0;
+    if (sawFloor && p.power !== "sawblade") {
+      const apex = p.y - Math.min(0, p.vy) ** 2 / 1300;
+      const flapApex =
+        p.y - Math.min(0, Math.max(-380, p.vy - 205)) ** 2 / 1300;
+      if (apex < sawFloor || flapApex < sawFloor) {
+        p.botClimb = null;
+        p.botDive = false;
+        return {
+          move: target ? Math.sign(wrapDelta(target.x, p.x)) : 0,
+          flap: false,
+          dive: !p.grounded && apex < sawFloor,
+          boost: false,
+        };
+      }
+    }
     p.botClock = (p.botClock || 0) - dt;
     if (p.botClimb && (!target || p.y < p.botClimb.untilY)) p.botClimb = null;
     if (!p.botClimb && target && target.y < p.y - 40) {
@@ -1478,7 +1496,10 @@
       return { move: Math.sign(wrapDelta(p.botExit.x, p.x)), flap: false };
     const dx = target ? wrapDelta(target.x, p.x) : Math.sin(match.time) * 200;
     const desiredY = target
-      ? Math.max(125, target.y - (target.item ? 0 : 75))
+      ? Math.max(
+          sawFloor ? sawFloor + 35 : 125,
+          target.y - (target.item ? 0 : 75),
+        )
       : 400;
     // Once above a rival, stop flapping and commit to a landing attack.
     if (!target || target.item || Math.abs(dx) > 30 || p.y > target.y + 25)

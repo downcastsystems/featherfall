@@ -2443,6 +2443,21 @@
       bg.fill();
     }
     for (const p of arena.platforms) {
+      if (arena.motif === "factory") {
+        bg.fillStyle = "#293942";
+        bg.fillRect(p.x, p.y, p.w, p.ground ? 70 : PLATFORM_DEPTH);
+        bg.fillStyle = "#566b75";
+        bg.fillRect(p.x + 2, p.y + 3, p.w - 4, PLATFORM_DEPTH - 7);
+        bg.fillStyle = "#a0b3ba";
+        bg.fillRect(p.x, p.y, p.w, 3);
+        for (let x = p.x + 12; x < p.x + p.w - 6; x += 56) {
+          bg.fillStyle = "#263944";
+          bg.fillRect(x, p.y + 13, 5, 5);
+          bg.fillStyle = "#b5c4c8";
+          bg.fillRect(x, p.y + 13, 3, 3);
+        }
+        continue;
+      }
       const depth = p.ground ? 70 : PLATFORM_DEPTH,
         x = p.x,
         y = p.y,
@@ -2492,20 +2507,6 @@
           const gx = x + 20 + rand() * (w - 40);
           bg.fillRect(gx, y - 5, 2, 5);
           bg.fillRect(gx - 3, y - 3, 8, 2);
-        }
-      }
-    }
-    if (arena.motif === "factory") {
-      for (const p of arena.platforms) {
-        bg.fillStyle = "#26353e";
-        bg.fillRect(p.x, p.y + 3, p.w, 32);
-        bg.fillStyle = "#7c8b8b";
-        bg.fillRect(p.x, p.y, p.w, 5);
-        for (let x = p.x + 6; x < p.x + p.w - 10; x += 24) {
-          bg.fillStyle = "#e3b955";
-          bg.fillRect(x, p.y + 6, 12, 8);
-          bg.fillStyle = "#98a5a5";
-          bg.fillRect(x + 3, p.y + 24, 3, 3);
         }
       }
     }
@@ -2569,10 +2570,6 @@
       }
     } else {
       for (const saw of match.arena.saws || []) {
-        ctx.fillStyle = "#29343e";
-        ctx.fillRect(saw.x - 10, 100, 20, saw.y - 100);
-        ctx.fillStyle = "#9daaaa";
-        ctx.fillRect(saw.x - 3, 104, 6, saw.y - 104);
         drawSaw(saw.x, saw.y, match.time * 7, saw.radius);
         ctx.fillStyle = "#e3b955";
         ctx.fillRect(saw.x - 4, saw.y - 4, 8, 8);

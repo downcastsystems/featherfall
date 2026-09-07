@@ -80,3 +80,45 @@ test("ceiling saws overlap across the entire width and both wrap edges", () => {
     assert.equal(n.events.filter((e) => e.type === "saw-clang").length, 1);
   }
 });
+
+test("bots brake upward momentum before the saw ceiling and refuse unsafe flaps", () => {
+  const { botInput } = require("../engine.js");
+  for (const [y, vy] of [
+    [280, -350],
+    [240, 0],
+    [300, -100],
+  ]) {
+    const m = make(),
+      p = m.players[0];
+    Object.assign(p, { x: 500, y, vy, grounded: false, botClock: 0 });
+    Object.assign(m.players[1], { x: 520, y: 130, invincible: 0 });
+    const input = botInput(p, m, 1 / 120);
+    assert.equal(input.flap, false);
+    if (y === 280) assert.equal(input.dive, true);
+  }
+});
+test("bots can still climb from safe altitudes and survive chasing a ceiling target", () => {
+  const { botInput } = require("../engine.js");
+  const m = make(),
+    p = m.players[0];
+  Object.assign(p, {
+    x: 600,
+    y: 500,
+    vy: 0,
+    grounded: false,
+    botClock: 0,
+    invincible: 0,
+  });
+  Object.assign(m.players[1], { x: 650, y: 130, invincible: 99 });
+  m.powerPickup = { x: 620, y: 130, kind: "flame", ttl: 99 };
+  assert.equal(botInput(p, m, 1 / 120).flap, true);
+  for (let i = 0; i < 600; i++) {
+    m.step(1 / 120, [botInput(p, m, 1 / 120)]);
+  }
+  assert.equal(
+    m.events.filter(
+      (e) => e.type === "death" && e.id === p.id && e.cause === "factory",
+    ).length,
+    0,
+  );
+});
