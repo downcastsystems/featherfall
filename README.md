@@ -174,4 +174,4 @@ Piranha ripples warn for 0.3 seconds before a vertical leap at 740 pixels/second
 
 ### Ironwing Works
 
-The factory joins the arena rotation with mirrored steel platforms and seven spinning ceiling saws. Touching a saw kills a rider; the sawblade power-up instead rebounds with sparks. Respawn protection applies, and environmental saw deaths award no KOs. The N testing key cycles to it like other arenas.
+The factory joins the arena rotation with mirrored steel platforms and overlapping spinning saws covering the entire ceiling. Touching a saw kills a rider; the sawblade power-up instead rebounds with sparks. Respawn protection applies, and environmental saw deaths award no KOs. The N testing key cycles to it like other arenas.

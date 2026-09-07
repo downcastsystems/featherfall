@@ -45,7 +45,7 @@ test("respawn protection blocks saw deaths and a near miss remains safe", () => 
   Object.assign(p, { x: 180, y: 190, invincible: 2 });
   m.stepFactory(m.players.map((p) => ({ ...p })));
   assert.equal(p.alive, true);
-  Object.assign(p, { x: 310, y: 160, invincible: 0 });
+  Object.assign(p, { x: 310, y: 260, invincible: 0 });
   m.stepFactory(m.players.map((p) => ({ ...p })));
   assert.equal(p.alive, true);
 });
@@ -59,4 +59,24 @@ test("powered saw cannot get trapped between ceiling and factory saw", () => {
   assert.ok(p.y > 225);
   assert.ok(p.vy > 0);
   assert.equal(p.alive, true);
+});
+
+test("ceiling saws overlap across the entire width and both wrap edges", () => {
+  const m = make(),
+    saws = m.arena.saws;
+  assert.ok(saws[0].x - saws[0].radius <= 0);
+  assert.ok(saws.at(-1).x + saws.at(-1).radius >= 1920);
+  for (let i = 1; i < saws.length; i++)
+    assert.ok(saws[i].x - saws[i - 1].x < saws[i].radius * 1.4);
+  for (const x of [0, 24, 180, 960, 1896, 1919]) {
+    const n = make(),
+      p = n.players[0];
+    n.equip(p, "sawblade");
+    Object.assign(p, { x, y: 180, vx: 900, vy: -560, invincible: 0 });
+    n.stepFactory(n.players.map((p) => ({ ...p })));
+    assert.equal(p.alive, true);
+    assert.ok(p.y > 230);
+    assert.ok(p.vy > 0);
+    assert.equal(n.events.filter((e) => e.type === "saw-clang").length, 1);
+  }
 });

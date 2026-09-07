@@ -233,7 +233,7 @@
       name: "Ironwing Works",
       motif: "factory",
       saws: Object.freeze(
-        [180, 440, 700, 960, 1220, 1480, 1740].map((x) =>
+        Array.from({ length: 41 }, (_, i) => i * 48).map((x) =>
           Object.freeze({ x, y: 160, radius: 38 }),
         ),
       ),
@@ -605,10 +605,11 @@
       }
     }
     stepFactory(before) {
+      const bounced = new Set();
       for (const saw of this.arena.saws || []) {
         for (const p of this.players) {
           const prev = before[p.id];
-          if (!p.alive || !prev.alive) continue;
+          if (!p.alive || !prev.alive || bounced.has(p.id)) continue;
           const dx = wrapDelta(p.x, prev.x),
             dy = p.y - prev.y;
           const rx = wrapDelta(prev.x, saw.x),
@@ -629,23 +630,12 @@
             this.kill(p, null, "factory");
             continue;
           }
-          const nx0 = rx + dx * t,
-            ny0 = ry + dy * t;
-          const length = Math.hypot(nx0, ny0);
-          let nx = length ? nx0 / length : 0,
-            ny = length ? ny0 / length : 1;
-          // The ceiling leaves no escape above a mounted saw. Deflect into open air.
-          if (saw.y + 4 + ny * (radius + 1) < 120) {
-            nx = 0;
+          // Overlapping blades form a continuous ceiling: rebound below the whole row.
+          const nx = 0,
             ny = 1;
-          }
-          p.x = (((saw.x + nx * (radius + 1)) % W) + W) % W;
-          p.y = saw.y + 4 + ny * (radius + 1);
-          const inward = p.vx * nx + p.vy * ny;
-          if (inward < 0) {
-            p.vx -= 2 * inward * nx;
-            p.vy -= 2 * inward * ny;
-          }
+          p.y = saw.y + 4 + radius + 1;
+          p.vy = Math.max(120, Math.abs(p.vy));
+          bounced.add(p.id);
           p.grounded = false;
           this.events.push({
             type: "saw-clang",
