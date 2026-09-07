@@ -1702,19 +1702,27 @@
       : mode === "teams"
         ? match.players.filter((p) => p.team === result.team)
         : [winner];
-    winners.forEach((p, i) =>
-      drawBird(
-        c,
-        (180 / winners.length) * (i + 0.5),
-        55,
-        p.character,
-        1,
-        true,
-        false,
-        Math.min(3, 3.4 / winners.length),
-        clock,
-      ),
-    );
+    winners.forEach((p, i) => {
+      const portrait = document.createElement("canvas");
+      portrait.width = 320;
+      portrait.height = 168;
+      drawPortrait(portrait.getContext("2d"), p.character);
+      const slotWidth = 180 / winners.length;
+      const width = Math.min(133, slotWidth);
+      const height = (width * 168) / 224;
+      c.imageSmoothingEnabled = false;
+      c.drawImage(
+        portrait,
+        48,
+        0,
+        224,
+        168,
+        slotWidth * (i + 0.5) - width / 2,
+        (100 - height) / 2,
+        width,
+        height,
+      );
+    });
   }
   // Original pixel mounts. The dive pose is artwork only; physics stays shared.
   function drawZombie(c, z, time) {
