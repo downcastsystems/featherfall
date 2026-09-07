@@ -26,13 +26,19 @@ test("sawblade power bounces safely off a ceiling saw", () => {
   const m = make(),
     p = m.players[0];
   m.equip(p, "sawblade");
-  Object.assign(p, { x: 180, y: 245, vx: 0, vy: -560, invincible: 0 });
+  Object.assign(p, {
+    x: 180,
+    y: m.arena.saws[0].y + 85,
+    vx: 0,
+    vy: -560,
+    invincible: 0,
+  });
   const before = m.players.map((p) => ({ ...p }));
-  p.y = 220;
+  p.y = m.arena.saws[0].y + 60;
   m.stepFactory(before);
   assert.equal(p.alive, true);
   assert.equal(p.vy, 560);
-  assert.ok(p.y > 225);
+  assert.ok(p.y > m.arena.saws[0].y + 65);
   assert.equal(m.events.filter((e) => e.type === "saw-clang").length, 1);
   const after = m.players.map((p) => ({ ...p }));
   p.y += 6;
@@ -56,7 +62,7 @@ test("powered saw cannot get trapped between ceiling and factory saw", () => {
   m.equip(p, "sawblade");
   Object.assign(p, { x: 180, y: 120, vx: 900, vy: -560, invincible: 0 });
   m.stepFactory(m.players.map((p) => ({ ...p })));
-  assert.ok(p.y > 225);
+  assert.ok(p.y > m.arena.saws[0].y + 65);
   assert.ok(p.vy > 0);
   assert.equal(p.alive, true);
 });
@@ -75,7 +81,7 @@ test("ceiling saws overlap across the entire width and both wrap edges", () => {
     Object.assign(p, { x, y: 180, vx: 900, vy: -560, invincible: 0 });
     n.stepFactory(n.players.map((p) => ({ ...p })));
     assert.equal(p.alive, true);
-    assert.ok(p.y > 230);
+    assert.ok(p.y > n.arena.saws[0].y + 70);
     assert.ok(p.vy > 0);
     assert.equal(n.events.filter((e) => e.type === "saw-clang").length, 1);
   }
@@ -86,7 +92,7 @@ test("bots brake upward momentum before the saw ceiling and refuse unsafe flaps"
   for (const [y, vy] of [
     [280, -350],
     [240, 0],
-    [300, -100],
+    [280, -100],
   ]) {
     const m = make(),
       p = m.players[0];
@@ -94,7 +100,7 @@ test("bots brake upward momentum before the saw ceiling and refuse unsafe flaps"
     Object.assign(m.players[1], { x: 520, y: 130, invincible: 0 });
     const input = botInput(p, m, 1 / 120);
     assert.equal(input.flap, false);
-    if (y === 280) assert.equal(input.dive, true);
+    if (vy === -350) assert.equal(input.dive, true);
   }
 });
 test("bots can still climb from safe altitudes and survive chasing a ceiling target", () => {

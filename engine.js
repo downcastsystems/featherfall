@@ -234,7 +234,7 @@
       motif: "factory",
       saws: Object.freeze(
         Array.from({ length: 41 }, (_, i) => i * 48).map((x) =>
-          Object.freeze({ x, y: 160, radius: 38 }),
+          Object.freeze({ x, y: 140, radius: 38 }),
         ),
       ),
       platforms: mirroredPlatforms([
