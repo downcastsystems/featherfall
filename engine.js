@@ -791,7 +791,7 @@
           this.piranhas.push({
             x: p.x,
             y: water,
-            vy: -740,
+            vy: -555,
             warning: 0.3,
             alive: true,
           });
@@ -806,8 +806,8 @@
           continue;
         }
         const oldY = f.y;
-        // Faster leap with the same peak height.
-        f.vy += 1350 * dt;
+        // Scale gravity with launch speed squared to preserve the jump height.
+        f.vy += 759.375 * dt;
         f.y += f.vy * dt;
         // Sweep flames against the fish's motion before resolving rider contact.
         const burns = (x, y, dx, dy) => {

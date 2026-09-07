@@ -82,6 +82,7 @@ test("piranhas require a nearby rider over water, warn first, jump vertically an
   const f = m.piranhas[0],
     x = f.x;
   assert.ok(f.warning > 0);
+  assert.equal(f.vy, -555);
   tick(m, 12);
   assert.equal(f.y, 960, "ripple briefly warns before takeoff");
   tick(m, 36);

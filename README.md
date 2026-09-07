@@ -170,7 +170,7 @@ Chirp's larger, heavy-browed pixel portrait follows the supplied sketch. His bea
 
 A stationary yeti occasionally quickly digs out of a clear snowy platform with alternating scoops and flying snow, then pushes a large snowball left or right, then sinks back into the snow. An active dive bomb from above shatters a snowball without hurting the rider; ordinary falling, boosts and other power-ups do not. Snowballs roll at 190 pixels/second, fall onto lower platforms, wrap at the sides, and kill on contact without awarding KOs. Respawn protection still applies. They break into snow on the arena floor. A player near the release cancels the snowball. Hazards pause and reset with the round.
 
-Piranha ripples warn for 0.3 seconds before a vertical leap at 740 pixels/second, keeping approximately the original jump height.
+Piranha ripples warn for 0.3 seconds before a vertical leap at 555 pixels/second, keeping approximately the original jump height.
 
 ### Ironwing Works
 
