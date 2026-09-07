@@ -274,6 +274,12 @@
     tone(460, 0.1, "triangle", 0.05, 700);
     renderSeats();
   }
+  const keyName = (code) =>
+    code
+      .replace("Key", "")
+      .replace("Arrow", "")
+      .replace("ShiftRight", "R.SHIFT")
+      .toUpperCase();
   function rotate(slot, direction) {
     const s = seats[slot];
     if (!s || s.ready) return;
@@ -282,7 +288,9 @@
     s.character =
       Math.abs(direction) === 4
         ? (1 - row) * 4 + col
-        : row * 4 + ((col + direction + 4) % 4);
+        : s.kind === "keyboard"
+          ? (s.character + direction + birds.length) % birds.length
+          : row * 4 + ((col + direction + 4) % 4);
     randomBotCharacters();
     renderSeats();
   }
@@ -334,6 +342,15 @@
         : selectedMode
           ? "READY FOR TAKEOFF"
           : "CHOOSE YOUR MATCH";
+    const keyboardSeat = seats.find((s) => s?.kind === "keyboard");
+    if (keyboardSeat) {
+      const k = keys[keyboardSeat.source];
+      $("mode-message").textContent =
+        selectedMode === "teams"
+          ? `${keyName(k.left)}/${keyName(k.right)} TEAM · ENTER TO FLY · ESC BACK`
+          : `${keyName(k.dive)} NEXT OPTION · ${keyName(k.flap)} / ENTER SELECT · ESC BACK`;
+      $("mode-back").textContent = "ESC · BACK";
+    } else $("mode-back").textContent = "B · BACK";
     ["mode-ffa", "mode-teams", "fly"].forEach((id, i) =>
       $(id).setAttribute("data-pad-focus", modeCursor === i ? "SELECT" : ""),
     );
@@ -342,8 +359,8 @@
     $("seats").innerHTML = seats
       .map((s, i) =>
         s
-          ? `<article class="rider-preview ${s.ready ? "is-ready" : ""}" style="--bird:${birds[s.character].color}"><div>P${i + 1} ${s.kind === "bot" ? "· BOT" : ""}</div><canvas id="preview-${i}" width="240" height="112"></canvas><b>${birds[s.character].name}</b><button data-action="ready" data-seat="${i}" ${s.kind === "bot" ? "disabled" : ""}>${s.ready ? "✓ READY" : "A · READY"}</button></article>`
-          : `<article class="rider-preview empty"><div>P${i + 1}</div><button data-action="join" data-seat="${i}" data-source="${i}">A / START<br>TO JOIN</button></article>`,
+          ? `<article class="rider-preview ${s.ready ? "is-ready" : ""}" style="--bird:${birds[s.character].color}"><div>P${i + 1} ${s.kind === "bot" ? "· BOT" : ""}</div><canvas id="preview-${i}" width="240" height="112"></canvas><b>${birds[s.character].name}</b><button data-action="ready" data-seat="${i}" ${s.kind === "bot" ? "disabled" : ""}>${s.ready ? "✓ READY" : `${s.kind === "keyboard" ? keyName(keys[s.source].flap) : "A"} · READY`}</button></article>`
+          : `<article class="rider-preview empty"><div>P${i + 1}</div><button data-action="join" data-seat="${i}" data-source="${i}">A / START<br>TO JOIN · KEY ${i + 1}</button></article>`,
       )
       .join("");
     $("roster").innerHTML = birds
@@ -388,6 +405,13 @@
     $("lobby-message").textContent = allReady()
       ? "EVERYONE'S READY · A / START TO CONTINUE"
       : "A LOCK IN · B UNREADY · X ADD BOT · Y REMOVE BOT";
+    const keyboardSeat = seats.find((s) => s?.kind === "keyboard");
+    if (keyboardSeat) {
+      const k = keys[keyboardSeat.source];
+      $("lobby-message").textContent = allReady()
+        ? "EVERYONE’S READY · ENTER TO CONTINUE · + / − BOTS"
+        : `${keyName(k.left)}/${keyName(k.right)} PICK · ${keyName(k.flap)} READY · ${keyName(k.boost)} UNREADY · + / − BOTS`;
+    }
     if (allReady()) $("launch").focus();
   }
   $("seats").addEventListener("click", (e) => {
@@ -542,6 +566,10 @@
         "Digit4",
         "KeyP",
         "KeyN",
+        "Equal",
+        "Minus",
+        "NumpadAdd",
+        "NumpadSubtract",
       ].includes(e.code);
     if (gameKey) e.preventDefault();
     if (e.repeat) return;
@@ -584,6 +612,28 @@
       else if (screen === "mode-screen") show("lobby");
       else if (screen === "results") show("lobby");
     } else if (screen === "lobby") {
+      if (["Equal", "NumpadAdd"].includes(e.code)) {
+        join("bot", null);
+        return;
+      }
+      if (["Minus", "NumpadSubtract"].includes(e.code)) {
+        removeBot();
+        return;
+      }
+      const source = keys.findIndex((k) =>
+        [k.left, k.right, k.flap, k.dive].includes(e.code),
+      );
+      if (
+        source >= 0 &&
+        !seats.some((s) => s?.kind === "keyboard" && s.source === source)
+      ) {
+        join(
+          "keyboard",
+          source,
+          seats[source] ? seats.findIndex((s) => !s) : source,
+        );
+        return;
+      }
       if (/^Digit[1-4]$/.test(e.code)) {
         const k = Number(e.code.slice(-1)) - 1;
         const slot = seats[k] ? seats.findIndex((s) => !s) : k;

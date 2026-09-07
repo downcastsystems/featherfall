@@ -1135,3 +1135,40 @@ test("Player 2 arrow flap confirms without also moving the mode cursor", () => {
   f.press("ArrowUp");
   assert.equal(f.match.mode, "teams");
 });
+
+test("keyboard can join, browse all mounts, manage bots, and launch without mouse", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("KeyW");
+  assert.match(f.element("seats").innerHTML, /W · READY/);
+  for (let i = 0; i < 7; i++) f.press("KeyD");
+  assert.match(f.element("seats").innerHTML, /<b>RIPPLE<\/b>/);
+  f.press("Equal");
+  f.press("Equal");
+  f.press("Minus");
+  assert.equal((f.element("seats").innerHTML.match(/· BOT/g) || []).length, 1);
+  f.press("KeyW");
+  assert.equal(f.element("launch").disabled, false);
+  f.press("KeyE");
+  assert.equal(f.element("launch").disabled, true);
+  f.press("KeyW");
+  f.press("Enter");
+  f.press("KeyW");
+  f.press("Enter");
+  assert.equal(f.match.mode, "ffa");
+  assert.equal(f.match.players.length, 2);
+  assert.equal(f.match.players[0].character, 7);
+});
+
+test("all four keyboard control sets join and ready their own seats", () => {
+  const f = fixture();
+  f.press("Enter");
+  for (const key of ["KeyW", "ArrowUp", "KeyI", "KeyT"]) f.press(key);
+  assert.equal(f.element("launch").disabled, true);
+  for (const key of ["KeyW", "ArrowUp", "KeyI", "KeyT"]) f.press(key);
+  assert.equal(f.element("launch").disabled, false);
+  f.press("Enter");
+  f.press("Enter");
+  f.press("Enter");
+  assert.equal(f.match.players.length, 4);
+});

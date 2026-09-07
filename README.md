@@ -18,8 +18,8 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 ### Quick solo test
 
 1. Press Enter to open the lobby.
-2. Press **1** to join the first keyboard seat.
-3. Click **Add bot** one to three times.
+2. Press **W** to join, then **A / D** to browse all eight creatures.
+3. Press **+** (the equals key works too) to add a bot; **−** removes the last bot.
 4. Press W to ready, then Enter to continue. Press Enter to select Free for all, then Enter again to launch.
 5. Use **A / D** to move and tap or hold **W** to flap.
 
@@ -33,8 +33,9 @@ Open **http://localhost:4173** in Chrome or Edge. No `npm install` is needed. St
 | 4    | 4    | F / H              | T                  | G          | Y           |
 
 - Returning from the lobby to the main menu clears every player and bot slot. Reopening character selection starts with an empty lineup.
-- In the lobby, left/right changes your character. Human players can choose the same character; bots choose unused mounts. Names include player numbers, such as SOL (P1).
+- In the lobby, movement or flap joins your keyboard control set; 1–4 also work. The joining press does not ready you. Left/right cycles through all eight characters; dive switches rows. Human players can choose the same character; bots choose unused mounts. Names include player numbers, such as SOL (P1).
 - Your flap key readies your selected character. Click Ready again or press your boost key to unready. Ready choices stay locked until canceled. Enter opens match setup once everyone is ready. Up/down and Enter navigate the title, pause, and results menus. At least two participants are required; bots count.
+- In match setup, your dive key cycles options, flap or Enter selects, and left/right changes your team. Enter launches once the setup is valid. Escape returns to character selection.
 - Escape pauses/resumes. Losing focus automatically pauses the match.
 - M or the Sound button toggles synthesized arcade sound, including during a match. Sound starts on after the first click or keypress. If a controller-only start is blocked by browser audio policy, click **Click for sound** once.
 - Fullscreen is available on the title, lobby, and pause screens. The playfield stays 16:9 on other aspect ratios.
@@ -152,7 +153,6 @@ Match Totals displays a rank beside each player, ordered by round wins, then KOs
 Cinder Crown flashes before an eruption. After a 1.2-second warning, eighteen fireballs fall in a row, half a second apart, sweeping from a randomly chosen side. Fireballs explode against the first platform or vulnerable player they hit. Platforms provide cover; impact particles have no splash damage. The first warning is 10 seconds into the round, with 8–14 seconds of quiet after the last fireball from each wave disappears. A new eruption cannot start while a previous wave or its fireballs remain. Rain pauses and resets with the round.
 
 Every player-attributed zombie kill grants another 10% horizontal movement and boost speed, including kills using powers. Stacks add: 10%, 20%, 30%, and so on. Each kill refreshes the timer to five seconds; expiry or death removes the entire chain. This multiplies rocket speed and applies to horizontal sawblade movement too. The boost meter displays the bonus and remaining seconds. Zombie kills still grant no KOs or wins.
-
 
 ## Snapwater Marsh and Ripple
 
