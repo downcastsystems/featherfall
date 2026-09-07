@@ -165,3 +165,7 @@ Snapwater Marsh joins the shuffle rotation. Its platforms and two small banks ar
 Join with 1–4. Each player's left/right keys navigate a row, the dive key switches rows, flap locks in, and boost cancels readiness. Enter opens match setup once everyone is ready. On setup, up/down selects a mode, flap or Enter confirms, and each player's left/right keys assign their team. The first confirmation chooses the mode; the next launches. Controller instructions take priority in the interface.
 
 Chirp's larger, heavy-browed pixel portrait follows the supplied sketch. His beak and brows animate during event commentary, and exact player-name mentions use the selected mount's color. The game is named One Big Sky; its existing GitHub repository and checkout directory remain featherfall.
+
+### Frostglass Peaks yetis
+
+A stationary yeti occasionally rises from a clear snowy platform, pauses, pushes a large snowball left or right, then sinks back into the snow. Snowballs roll, fall onto lower platforms, wrap at the sides, and kill on contact without awarding KOs. Respawn protection still applies. They break into snow on the arena floor. A player near the release cancels the snowball. Hazards pause and reset with the round.

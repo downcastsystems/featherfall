@@ -1172,3 +1172,26 @@ test("all four keyboard control sets join and ready their own seats", () => {
   f.press("Enter");
   assert.equal(f.match.players.length, 4);
 });
+
+test("snow hazards pause with play and are cleared by a new round", () => {
+  const f = fixture();
+  f.press("Enter");
+  f.press("Digit1");
+  f.press("Digit2");
+  f.launch();
+  f.press("KeyN");
+  f.press("KeyN");
+  f.advance(3.2);
+  assert.equal(f.match.arena.id, "frost");
+  f.match.yetis.push({ x: 960, y: 210, age: 0, direction: 1, pushed: false });
+  f.press("Escape");
+  const state = JSON.stringify(f.match.yetis);
+  f.advance(2);
+  assert.equal(JSON.stringify(f.match.yetis), state);
+  f.press("Enter");
+  f.advance(0.3);
+  assert.notEqual(JSON.stringify(f.match.yetis), state);
+  f.press("KeyN");
+  assert.equal(f.match.yetis.length, 0);
+  assert.equal(f.match.snowballs.length, 0);
+});

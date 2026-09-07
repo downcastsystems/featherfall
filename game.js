@@ -987,6 +987,10 @@
         burst(event.x, event.y, "#ffe8a0", 6, 0.4);
         sound.play("zombie-pop", 1);
       }
+      if (event.type === "snow-pop") {
+        burst(event.x, event.y, "#e5f8ff", 22, 0.8);
+        sound.play("zombie-pop", 0);
+      }
       if (event.type === "zombie-pop") {
         burst(event.x, event.y, "#e84b4b", 15, 0.7);
         burst(event.x, event.y, "#992e3c", 7, 0.5);
@@ -1009,15 +1013,17 @@
           );
         else
           broadcast.say(
-            event.cause === "zombie"
-              ? `${playerName(victim)} ${event.eliminated ? "is out. Outplayed by the dearly departed." : "loses a life to a zombie. Brains were clearly on the menu."}`
-              : event.cause === "water"
-                ? `${playerName(victim)} went swimming. Bold choice. Terrible result.`
-                : event.cause === "piranha"
-                  ? `${playerName(victim)} is on the lunch menu. Finally, some recognition.`
-                  : event.cause === "volcano"
-                    ? `${playerName(victim)} caught a fireball. With their face.`
-                    : `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
+            event.cause === "snowball"
+              ? `${playerName(victim)} lost a snowball fight. Against the entire snowball.`
+              : event.cause === "zombie"
+                ? `${playerName(victim)} ${event.eliminated ? "is out. Outplayed by the dearly departed." : "loses a life to a zombie. Brains were clearly on the menu."}`
+                : event.cause === "water"
+                  ? `${playerName(victim)} went swimming. Bold choice. Terrible result.`
+                  : event.cause === "piranha"
+                    ? `${playerName(victim)} is on the lunch menu. Finally, some recognition.`
+                    : event.cause === "volcano"
+                      ? `${playerName(victim)} caught a fireball. With their face.`
+                      : `${playerName(victim)} ${event.eliminated ? "is out of the round!" : "loses a life. Tough landing!"}`,
             {},
             1,
           );
@@ -1668,14 +1674,6 @@
         );
       }
     } else if (arena.motif === "ice") {
-      // Angular aurora curtains above snow-capped spires.
-      for (let band = 0; band < 3; band++) {
-        for (let x = 0; x < W; x += 24) {
-          const y = 160 + band * 48 + Math.sin(x * 0.004 + band) * 55;
-          g.fillStyle = ["#71d8be16", "#83bfea18", "#b1a6ee12"][band];
-          g.fillRect(x, y, 24, 80 + Math.sin(x * 0.007) * 35);
-        }
-      }
       for (const x of [80, 400, 1170, 1510]) {
         polygon(
           [
@@ -1851,7 +1849,9 @@
       [180, 840, 2.8],
       [910, 920, 1.8],
       [1690, 380, 1.8],
-    ].forEach((p) => pixelCloud(bg, ...p, "#8db9b30b"));
+    ].forEach((p) => {
+      if (arena.motif !== "ice") pixelCloud(bg, ...p, "#8db9b30b");
+    });
     // Distant mountains form a quiet silhouette below the flight space.
     for (let layer = 0; layer < 3; layer++) {
       bg.fillStyle = arena.mountains[layer];
@@ -1977,6 +1977,65 @@
         ctx.fillRect(0, 100, W, H - 180);
       }
     } else {
+      for (const y of match.yetis) {
+        const rise = Math.min(1, y.age / 0.65, (2.3 - y.age) / 0.65);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(y.x - 65, y.y - 65, 130, 65);
+        ctx.clip();
+        ctx.translate(Math.round(y.x), Math.round(y.y + (1 - rise) * 48));
+        ctx.scale(y.direction, 1);
+        // Shaggy shoulders, blue face, two stubby horns and an enthusiastic shove.
+        ctx.fillStyle = "#b4d5e4";
+        ctx.fillRect(-19, -34, 38, 34);
+        ctx.fillStyle = "#edfaff";
+        ctx.fillRect(-16, -42, 30, 38);
+        ctx.fillRect(-22, -31, 41, 22);
+        ctx.fillRect(-12, -48, 6, 9);
+        ctx.fillRect(6, -48, 6, 9);
+        ctx.fillRect(-19, -8, 10, 8);
+        ctx.fillRect(8, -8, 10, 8);
+        ctx.fillStyle = "#6b9eb9";
+        ctx.fillRect(-5, -36, 21, 14);
+        ctx.fillStyle = "#152e49";
+        ctx.fillRect(0, -33, 4, 4);
+        ctx.fillRect(10, -33, 4, 4);
+        ctx.fillRect(5, -25, 9, 3);
+        ctx.fillStyle = "#edfaff";
+        ctx.fillRect(12, -22, y.pushed ? 25 : 14, 8);
+        ctx.restore();
+        ctx.fillStyle = "#e4f8ff";
+        ctx.fillRect(y.x - 25, y.y - 3, 50, 3);
+      }
+      for (const b of match.snowballs) {
+        for (const offset of [
+          0,
+          ...(b.x < 28 ? [W] : b.x > W - 28 ? [-W] : []),
+        ]) {
+          ctx.save();
+          ctx.translate(Math.round(b.x + offset), Math.round(b.y));
+          ctx.fillStyle = "#9bbfd5";
+          ctx.beginPath();
+          ctx.moveTo(-15, -25);
+          ctx.lineTo(15, -25);
+          ctx.lineTo(25, -15);
+          ctx.lineTo(25, 15);
+          ctx.lineTo(15, 25);
+          ctx.lineTo(-15, 25);
+          ctx.lineTo(-25, 15);
+          ctx.lineTo(-25, -15);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = "#edfaff";
+          ctx.fillRect(-17, -20, 31, 35);
+          ctx.fillRect(-21, -12, 41, 22);
+          ctx.rotate(b.angle);
+          ctx.fillStyle = "#c0dfed";
+          ctx.fillRect(-11, -15, 8, 5);
+          ctx.fillRect(8, 7, 6, 8);
+          ctx.restore();
+        }
+      }
       if (match.arena.waterY !== undefined) {
         const y = match.arena.waterY;
         ctx.fillStyle = "#245d65";

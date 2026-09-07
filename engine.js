@@ -390,6 +390,9 @@
       this.volcanoFireballs = [];
       this.eruption = null;
       this.nextEruption = 10;
+      this.yetis = [];
+      this.snowballs = [];
+      this.nextYeti = 6;
       this.piranhas = [];
       this.nextPiranha = 3;
       this.rng = rng;
@@ -576,6 +579,101 @@
         this.eruption = null;
         this.nextEruption = this.time + 8 + this.rng() * 6;
       }
+    }
+    stepSnow(dt, before) {
+      if (this.arena.id !== "frost") return;
+      const clear = (x, y) =>
+        !this.players.some(
+          (p) =>
+            p.alive &&
+            Math.abs(wrapDelta(p.x, x)) < 95 &&
+            Math.abs(p.y - y) < 65,
+        );
+      if (this.time >= this.nextYeti) {
+        this.nextYeti = this.time + 6 + this.rng() * 5;
+        const sites = this.platforms.filter(
+          (s) => !s.ground && clear(s.x + s.w / 2, s.y),
+        );
+        if (sites.length && this.snowballs.length < 6) {
+          const s =
+            sites[
+              Math.min(sites.length - 1, Math.floor(this.rng() * sites.length))
+            ];
+          this.yetis.push({
+            x: s.x + s.w / 2,
+            y: s.y,
+            age: 0,
+            direction: this.rng() < 0.5 ? -1 : 1,
+            pushed: false,
+          });
+        }
+      }
+      for (const y of this.yetis) {
+        y.age += dt;
+        if (!y.pushed && y.age >= 1.2) {
+          y.pushed = true;
+          // Cancel an occupied release instead of materializing a lethal ball on a rider.
+          if (clear(y.x, y.y)) {
+            this.snowballs.push({
+              x: y.x + y.direction * 43,
+              y: y.y - 25,
+              vx: y.direction * 155,
+              vy: 0,
+              angle: 0,
+            });
+          }
+        }
+      }
+      this.yetis = this.yetis.filter((y) => y.age < 2.3);
+      for (const b of this.snowballs) {
+        const oldX = b.x,
+          oldY = b.y;
+        const dx = b.vx * dt;
+        b.x = (((b.x + dx) % W) + W) % W;
+        b.vy += 720 * dt;
+        b.y += b.vy * dt;
+        b.angle += dx / 25;
+        const landing = this.platforms
+          .filter(
+            (s) =>
+              b.x + 20 > s.x &&
+              b.x - 20 < s.x + s.w &&
+              oldY + 25 <= s.y + 0.01 &&
+              b.y + 25 >= s.y,
+          )
+          .sort((a, b) => a.y - b.y)[0];
+        if (landing) {
+          b.y = landing.y - 25;
+          b.vy = 0;
+        }
+        for (const p of this.players) {
+          const prev = before[p.id];
+          if (!p.alive || !prev.alive || p.invincible > 0) continue;
+          const slab = (v, d, r) =>
+            d === 0
+              ? Math.abs(v) <= r
+                ? [-Infinity, Infinity]
+                : null
+              : [(-r - v) / d, (r - v) / d].sort((a, b) => a - b);
+          const tx = slab(
+            wrapDelta(prev.x, oldX),
+            wrapDelta(p.x, prev.x) - dx,
+            35,
+          );
+          const ty = slab(prev.y - 4 - oldY, p.y - prev.y - (b.y - oldY), 37);
+          if (
+            tx &&
+            ty &&
+            Math.max(0, tx[0], ty[0]) <= Math.min(1, tx[1], ty[1])
+          )
+            this.kill(p, null, "snowball");
+        }
+        if (landing?.ground || b.y > H + 30) {
+          b.dead = true;
+          this.events.push({ type: "snow-pop", x: b.x, y: b.y });
+        }
+      }
+      this.snowballs = this.snowballs.filter((b) => !b.dead);
     }
     overWater(x) {
       return (
@@ -1070,6 +1168,7 @@
       this.stepZombies(dt, before);
       this.stepVolcano(dt, before);
       this.stepSwamp(dt, before);
+      this.stepSnow(dt, before);
       this.projectiles = this.projectiles.filter(
         (f) => f.ttl > 0 && f.x >= -20 && f.x <= W + 20 && f.y >= 0 && f.y <= H,
       );
