@@ -971,6 +971,11 @@
         event.id !== undefined
           ? birds[match.players[event.id].character].color
           : "#ffe9b4";
+      if (event.type === "piranha-pop") {
+        burst(event.x, event.y, "#ffad62", 14, 0.6);
+        burst(event.x, event.y, "#9be1d3", 8, 0.4);
+        sound.play("zombie-pop", 0);
+      }
       if (event.type === "splash") {
         burst(event.x, event.y, "#9be1d3", 12, 0.4);
         sound.play("splash");

@@ -166,3 +166,38 @@ test("water arenas exclude sawblades from both normal and debug power spawns", (
     assert.deepEqual([...dryKinds].sort(), ["flame", "rocket", "sawblade"]);
   }
 });
+
+test("orbiting flame destroys piranhas without awarding KOs", () => {
+  const m = make();
+  const p = m.players[0];
+  Object.assign(p, { x: 700, y: 800, power: "flame", invincible: 0 });
+  const ball = m.fireballs(p)[0];
+  m.piranhas.push({ x: ball.x, y: ball.y, vy: -740, warning: 0, alive: true });
+  m.stepSwamp(
+    1 / 120,
+    m.players.map((p) => ({ ...p })),
+  );
+  assert.equal(m.piranhas.length, 0);
+  assert.equal(p.alive, true);
+  assert.equal(p.kills, 0);
+  assert.equal(m.events.filter((e) => e.type === "piranha-pop").length, 1);
+});
+
+test("launched flame sweeps through fish and misses do not destroy them", () => {
+  for (const hit of [true, false]) {
+    const m = make();
+    m.piranhas.push({ x: 700, y: 800, vy: -740, warning: 0, alive: true });
+    m.projectiles.push({
+      oldX: 650,
+      oldY: hit ? 800 : 700,
+      x: 750,
+      y: hit ? 800 : 700,
+      owner: 0,
+    });
+    m.stepSwamp(
+      1 / 120,
+      m.players.map((p) => ({ ...p })),
+    );
+    assert.equal(m.piranhas.length, hit ? 0 : 1);
+  }
+});

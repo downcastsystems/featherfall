@@ -744,6 +744,38 @@
         // Faster leap with the same peak height.
         f.vy += 1350 * dt;
         f.y += f.vy * dt;
+        // Sweep flames against the fish's motion before resolving rider contact.
+        const burns = (x, y, dx, dy) => {
+          const rx = wrapDelta(x, f.x),
+            ry = y - oldY;
+          const relativeY = dy - (f.y - oldY);
+          const t = clamp(
+            -(rx * dx + ry * relativeY) /
+              (dx * dx + relativeY * relativeY || 1),
+            0,
+            1,
+          );
+          return Math.hypot(rx + dx * t, ry + relativeY * t) < 23;
+        };
+        const orbitHit = this.players.some(
+          (p) =>
+            p.alive &&
+            p.power === "flame" &&
+            this.fireballs(p).some((ball) => {
+              const prev = before[p.id];
+              const x = prev.x + Math.cos(ball.angle - dt * 5) * 65;
+              const y = prev.y + Math.sin(ball.angle - dt * 5) * 65;
+              return burns(x, y, wrapDelta(ball.x, x), ball.y - y);
+            }),
+        );
+        const launchedHit = this.projectiles.some((ball) =>
+          burns(ball.oldX, ball.oldY, ball.x - ball.oldX, ball.y - ball.oldY),
+        );
+        if (orbitHit || launchedHit) {
+          f.alive = false;
+          this.events.push({ type: "piranha-pop", x: f.x, y: f.y });
+          continue;
+        }
         // Sweep relative motion so dives and boosts cannot tunnel through a jumping fish.
         for (const p of this.players) {
           const prev = before[p.id];
