@@ -970,9 +970,19 @@ footer {
     animation: none;
   }
 }
+#scoreboard.match-totals .score-row {
+  position: relative;
+  min-height: 82px;
+  padding: 14px 0 14px 136px;
+}
 .final-rank {
-  display: inline-block;
-  min-width: 42px;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 96px;
+  font-size: 60px;
+  line-height: 1;
   color: #fff1ba;
 }
 
