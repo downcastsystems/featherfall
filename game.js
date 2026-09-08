@@ -1711,7 +1711,7 @@
       .map((p) => {
         const total = series.players[p.id],
           award = final ? series.awards[p.id] : null;
-        return `<div class="score-row"><div class="score-line"><span style="color:${birds[p.character].color}">${final ? `<b class="final-rank" aria-label="Rank ${p.rank}">#${p.rank}</b> ` : ""}${playerName(p)}${mode === "teams" ? ` · ${TEAMS[p.team].name}` : ""}</span><span>${koLabel(p.kills)} · ${total.wins} ${total.wins === 1 ? "WIN" : "WINS"}${final ? "" : ` · ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT`}</span></div>${award ? `<div class="award"><strong>${award.label}</strong><small>${award.reason}</small></div>` : ""}</div>`;
+        return `<div class="score-row"><div class="score-line"><span style="color:${birds[p.character].color}">${final ? `<b class="final-rank" aria-label="Rank ${p.rank}"><span class="rank-prefix" aria-hidden="true">#</span>${p.rank}</b> ` : ""}${playerName(p)}${mode === "teams" ? ` · ${TEAMS[p.team].name}` : ""}</span><span>${koLabel(p.kills)} · ${total.wins} ${total.wins === 1 ? "WIN" : "WINS"}${final ? "" : ` · ${p.lives} ${p.lives === 1 ? "LIFE" : "LIVES"} LEFT`}</span></div>${award ? `<div class="award"><strong>${award.label}</strong><small>${award.reason}</small></div>` : ""}</div>`;
       })
       .join("");
     const c = $("winner-bird").getContext("2d");

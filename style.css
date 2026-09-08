@@ -976,6 +976,9 @@ footer {
   padding: 14px 0 14px 136px;
 }
 .final-rank {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
   position: absolute;
   left: 0;
   top: 50%;
@@ -1221,4 +1224,12 @@ footer {
 
 .rider-preview.is-ready button:disabled {
   opacity: 1;
+}
+
+.final-rank .rank-prefix {
+  font-family: Arial, sans-serif;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 5px;
 }
